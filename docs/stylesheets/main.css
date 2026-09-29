@@ -13,6 +13,33 @@ mark {
   width: 100%;
 }
 
+/* Navigation Bar */
+.navbar {
+  padding-top: 0.05rem;
+  padding-bottom: 0.05rem;
+  height: 4rem;
+}
+
+header .navbar-left {
+  padding-top: 0.15rem;
+  padding-bottom: 0.15rem;
+}
+
+.navbar .nav-link {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.navbar .navbar-form {
+  margin-top: 2rem;
+}
+
+.navbar .navbar-form .form-control {
+  height: 28px;
+  min-height: 28px;
+  padding: 2px 8px;
+}
+
 /* Scrollbar */
 
 .slim-scroll::-webkit-scrollbar {
