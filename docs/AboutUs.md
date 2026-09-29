@@ -23,7 +23,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 ### Yanzhu Chen
 
-<img src="yanzhu9.png" width="200px">
+<img src="images/yanzhu9.png" width="200px">
 
 [[github](http://github.com/yanzhu9)]
 
