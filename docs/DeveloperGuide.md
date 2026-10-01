@@ -296,32 +296,204 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Use cases
 
-(For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified otherwise)
+(For all use cases below, the **System** is the `TutEasy` and the **Actor** is the `tutor`, unless specified otherwise.
+Common preconditions for all use cases below: TutEasy is running and ready to accept command inputs.)
 
-**Use case: Delete a person**
+**Use case: Add a student**
 
 **MSS**
 
-1.  User requests to list persons
-2.  AddressBook shows a list of persons
-3.  User requests to delete a specific person in the list
-4.  AddressBook deletes the person
+1. Tutor requests to add a student with the required details.
+2. TutEasy validates the details and checks for duplicates.
+3. TutEasy adds the student to the address book.
+4. TutEasy updates the timetable view if the student has class timing information.
+5. TutEasy displays a success message.
 
-    Use case ends.
+   Use case ends.
 
 **Extensions**
 
-* 2a. The list is empty.
+* 1a. Tutor omits one or more required fields or uses an invalid flag.
 
-  Use case ends.
+    * 1a1. TutEasy shows an error message describing the invalid input.
 
-* 3a. The given index is invalid.
+      Use case ends.
 
-    * 3a1. AddressBook shows an error message.
+* 1b. Tutor enters an invalid phone number, email, subject, cost, or class timing.
 
-      Use case resumes at step 2.
+    * 1b1. TutEasy shows an error message describing the invalid field.
 
-*{More to be added}*
+      Use case ends.
+
+* 2a. The student already exists in the address book.
+
+    * 2a1. TutEasy rejects the duplicate entry.
+    * 2a2. TutEasy shows a duplicate student error message.
+
+      Use case ends.
+
+---
+
+**Use case: Delete a student**
+
+**MSS**
+
+1. Tutor requests to delete a specific student by name.
+2. TutEasy searches for students matching the given name.
+3. TutEasy finds exactly one matching student.
+4. TutEasy deletes the student from the address book.
+5. TutEasy refreshes the student list immediately.
+6. TutEasy displays a success message.
+
+   Use case ends.
+
+**Extensions**
+
+* 2a. No student with the given name is found.
+
+    * 2a1. TutEasy does not delete any student.
+    * 2a2. TutEasy shows an error message.
+
+      Use case ends.
+
+* 3a. More than one student with the same name is found.
+
+    * 3a1. TutEasy does not delete any student.
+    * 3a2. TutEasy shows a message asking the tutor to select the correct student from the displayed matches.
+
+      Use case ends.
+
+* 4a. The deletion cannot be saved due to a storage failure.
+
+    * 4a1. The student’s contact remains in the address book.
+    * 4a2. TutEasy shows an error message.
+
+      Use case ends.
+
+* 1a. Tutor submits the same deletion while the first delete request is still being processed.
+
+    * 1a1. TutEasy ignores the additional request.
+    * 1a2. TutEasy shows a message informing the tutor that the deletion is already being processed.
+
+      Use case resumes at step 2 for the original request.
+
+---
+
+**Use case: Tag a student**
+
+**MSS**
+
+1. Tutor requests to add one or more tags to a specific student by index.
+2. TutEasy checks that the index is valid.
+3. TutEasy validates each tag.
+4. TutEasy checks that none of the tags already exist for that student.
+5. TutEasy adds the tags to the student’s tag set.
+6. TutEasy displays the tags next to the student’s name.
+7. TutEasy displays a success message.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. Tutor does not provide any tag.
+
+    * 1a1. TutEasy shows an error message.
+
+      Use case ends.
+
+* 2a. The given index is out of range.
+
+    * 2a1. TutEasy shows an error message.
+
+      Use case ends.
+
+* 3a. A tag contains invalid characters or invalid formatting.
+
+    * 3a1. TutEasy rejects the tag.
+    * 3a2. TutEasy shows an invalid tag format error message.
+
+      Use case ends.
+
+* 4a. A tag already exists for the student.
+
+    * 4a1. TutEasy rejects the duplicate tag.
+    * 4a2. TutEasy shows a duplicate tag error message.
+
+      Use case ends.
+
+* 5a. The student already has the maximum number of tags.
+
+    * 5a1. TutEasy rejects the new tag.
+    * 5a2. TutEasy shows a tag limit error message.
+
+      Use case ends.
+
+---
+
+**Use case: View timetable**
+
+**MSS**
+
+1. Tutor requests to view the timetable.
+2. TutEasy checks the current view mode.
+3. TutEasy switches the display to timetable mode.
+4. TutEasy shows students and classes arranged by day and time.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. Tutor requests to view the default student list.
+
+    * 1a1. TutEasy switches the display back to the original alphabetically sorted student list.
+
+      Use case ends.
+
+* 2a. Tutor is already in the requested view mode.
+
+    * 2a1. TutEasy does not switch the view.
+    * 2a2. TutEasy shows a message informing the tutor that the current view mode is already active.
+
+      Use case ends.
+
+* 1b. Tutor enters non-alphabetic characters that cause an invalid command.
+
+    * 1b1. TutEasy shows an error message.
+
+      Use case ends.
+
+---
+
+**Use case: Find students**
+
+**MSS**
+
+1. Tutor requests to find students by one or more keywords or by a tag.
+2. TutEasy searches the student list.
+3. TutEasy displays the matching students.
+
+   Use case ends.
+
+**Extensions**
+
+* 2a. No student matches the keyword or tag.
+
+    * 2a1. TutEasy displays a message to show that there are no people matched.
+
+      Use case ends.
+
+* 2b. Multiple search results refer to the same student.
+
+    * 2b1. TutEasy removes the duplicate results.
+    * 2b2. TutEasy displays only the unique matching students.
+
+      Use case resumes at step 3.
+
+* 1a. There is no whitespace between `find` and the keyword.
+
+    * 1a1. TutEasy shows an unknown command error message.
+
+      Use case ends.
 
 ### Non-Functional Requirements
 
