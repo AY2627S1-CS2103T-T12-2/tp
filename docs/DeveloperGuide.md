@@ -283,21 +283,59 @@ _{Explain here how the data archiving feature will be implemented}_
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
-| Priority | As a …                                     | I want to …                                     | So that I can…                                                          |
-|----------|--------------------------------------------|-------------------------------------------------|-------------------------------------------------------------------------|
-| `* * *`  | new user                                   | see usage instructions                          | refer to instructions when I forget how to use the App                  |
-| `* * *`  | tutor                                      | add a new student                               |                                                                         |
-| `* * *`  | user                                       | delete a student                                | remove entries that I no longer need                                    |
-| `* * *`  | user                                       | find a student by name                          | locate details of students without having to go through the entire list |
-| `* * *`  | tutor                                      | sort and filter my students                     | manage a large student base easily                                      |
-| `* *`    | user                                       | hide private contact details                    | minimize chance of someone else seeing them by accident                 |
-| `* *`    | tutor                                      | record a student's subject and academic level   | prepare suitable lesson materials for them                              |
-| `* *`    | tutor                                      | record a parent or guardians' contact details   | contact them when necessary                                             |
-| `* *`    | tutor                                      | record my hourly rate for each student or class | know how much to charge                                                 |
-| `* *`    | tutor                                      | record whether a lesson has been paid for       | track outstanding payments                                              |
-| `*`      | user with many persons in the address book | sort persons by name                            | locate a person easily                                                  |
-
-*{More to be added}*
+| Priority | As a …                                      | I want to …                                                        | So that I can…                                                             |
+|----------|---------------------------------------------|--------------------------------------------------------------------|---------------------------------------------------------------------------|
+| `* * *`  | new user                                    | see usage instructions                                             | refer to them when I forget how to use the app                            |
+| `* * *`  | tutor                                       | add a student's contact details                                    | store all their information in one place                                  |
+| `* * *`  | tutor                                       | edit or remove student records                                     | keep my student list accurate                                             |
+| `* * *`  | tutor                                       | search for students by name, subject, or class                     | find their information quickly                                            |
+| `* * *`  | tutor                                       | record a student's subject and academic level                      | prepare suitable lesson materials                                         |
+| `* * *`  | tutor                                       | create a class with its subject, level, times, mode, and location  | represent a complete teaching arrangement                                 |
+| `* * *`  | tutor                                       | give each class a recognizable name or identifier                  | distinguish classes with similar subjects and times                       |
+| `* * *`  | tutor                                       | edit or remove a class independently of its students               | change my timetable without incorrectly altering student records          |
+| `* * *`  | tutor                                       | add students to or remove students from a class                    | maintain individual and group class rosters                               |
+| `* * *`  | tutor teaching a student multiple subjects  | enroll the same student in multiple classes                        | represent their different teaching arrangements accurately               |
+| `* * *`  | tutor                                       | record each class's day, start time, and end time                  | know when I am teaching and identify scheduling overlaps                  |
+| `* * *`  | tutor                                       | create either a one-off or recurring class with a recurrence period | schedule both ad-hoc and regular lessons                                  |
+| `* * *`  | tutor with recurring classes                | have recurring lessons appear automatically                        | avoid creating the same lesson every week                                 |
+| `* * *`  | tutor                                       | view my tutoring classes in a weekly timetable                     | understand my schedule at a glance                                        |
+| `* * *`  | tutor                                       | navigate between timetable weeks and return to the current week   | inspect past and future schedules easily                                  |
+| `* * *`  | tutor                                       | see the subject, students, time, and teaching mode for each class  | view important lesson details immediately                                 |
+| `* * *`  | tutor                                       | view all classes for a selected day                                | prepare for upcoming lessons                                               |
+| `* * *`  | tutor teaching online and in-person lessons | record whether a lesson is online or in person                     | know how to attend it                                                      |
+| `* * *`  | tutor                                       | store the meeting link or lesson address                           | access the class location quickly                                          |
+| `* * *`  | tutor                                       | reschedule or cancel an individual lesson                          | keep timetable changes accurate                                            |
+| `* * *`  | tutor changing a recurring class            | apply a change to one lesson, future lessons, or the entire series | avoid changing unrelated lessons accidentally                             |
+| `* * *`  | tutor                                       | mark a lesson as scheduled, completed, or cancelled                | keep my timetable and lesson history accurate                             |
+| `* * *`  | tutor with a busy schedule                  | be warned when two classes overlap                                 | avoid scheduling conflicts                                                 |
+| `* * *`  | tutor                                       | view a class's roster and each student's enrolled classes         | understand class membership from either direction                         |
+| `* * *`  | tutor                                       | clear an active search, filter, or grouping                        | return to the complete student list easily                                |
+| `* * *`  | keyboard-driven user                        | receive clear success messages and actionable error messages      | know whether a command worked and how to correct invalid input            |
+| `* * *`  | tutor                                       | have my student and class information saved and restored automatically | avoid losing my records when the application restarts                 |
+| `* * *`  | tutor                                       | have invalid dates, times, contact details, and recurrence rules rejected | prevent incorrect data from entering my records or timetable       |
+| `* *`    | tutor                                       | undo an accidental add, edit, deletion, cancellation, or rescheduling | recover from mistakes quickly                                          |
+| `* *`    | tutor                                       | archive inactive students and discontinued classes                | hide old records without permanently deleting their history               |
+| `* *`    | tutor                                       | be warned about possible duplicate students or classes            | avoid creating redundant records accidentally                             |
+| `* *`    | tutor                                       | export and restore a backup of my records                          | recover from device or file failure                                       |
+| `* *`    | tutor deleting a student or class           | see which enrollments and lessons will be affected                | avoid removing related information accidentally                           |
+| `* *`    | tutor                                       | view my next few lessons when the application opens               | prepare without navigating the full timetable                             |
+| `* *`    | tutor with many students                    | sort and filter my students                                        | manage a large contact list easily                                         |
+| `* *`    | tutor                                       | add notes about each student                                       | remember their learning needs and progress                                 |
+| `* *`    | tutor who conducts in-person lessons        | store a student's home address                                     | travel to their lessons easily                                             |
+| `* *`    | tutor teaching minors                       | record a parent or guardian's contact details                      | contact them when necessary                                                |
+| `* *`    | tutor                                       | assign class tags to students                                      | identify students from the same class easily                               |
+| `* *`    | tutor                                       | view students grouped by subject                                   | plan similar lessons together                                              |
+| `* *`    | tutor                                       | view students grouped by timeslot                                  | see who attends each class                                                 |
+| `* *`    | tutor                                       | record what was covered in the previous lesson                     | plan the next lesson effectively                                           |
+| `* *`    | tutor                                       | record homework or follow-up tasks for each student                | track their work                                                           |
+| `* *`    | tutor preparing for upcoming classes        | view upcoming classes together with student notes                  | prepare before teaching                                                    |
+| `* *`    | tutor                                       | record student attendance                                          | keep an accurate lesson history                                            |
+| `* *`    | privacy-conscious tutor                     | hide private contact details                                       | reduce the chance of someone else seeing them accidentally                 |
+| `*`      | tutor                                       | record my hourly rate for each student or class                    | know how much to charge                                                     |
+| `*`      | tutor                                       | record whether a lesson has been paid for                          | track outstanding payments                                                 |
+| `*`      | tutor                                       | view the amount earned from lessons over a period                  | monitor my tutoring income                                                 |
+| `*`      | tutor                                       | give each student a profile picture                                | identify the student visually                                              |
+| `*`      | tutor who is also a student                 | keep my tutoring timetable separate from my school calendar       | avoid confusing tutoring classes with university commitments              |
 
 ### Use cases
 
