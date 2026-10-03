@@ -304,9 +304,13 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 **MSS**
 
 1. Tutor requests to add a student with the required details.
+
 2. TutEasy validates the details and checks for duplicates.
+
 3. TutEasy adds the student to the address book.
+
 4. TutEasy updates the timetable view if the student has class timing information.
+
 5. TutEasy displays a success message.
 
    Use case ends.
@@ -317,13 +321,13 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 
     * 1a1. TutEasy shows an error message describing the invalid input.
 
-      Use case ends.
+      Use case resumes at step 1.
 
 * 1b. Tutor enters an invalid phone number, email, subject, cost, or class timing.
 
     * 1b1. TutEasy shows an error message describing the invalid field.
 
-      Use case ends.
+      Use case resumes at step 1.
 
 * 2a. The student already exists in the address book.
 
@@ -332,17 +336,20 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 
       Use case ends.
 
----
-
 **Use case: Delete a student**
 
 **MSS**
 
 1. Tutor requests to delete a specific student by name.
+
 2. TutEasy searches for students matching the given name.
+
 3. TutEasy finds exactly one matching student.
+
 4. TutEasy deletes the student from the address book.
+
 5. TutEasy refreshes the student list immediately.
+
 6. TutEasy displays a success message.
 
    Use case ends.
@@ -354,14 +361,14 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
     * 2a1. TutEasy does not delete any student.
     * 2a2. TutEasy shows an error message.
 
-      Use case ends.
+      Use case resumes at step 1.
 
 * 3a. More than one student with the same name is found.
 
     * 3a1. TutEasy does not delete any student.
     * 3a2. TutEasy shows a message asking the tutor to select the correct student from the displayed matches.
 
-      Use case ends.
+      Use case resumes at step 4.
 
 * 4a. The deletion cannot be saved due to a storage failure.
 
@@ -377,18 +384,22 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 
       Use case resumes at step 2 for the original request.
 
----
-
 **Use case: Tag a student**
 
 **MSS**
 
 1. Tutor requests to add one or more tags to a specific student by index.
+
 2. TutEasy checks that the index is valid.
+
 3. TutEasy validates each tag.
+
 4. TutEasy checks that none of the tags already exist for that student.
+
 5. TutEasy adds the tags to the student’s tag set.
+
 6. TutEasy displays the tags next to the student’s name.
+
 7. TutEasy displays a success message.
 
    Use case ends.
@@ -399,27 +410,27 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 
     * 1a1. TutEasy shows an error message.
 
-      Use case ends.
+      Use case resumes at step 1.
 
 * 2a. The given index is out of range.
 
     * 2a1. TutEasy shows an error message.
 
-      Use case ends.
+      Use case resumes at step 1.
 
 * 3a. A tag contains invalid characters or invalid formatting.
 
     * 3a1. TutEasy rejects the tag.
     * 3a2. TutEasy shows an invalid tag format error message.
 
-      Use case ends.
+      Use case resumes at step 1.
 
 * 4a. A tag already exists for the student.
 
     * 4a1. TutEasy rejects the duplicate tag.
     * 4a2. TutEasy shows a duplicate tag error message.
 
-      Use case ends.
+      Use case resumes at step 1.
 
 * 5a. The student already has the maximum number of tags.
 
@@ -428,15 +439,16 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 
       Use case ends.
 
----
-
 **Use case: View timetable**
 
 **MSS**
 
 1. Tutor requests to view the timetable.
+
 2. TutEasy checks the current view mode.
+
 3. TutEasy switches the display to timetable mode.
+
 4. TutEasy shows students and classes arranged by day and time.
 
    Use case ends.
@@ -456,20 +468,20 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 
       Use case ends.
 
-* 1b. Tutor enters non-alphabetic characters that cause an invalid command.
+* 1b. Tutor enters non‑alphabetic characters that cause an invalid command.
 
     * 1b1. TutEasy shows an error message.
 
-      Use case ends.
-
----
+      Use case resumes at step 1.
 
 **Use case: Find students**
 
 **MSS**
 
 1. Tutor requests to find students by one or more keywords or by a tag.
+
 2. TutEasy searches the student list.
+
 3. TutEasy displays the matching students.
 
    Use case ends.
@@ -480,7 +492,7 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 
     * 2a1. TutEasy displays a message to show that there are no people matched.
 
-      Use case ends.
+      Use case resumes at step 1.
 
 * 2b. Multiple search results refer to the same student.
 
@@ -493,7 +505,7 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 
     * 1a1. TutEasy shows an unknown command error message.
 
-      Use case ends.
+      Use case resumes at step 1.
 
 ### Non-Functional Requirements
 
