@@ -270,13 +270,18 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Target user profile**:
 
-* has a need to manage a significant number of contacts
-* prefers desktop apps over other types of applications
-* can type fast
-* prefers typing to mouse interactions
-* is reasonably comfortable using CLI apps
+TutEasy is designed for student tutors who:
+* tutor multiple students across different subjects and timeslots
+* conduct individual or group lessons, either online or in person
+* need to manage student details and recurring lesson schedules in one place
+* prefer fast, keyboard-based interactions and are comfortable using a CLI
+* want to keep their tutoring schedule separate from their school or personal calendar
+* use other platforms to communicate with students and parents, as TutEasy focuses on student and lesson management
 
-**Value proposition**: Manage contacts faster than with a typical mouse-driven GUI application.
+**Value proposition**: 
+TutEasy helps tutors manage their tutoring schedules efficiently through a CLI-based desktop application. It stores student and lesson information (such as contact details, class timings, teaching modes, class timing etc.) in a central location. 
+
+Features such as timetable view mode and search features allow tutors to organise, retrieve and display information in an organised manner. Tutors can use TutEasy to  keep track of their students' necessary information, allowing them to prepare for upcoming lessons and avoid scheduling conflicts.
 
 
 ### User stories
