@@ -11,22 +11,20 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 ## Project team
 
-### John Doe
+### Wen Yi Liang
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/wenyiliangg.png" width="200px">
 
-[[homepage](http://www.comp.nus.edu.sg/~damithch)]
-[[github](https://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
+[[github](https://github.com/wenyiliangg)]
 
-* Role: Project Advisor
+* Role: Developer
+* Responsibilities: Vibe coder
 
-### Jane Doe
+### Yanzhu Chen
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/yanzhu9.png" width="200px">
 
-[[github](http://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
+[[github](http://github.com/yanzhu9)]
 
 * Role: Team Lead
 * Responsibilities: UI
@@ -40,21 +38,21 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 * Role: Developer
 * Responsibilities: Data
 
-### Jean Doe
+### Laxshan
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/slytherax.png" width="200px">
 
-[[github](http://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
+[[github](http://github.com/Slytherax)]
+[[portfolio](*TODO LATER*)]
 
 * Role: Developer
-* Responsibilities: Dev Ops + Threading
+* Responsibilities: Codex Specialist
 
-### James Doe
+### Aarav Jayapalan 
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/purpleshark74.png" width="200px">
 
-[[github](http://github.com/johndoe)]
+[[github](http://github.com/purpleshark74)]
 [[portfolio](team/johndoe.md)]
 
 * Role: Developer
