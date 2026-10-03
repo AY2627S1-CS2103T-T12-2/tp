@@ -283,14 +283,19 @@ _{Explain here how the data archiving feature will be implemented}_
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
-| Priority | As a …                                    | I want to …                 | So that I can…                                                        |
-|----------|--------------------------------------------|------------------------------|------------------------------------------------------------------------|
-| `* * *`  | new user                                   | see usage instructions       | refer to instructions when I forget how to use the App                 |
-| `* * *`  | user                                       | add a new person             |                                                                        |
-| `* * *`  | user                                       | delete a person              | remove entries that I no longer need                                   |
-| `* * *`  | user                                       | find a person by name        | locate details of persons without having to go through the entire list |
-| `* *`    | user                                       | hide private contact details | minimize chance of someone else seeing them by accident                |
-| `*`      | user with many persons in the address book | sort persons by name         | locate a person easily                                                 |
+| Priority | As a …                                     | I want to …                                     | So that I can…                                                          |
+|----------|--------------------------------------------|-------------------------------------------------|-------------------------------------------------------------------------|
+| `* * *`  | new user                                   | see usage instructions                          | refer to instructions when I forget how to use the App                  |
+| `* * *`  | tutor                                      | add a new student                               |                                                                         |
+| `* * *`  | user                                       | delete a student                                | remove entries that I no longer need                                    |
+| `* * *`  | user                                       | find a student by name                          | locate details of students without having to go through the entire list |
+| `* * *`  | tutor                                      | sort and filter my students                     | manage a large student base easily                                      |
+| `* *`    | user                                       | hide private contact details                    | minimize chance of someone else seeing them by accident                 |
+| `* *`    | tutor                                      | record a student's subject and academic level   | prepare suitable lesson materials for them                              |
+| `* *`    | tutor                                      | record a parent or guardians' contact details   | contact them when necessary                                             |
+| `* *`    | tutor                                      | record my hourly rate for each student or class | know how much to charge                                                 |
+| `* *`    | tutor                                      | record whether a lesson has been paid for       | track outstanding payments                                              |
+| `*`      | user with many persons in the address book | sort persons by name                            | locate a person easily                                                  |
 
 *{More to be added}*
 
