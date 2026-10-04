@@ -572,8 +572,33 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 
 ### Glossary
 
-* **Mainstream OS**: Windows, Linux, Unix, or macOS
-* **Private contact detail**: A contact detail that is not meant to be shared with others
+* **Mainstream OS**: A commonly used operating system, such as Windows, macOS or Linux.
+* **Student**: A person whose details are stored by the tutor and who can be enrolled in one or more classes.
+* **Tutor**: The user of TutEasy who manages student records, classes and lessons.
+* **Contact details**: Information used to contact a student or their parent or guardian, such as a phone number, email address or home address.
+* **Private contact detail**: A contact detail that the tutor considers sensitive and does not want others to see.
+* **Teaching mode**: Whether a lesson is conducted online or in person.
+* **Location**: The physical address or online meeting link used to attend a lesson.
+* **Subject**: The area of study taught in a class, such as Mathematics, Science or a specific university module.
+* **Academic level**: The educational stage of a student or the intended standard of a class, such as Primary 5, Secondary 4 or JC1.
+* **Class**: A teaching arrangement for one or more students, with an associated subject, academic level, schedule, teaching mode and location.
+* **Lesson**: An individual session of a class, scheduled for a specific date and time.
+* **One-off class**: A class consisting of a single scheduled lesson.
+* **Recurring class**: A class whose lessons repeat according to a specified recurrence rule.
+* **Recurrence rule**: The pattern determining when lessons repeat, such as every Monday or every two weeks.
+* **Recurrence period**: The interval between repeating lessons, such as one week or two weeks.
+* **Lesson series**: The set of lessons associated with a recurring class.
+* **Timeslot**: A period identified by its start and end times on a specified day or date.
+* **Scheduling conflict**: An overlap in the scheduled times of two or more lessons.
+* **Scheduled**: A lesson status indicating that the lesson is planned and has not been marked as completed or cancelled.
+* **Completed**: A lesson status indicating that the lesson has taken place.
+* **Cancelled**: A lesson status indicating that a planned lesson has been called off.
+* **Enrolment**: The association between a student and a class they attend.
+* **Roster**: The list of students enrolled in a particular class.
+* **Tag**: A label attached to a student record to help organise or identify students. A tag does not itself represent enrolment in a class.
+* **Timetable**: A calendar view showing the tutor’s lessons and their scheduled dates and times.
+* **Archived record**: An inactive student or class record hidden from the active view but retained for reference rather than permanently deleted.
+* **MSS (Main Success Scenario)**: The sequence of steps through which a use case achieves its intended outcome without encountering exceptional situations.
 
 --------------------------------------------------------------------------------------------------------------------
 
