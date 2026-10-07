@@ -12,7 +12,7 @@ public class Cost {
 
     public static final String MESSAGE_CONSTRAINTS =
             "Cost should be a positive integer";
-    public static final String VALIDATION_REGEX = "\\d{1,}";
+    public static final String VALIDATION_REGEX = "[1-9][0-9]*";
     public final String value;
 
     /**

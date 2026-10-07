@@ -30,7 +30,7 @@ public class Subject {
      * Returns true if a given string is a valid subject.
      */
     public static boolean isValidSubject(String test) {
-    return test.matches(VALIDATION_REGEX) && !test.isBlank();
+        return test.matches(VALIDATION_REGEX) && !test.isBlank();
     }
 
     @Override
