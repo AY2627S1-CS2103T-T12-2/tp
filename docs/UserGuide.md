@@ -84,7 +84,8 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... `
 
 <box type="tip" seamless>
 
-**Tip:** A person can have any number of tags, including zero.
+**Tip:** A student can have up to 10 tags. Tags must be unique, contain no more than 30 characters,
+and use only lowercase letters, numbers, and single hyphens between characters.
 </box>
 
 Examples:
@@ -112,6 +113,32 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]... `
 Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing tags.
+
+### Tagging a student: `tag`
+
+Adds one or more tags to an existing student.
+
+Format: `tag INDEX TAG [MORE_TAGS]`
+
+* `INDEX` refers to the index number shown in the displayed student list.
+* Each tag must be unique for that student.
+* A tag can contain up to 30 characters and use only lowercase letters, numbers, and single hyphens between
+  characters.
+* Spaces separate tags. For example, `exam prep` adds the two tags `exam` and `prep`, while `exam-prep` adds
+  one tag. Use hyphens when a single tag contains multiple words.
+* A student can have at most 10 tags.
+
+Example: `tag 3 exam-prep needs-follow-up`
+
+### Removing tags from a student: `untag`
+
+Removes one or more existing tags from a student, or removes all their tags.
+
+Format: `untag INDEX TAG [MORE_TAGS]` or `untag INDEX -all`
+
+Examples:
+* `untag 2 parent-follow-up`
+* `untag 5 -all`
 
 ### Locating persons by name: `find`
 
@@ -199,6 +226,8 @@ Action     | Format, Examples
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
+**Tag**    | `tag INDEX TAG [MORE_TAGS]`<br> e.g., `tag 3 exam-prep needs-follow-up`
+**Untag**  | `untag INDEX TAG [MORE_TAGS]` or `untag INDEX -all`<br> e.g., `untag 2 parent-follow-up`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List**   | `list`
 **Help**   | `help`
