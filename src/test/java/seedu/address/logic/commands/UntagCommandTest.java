@@ -1,5 +1,6 @@
 package seedu.address.logic.commands;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
@@ -81,6 +82,20 @@ public class UntagCommandTest {
         assertFalse(standardCommand.equals(new UntagCommand(INDEX_SECOND_PERSON, getTagSet("friends"))));
         assertFalse(standardCommand.equals(new UntagCommand(INDEX_FIRST_PERSON, getTagSet("urgent"))));
         assertFalse(standardCommand.equals(new UntagCommand(INDEX_FIRST_PERSON)));
+
+        // same index and tags but different remove-all setting -> returns false
+        UntagCommand removeNoTagsCommand = new UntagCommand(INDEX_FIRST_PERSON, Set.of());
+        assertFalse(removeNoTagsCommand.equals(new UntagCommand(INDEX_FIRST_PERSON)));
+    }
+
+    @Test
+    public void toStringMethod() {
+        Set<Tag> tagsToRemove = getTagSet("friends");
+        UntagCommand untagCommand = new UntagCommand(INDEX_FIRST_PERSON, tagsToRemove);
+        String expected = UntagCommand.class.getCanonicalName() + "{targetIndex=" + INDEX_FIRST_PERSON
+                + ", tagsToRemove=" + tagsToRemove + ", shouldRemoveAll=false}";
+
+        assertEquals(expected, untagCommand.toString());
     }
 
     private static Set<Tag> getTagSet(String... tagNames) {

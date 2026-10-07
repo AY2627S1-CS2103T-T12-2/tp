@@ -1,5 +1,6 @@
 package seedu.address.logic.commands;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
@@ -100,6 +101,16 @@ public class TagCommandTest {
         assertFalse(standardCommand.equals(new ClearCommand()));
         assertFalse(standardCommand.equals(new TagCommand(INDEX_SECOND_PERSON, getTagSet("exam-prep"))));
         assertFalse(standardCommand.equals(new TagCommand(INDEX_FIRST_PERSON, getTagSet("urgent"))));
+    }
+
+    @Test
+    public void toStringMethod() {
+        Set<Tag> tagsToAdd = getTagSet("exam-prep");
+        TagCommand tagCommand = new TagCommand(INDEX_FIRST_PERSON, tagsToAdd);
+        String expected = TagCommand.class.getCanonicalName() + "{targetIndex=" + INDEX_FIRST_PERSON
+                + ", tagsToAdd=" + tagsToAdd + "}";
+
+        assertEquals(expected, tagCommand.toString());
     }
 
     private static Set<Tag> getTagSet(String... tagNames) {

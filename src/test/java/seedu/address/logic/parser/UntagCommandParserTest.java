@@ -39,6 +39,12 @@ public class UntagCommandParserTest {
     }
 
     @Test
+    public void parse_invalidIndex_throwsParseException() {
+        assertParseFailure(parser, "a friends",
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT, UntagCommand.MESSAGE_USAGE));
+    }
+
+    @Test
     public void parse_removeAllWithTag_throwsParseException() {
         assertParseFailure(parser, "1 -all friends",
                 String.format(MESSAGE_INVALID_COMMAND_FORMAT, UntagCommand.MESSAGE_USAGE));
