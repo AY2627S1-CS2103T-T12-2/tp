@@ -1,7 +1,7 @@
 package seedu.address.storage;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -54,7 +54,7 @@ class JsonAdaptedPerson {
         phone = source.getPhone().value;
         email = source.getEmail().value;
         address = source.getAddress().value;
-        tags.addAll(source.getTags().stream()
+        tags.addAll(source.getTagNames().stream()
                 .map(JsonAdaptedTag::new)
                 .collect(Collectors.toList()));
     }
@@ -102,7 +102,13 @@ class JsonAdaptedPerson {
         }
         final Address modelAddress = new Address(address);
 
-        final Set<Tag> modelTags = new HashSet<>(personTags);
+        final Set<Tag> modelTags = new LinkedHashSet<>(personTags);
+        if (modelTags.size() != personTags.size()) {
+            throw new IllegalValueException(Tag.MESSAGE_DUPLICATE_TAGS);
+        }
+        if (modelTags.size() > Tag.MAX_TAGS_PER_PERSON) {
+            throw new IllegalValueException(Tag.MESSAGE_TAG_LIMIT);
+        }
         return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags);
     }
 

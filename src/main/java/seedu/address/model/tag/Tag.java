@@ -9,8 +9,13 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
  */
 public class Tag {
 
-    public static final String MESSAGE_CONSTRAINTS = "Tag names should be alphanumeric";
-    public static final String VALIDATION_REGEX = "\\p{Alnum}+";
+    public static final int MAX_TAG_LENGTH = 30;
+    public static final int MAX_TAGS_PER_PERSON = 10;
+    public static final String MESSAGE_CONSTRAINTS = "Tags must be 1 to 30 characters long and contain only "
+            + "lowercase letters, numbers, and single hyphens between characters.";
+    public static final String MESSAGE_DUPLICATE_TAGS = "Duplicate tags are not allowed.";
+    public static final String MESSAGE_TAG_LIMIT = "A student can have at most 10 tags.";
+    public static final String VALIDATION_REGEX = "[a-z0-9]+(?:-[a-z0-9]+)*";
 
     public final String tagName;
 
@@ -29,7 +34,7 @@ public class Tag {
      * Returns true if a given string is a valid tag name.
      */
     public static boolean isValidTagName(String test) {
-        return test.matches(VALIDATION_REGEX);
+        return test.length() <= MAX_TAG_LENGTH && test.matches(VALIDATION_REGEX);
     }
 
     @Override
