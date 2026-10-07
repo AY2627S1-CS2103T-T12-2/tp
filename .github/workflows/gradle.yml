@@ -29,7 +29,17 @@ jobs:
           java-package: jdk+fx
 
       - name: Build and check with Gradle
+        if: runner.os != 'Linux'
         run: ./gradlew check coverage
+
+      - name: Build and check with Gradle using a virtual display
+        if: runner.os == 'Linux'
+        run: |
+          if ! command -v xvfb-run > /dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y xvfb
+          fi
+          xvfb-run -a ./gradlew check coverage
 
       - name: Upload coverage reports to Codecov
         if: runner.os == 'Linux'
