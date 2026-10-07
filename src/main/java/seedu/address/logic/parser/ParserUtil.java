@@ -124,7 +124,7 @@ public class ParserUtil {
         }
         return tagSet;
     }
-    
+
     /**
      * Parses a subject, trimming leading and trailing whitespace.
      *
