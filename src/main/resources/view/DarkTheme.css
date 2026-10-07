@@ -132,7 +132,7 @@
     -fx-text-fill: #010504;
 }
 
-.list-cell .tag-label {
+.list-cell .tag-container .label {
     -fx-background-color: #96d35f;
     -fx-background-radius: 4;
     -fx-padding: 2 6 2 6;
