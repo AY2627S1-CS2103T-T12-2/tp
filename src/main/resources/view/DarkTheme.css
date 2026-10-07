@@ -132,6 +132,16 @@
     -fx-text-fill: #010504;
 }
 
+.list-cell .tag-label {
+    -fx-background-color: #96d35f;
+    -fx-background-radius: 4;
+    -fx-padding: 2 6 2 6;
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 10px;
+    -fx-text-fill: #17210f;
+    -fx-opacity: 1;
+}
+
 .stack-pane {
      -fx-background-color: derive(#1d1d1d, 20%);
 }
