@@ -9,7 +9,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
 import java.util.Collections;
-import java.util.LinkedHashSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -101,11 +101,9 @@ public class EditCommand extends Command {
         Address updatedAddress = editPersonDescriptor.getAddress().orElse(personToEdit.getAddress());
         Set<Tag> updatedTags = editPersonDescriptor.getTags().orElse(personToEdit.getTags());
 
-        return new Person(
-            updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags,
-            personToEdit.getSubjects(),
-            personToEdit.getCost(),
-            personToEdit.getLesson());
+        return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags,
+                personToEdit.getLessons(), personToEdit.getSubjects(), personToEdit.getCost(),
+                personToEdit.getLesson());
     }
 
     @Override
@@ -200,7 +198,7 @@ public class EditCommand extends Command {
          * A defensive copy of {@code tags} is used internally.
          */
         public void setTags(Set<Tag> tags) {
-            this.tags = (tags != null) ? new LinkedHashSet<>(tags) : null;
+            this.tags = (tags != null) ? new HashSet<>(tags) : null;
         }
 
         /**

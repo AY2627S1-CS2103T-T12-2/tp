@@ -20,6 +20,7 @@ import seedu.address.model.person.Person;
 class JsonSerializableAddressBook {
 
     public static final String MESSAGE_DUPLICATE_PERSON = "Persons list contains duplicate person(s).";
+    public static final String MESSAGE_CLASS_COST_CONFLICT = "Students in the same class have different costs.";
 
     private final List<JsonAdaptedPerson> persons = new ArrayList<>();
 
@@ -28,7 +29,9 @@ class JsonSerializableAddressBook {
      */
     @JsonCreator
     public JsonSerializableAddressBook(@JsonProperty("persons") List<JsonAdaptedPerson> persons) {
-        this.persons.addAll(persons);
+        if (persons != null) {
+            this.persons.addAll(persons);
+        }
     }
 
     /**
@@ -51,6 +54,20 @@ class JsonSerializableAddressBook {
             Person person = jsonAdaptedPerson.toModelType();
             if (addressBook.hasPerson(person)) {
                 throw new IllegalValueException(MESSAGE_DUPLICATE_PERSON);
+            }
+            boolean hasInternalCostConflict = person.getLessons().stream().anyMatch(first ->
+                    person.getLessons().stream().anyMatch(second -> first != second && first.isSameClass(second)
+                            && !first.getCost().equals(second.getCost())));
+            if (hasInternalCostConflict) {
+                throw new IllegalValueException(MESSAGE_CLASS_COST_CONFLICT);
+            }
+            boolean hasCostConflict = addressBook.getPersonList().stream()
+                    .flatMap(existingPerson -> existingPerson.getLessons().stream())
+                    .anyMatch(existingLesson -> person.getLessons().stream().anyMatch(candidateLesson ->
+                            existingLesson.isSameClass(candidateLesson)
+                                    && !existingLesson.getCost().equals(candidateLesson.getCost())));
+            if (hasCostConflict) {
+                throw new IllegalValueException(MESSAGE_CLASS_COST_CONFLICT);
             }
             addressBook.addPerson(person);
         }

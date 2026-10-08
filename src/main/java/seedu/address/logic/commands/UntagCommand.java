@@ -80,8 +80,8 @@ public class UntagCommand extends Command {
         }
 
         Person untaggedPerson = new Person(personToUntag.getName(), personToUntag.getPhone(), personToUntag.getEmail(),
-                personToUntag.getAddress(), updatedTags, personToUntag.getSubjects(), personToUntag.getCost(),
-                personToUntag.getLesson());
+                personToUntag.getAddress(), updatedTags, personToUntag.getLessons(), personToUntag.getSubjects(),
+                personToUntag.getCost(), personToUntag.getLesson());
         model.setPerson(personToUntag, untaggedPerson);
 
         if (shouldRemoveAll) {

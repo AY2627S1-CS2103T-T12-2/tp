@@ -192,6 +192,23 @@ public class StudentDetailsIntegrationTest {
     }
 
     @Test
+    public void loadLegacyJson_withCompleteStudentDetails_migratesLesson() throws Exception {
+        String json = "{\"name\":\"John Davis\",\"phone\":\"91234567\","
+                + "\"email\":\"johndavis@gmail.com\",\"address\":\"Clementi\",\"tags\":[],"
+                + "\"subjects\":[\"Math\"],\"cost\":\"30\",\"lesson\":\"Monday1800\"}";
+
+        Person restored = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class).toModelType();
+
+        assertEquals(Set.of(new seedu.address.model.lesson.Lesson(
+                new seedu.address.model.lesson.Subject("Math"),
+                new seedu.address.model.lesson.Cost("30"),
+                new seedu.address.model.lesson.LessonTiming("Monday1800-1900"))), restored.getLessons());
+        assertEquals(Set.of(new Subject("Math")), restored.getSubjects());
+        assertEquals(Optional.of(new Cost("30")), restored.getCost());
+        assertEquals(Optional.of(new Lesson("Monday1800")), restored.getLesson());
+    }
+
+    @Test
     public void loadInvalidStudentDetails_rejected() {
         List<JsonAdaptedPerson> invalidRecords = new ArrayList<>();
         for (List<String> subjects : List.of(List.of("Math!"), List.of(" "), Arrays.asList((String) null))) {

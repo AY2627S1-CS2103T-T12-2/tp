@@ -1,14 +1,13 @@
 package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_LESSON;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
 import java.util.List;
 
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
-import seedu.address.model.person.LessonContainsKeywordsPredicate;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.TagContainsKeywordsPredicate;
 
@@ -29,41 +28,31 @@ public class FindCommandParser implements Parser<FindCommand> {
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
         }
 
-        if (trimmedArgs.startsWith(PREFIX_TAG.getPrefix())) {
-            return parseTagFindCommand(trimmedArgs.substring(PREFIX_TAG.getPrefix().length()));
-        }
-
-        if (trimmedArgs.startsWith(PREFIX_LESSON.getPrefix())) {
-            return parseLessonFindCommand(trimmedArgs.substring(PREFIX_LESSON.getPrefix().length()));
+        if (trimmedArgs.startsWith(PREFIX_TAG.toString()) || trimmedArgs.startsWith(PREFIX_CLASS.toString())) {
+            ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" " + trimmedArgs, PREFIX_TAG, PREFIX_CLASS);
+            boolean hasTag = arguments.getValue(PREFIX_TAG).isPresent();
+            boolean hasClass = arguments.getValue(PREFIX_CLASS).isPresent();
+            if (hasTag == hasClass || !arguments.getPreamble().isEmpty()) {
+                throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
+            }
+            arguments.verifyNoDuplicatePrefixesFor(PREFIX_TAG, PREFIX_CLASS);
+            if (hasTag) {
+                String tagArguments = arguments.getValue(PREFIX_TAG).get().trim();
+                if (tagArguments.isEmpty()) {
+                    throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
+                }
+                List<String> tagKeywords = List.of(tagArguments.split("\\s+"));
+                for (String keyword : tagKeywords) {
+                    ParserUtil.parseTag(keyword);
+                }
+                return new FindCommand(new TagContainsKeywordsPredicate(tagKeywords));
+            }
+            return new FindCommand(ParserUtil.parseLessonStart(arguments.getValue(PREFIX_CLASS).get()));
         }
 
         String[] nameKeywords = trimmedArgs.split("\\s+");
 
         return new FindCommand(new NameContainsKeywordsPredicate(List.of(nameKeywords)));
-    }
-
-    private FindCommand parseTagFindCommand(String args) throws ParseException {
-        String trimmedArgs = args.trim();
-        if (trimmedArgs.isEmpty()) {
-            throw new ParseException(
-                    String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
-        }
-
-        String[] tagKeywords = trimmedArgs.split("\\s+");
-
-        return new FindCommand(new TagContainsKeywordsPredicate(List.of(tagKeywords)));
-    }
-
-    private FindCommand parseLessonFindCommand(String args) throws ParseException {
-        String trimmedArgs = args.trim();
-        if (trimmedArgs.isEmpty()) {
-            throw new ParseException(
-                    String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
-        }
-
-        String[] lessonKeywords = trimmedArgs.split("\\s+");
-
-        return new FindCommand(new LessonContainsKeywordsPredicate(List.of(lessonKeywords)));
     }
 
 }

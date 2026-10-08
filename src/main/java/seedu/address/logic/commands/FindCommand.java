@@ -7,35 +7,51 @@ import java.util.function.Predicate;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.model.Model;
+import seedu.address.model.lesson.LessonStart;
+import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
 
 /**
- * Finds and lists all persons in the address book whose name, tag, or lesson contains any of the argument keywords.
+ * Finds and lists all persons in the address book whose name contains any of the argument keywords.
  * Keyword matching is case insensitive.
  */
 public class FindCommand extends Command {
 
     public static final String COMMAND_WORD = "find";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Finds all persons whose names, tags, or lessons contain any of "
-            + "the specified keywords (case-insensitive) and displays them as a list with index numbers.\n"
-            + "Parameters: KEYWORD [MORE_KEYWORDS]..., t/TAG_KEYWORD [MORE_TAG_KEYWORDS]..., "
-            + "or c/LESSON_KEYWORD [MORE_LESSON_KEYWORDS]...\n"
-            + "Example: " + COMMAND_WORD + " alice bob charlie\n"
-            + "Example: " + COMMAND_WORD + " t/friends\n"
-            + "Example: " + COMMAND_WORD + " c/Monday";
+    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Finds persons by name, tag, or lesson start.\n"
+            + "Parameters: KEYWORD [MORE_KEYWORDS]... | t/TAG | c/DAYHHmm\n"
+            + "Examples: " + COMMAND_WORD + " alice bob; " + COMMAND_WORD + " t/priority; "
+            + COMMAND_WORD + " c/Monday1800";
 
     private final Predicate<Person> predicate;
+    private final LessonStart lessonStart;
 
+    public FindCommand(NameContainsKeywordsPredicate predicate) {
+        this((Predicate<Person>) predicate);
+    }
+
+    /** Creates a command that finds people using the given predicate. */
     public FindCommand(Predicate<Person> predicate) {
-        this.predicate = requireNonNull(predicate);
+        this.predicate = predicate;
+        this.lessonStart = null;
+    }
+
+    /** Creates a command that finds people enrolled in lessons starting at the given time. */
+    public FindCommand(LessonStart lessonStart) {
+        this.predicate = null;
+        this.lessonStart = lessonStart;
     }
 
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
-        model.updateFilteredPersonList(predicate);
+        if (lessonStart == null) {
+            model.updateFilteredPersonList(predicate);
+        } else {
+            model.updateFilteredPersonList(person -> person.getLessons().stream()
+                    .anyMatch(lesson -> lessonStart.matches(lesson.getTiming())));
+        }
         return new CommandResult(
                 String.format(Messages.MESSAGE_PERSONS_LISTED_OVERVIEW, model.getFilteredPersonList().size()));
     }
@@ -51,13 +67,16 @@ public class FindCommand extends Command {
             return false;
         }
 
-        return predicate.equals(otherFindCommand.predicate);
+        return java.util.Objects.equals(predicate, otherFindCommand.predicate)
+                && java.util.Objects.equals(lessonStart, otherFindCommand.lessonStart);
     }
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this)
-                .add("predicate", predicate)
-                .toString();
+        ToStringBuilder builder = new ToStringBuilder(this).add("predicate", predicate);
+        if (lessonStart != null) {
+            builder.add("lessonStart", lessonStart);
+        }
+        return builder.toString();
     }
 }

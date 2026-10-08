@@ -37,6 +37,10 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.AddCommand;
+import seedu.address.model.lesson.Cost;
+import seedu.address.model.lesson.Lesson;
+import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.Subject;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
@@ -135,6 +139,22 @@ public class AddCommandParserTest {
         Person expectedPerson = new PersonBuilder(AMY).withTags().build();
         assertParseSuccess(parser, NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY + ADDRESS_DESC_AMY,
                 new AddCommand(expectedPerson));
+    }
+
+    @Test
+    public void parse_withClass_success() {
+        Lesson lesson = new Lesson(new Subject("Math"), new Cost("30"),
+                new LessonTiming("Monday1800-1930"));
+        Person expectedPerson = new PersonBuilder(AMY).withTags().withLessons(lesson).build();
+        assertParseSuccess(parser, NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY + ADDRESS_DESC_AMY
+                + " sub/Math cost/30 c/Monday1800-1930", new AddCommand(expectedPerson));
+    }
+
+    @Test
+    public void parse_incompleteClass_failure() {
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddCommand.MESSAGE_USAGE);
+        assertParseFailure(parser, NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY + ADDRESS_DESC_AMY
+                + " sub/Math c/Monday1800-1930", expectedMessage);
     }
 
     @Test

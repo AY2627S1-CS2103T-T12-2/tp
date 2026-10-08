@@ -3,6 +3,8 @@ package seedu.address.model.person;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Objects;
@@ -10,12 +12,12 @@ import java.util.Optional;
 import java.util.Set;
 
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.model.lesson.Lesson;
 import seedu.address.model.tag.Tag;
 
 /**
- * Represents a person and their student details in the address book.
- * Guarantees: fields are non-null, field values are validated, and the person is immutable.
- * Cost and lesson timing may be absent.
+ * Represents a Person in the address book.
+ * Guarantees: details are present and not null, field values are validated, immutable.
  */
 public class Person {
 
@@ -27,37 +29,82 @@ public class Person {
     // Data fields
     private final Address address;
     private final Set<Tag> tags = new LinkedHashSet<>();
-    private final Set<Subject> subjects;
-    private final Optional<Cost> cost;
-    private final Optional<Lesson> lesson;
+    private final Set<Lesson> lessons = new LinkedHashSet<>();
+    private final Set<Subject> legacySubjects;
+    private final Optional<Cost> legacyCost;
+    private final Optional<seedu.address.model.person.Lesson> legacyLesson;
 
     /**
-     * Creates a person without additional student details.
-     * Preserves compatibility with existing code that uses the original constructor.
+     * Every field must be present and not null.
      */
     public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
-        this(name, phone, email, address, tags,
-                Set.of(), Optional.empty(), Optional.empty());
+        this(name, phone, email, address, tags, Collections.emptySet());
     }
 
     /**
-     * Creates a person with additional student details.
-     * All arguments must be non-null. Cost and lesson timing may be empty optionals.
-     * Defensive copies of tags and subjects prevent external modification.
+     * Every field must be present and not null.
      */
-    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags,
-            Set<Subject> subjects, Optional<Cost> cost, Optional<Lesson> lesson) {
-        requireAllNonNull(name, phone, email, address, tags, subjects, cost, lesson);
+    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags, Set<Lesson> lessons) {
+        this(name, phone, email, address, tags, lessons, Set.of(), Optional.empty(), Optional.empty());
+    }
 
+    /**
+     * Creates a person while retaining student fields from the previous storage model.
+     * The legacy fields remain available until all saved data has been migrated.
+     */
+    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags, Set<Lesson> lessons,
+            Set<Subject> legacySubjects, Optional<Cost> legacyCost,
+            Optional<seedu.address.model.person.Lesson> legacyLesson) {
+        requireAllNonNull(name, phone, email, address, tags, lessons,
+                legacySubjects, legacyCost, legacyLesson);
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.address = address;
         checkArgument(tags.size() <= Tag.MAX_TAGS_PER_PERSON, Tag.MESSAGE_TAG_LIMIT);
         this.tags.addAll(tags);
-        this.subjects = Set.copyOf(subjects);
-        this.cost = cost;
-        this.lesson = lesson;
+        this.lessons.addAll(lessons);
+        this.legacySubjects = Set.copyOf(legacySubjects);
+        this.legacyCost = legacyCost;
+        this.legacyLesson = legacyLesson;
+    }
+
+    /**
+     * Creates a person using the student fields from the previous model.
+     */
+    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags,
+            Set<Subject> subjects, Optional<Cost> cost,
+            Optional<seedu.address.model.person.Lesson> lesson) {
+        this(name, phone, email, address, tags, migrateLegacyLessons(subjects, cost, lesson),
+                subjects, cost, lesson);
+    }
+
+    private static Set<Lesson> migrateLegacyLessons(Set<Subject> subjects, Optional<Cost> cost,
+            Optional<seedu.address.model.person.Lesson> lesson) {
+        requireAllNonNull(subjects, cost, lesson);
+        if (subjects.isEmpty() || cost.isEmpty() || lesson.isEmpty()) {
+            return Set.of();
+        }
+
+        String legacyTiming = lesson.get().toString();
+        String startText = legacyTiming.substring(legacyTiming.length() - 4);
+        LocalTime start = LocalTime.parse(startText, DateTimeFormatter.ofPattern("HHmm"));
+        LocalTime end = start.plusHours(1);
+        if (!end.isAfter(start)) {
+            end = LocalTime.of(23, 59);
+        }
+        if (!end.isAfter(start)) {
+            return Set.of();
+        }
+
+        String migratedTiming = legacyTiming + "-" + end.format(DateTimeFormatter.ofPattern("HHmm"));
+        Set<Lesson> migrated = new LinkedHashSet<>();
+        for (Subject subject : subjects) {
+            migrated.add(new Lesson(new seedu.address.model.lesson.Subject(subject.toString()),
+                    new seedu.address.model.lesson.Cost(cost.get().toString()),
+                    new seedu.address.model.lesson.LessonTiming(migratedTiming)));
+        }
+        return migrated;
     }
 
     public Name getName() {
@@ -77,45 +124,36 @@ public class Person {
     }
 
     /**
-     * Returns an unmodifiable view of the person's tags.
+     * Returns an immutable tag set, which throws {@code UnsupportedOperationException}
+     * if modification is attempted.
      */
     public Set<Tag> getTags() {
         return Collections.unmodifiableSet(tags);
     }
 
-    /**
-     * Returns the tag names in insertion order as an immutable set.
-     */
-    public Set<String> getTagNames() {
-        Set<String> tagNames = new LinkedHashSet<>();
-        tags.stream().map(tag -> tag.tagName).forEach(tagNames::add);
-        return Collections.unmodifiableSet(tagNames);
+    /** Returns the immutable set of lessons in which this person is enrolled. */
+    public Set<Lesson> getLessons() {
+        return Collections.unmodifiableSet(lessons);
     }
 
-    /**
-     * Returns the person's immutable set of subjects.
-     */
+    /** Returns subjects retained from the previous student model. */
     public Set<Subject> getSubjects() {
-        return subjects;
+        return Collections.unmodifiableSet(new LinkedHashSet<>(legacySubjects));
     }
 
-    /**
-     * Returns the hourly cost, or an empty optional if unspecified.
-     */
+    /** Returns the cost retained from the previous student model. */
     public Optional<Cost> getCost() {
-        return cost;
+        return legacyCost;
     }
 
-    /**
-     * Returns the provisional lesson timing, or an empty optional if unspecified.
-     */
-    public Optional<Lesson> getLesson() {
-        return lesson;
+    /** Returns the lesson start retained from the previous student model. */
+    public Optional<seedu.address.model.person.Lesson> getLesson() {
+        return legacyLesson;
     }
 
     /**
      * Returns true if both persons have the same name.
-     * Defines identity for duplicate detection independently of other details.
+     * This defines a weaker notion of equality between two persons.
      */
     public boolean isSamePerson(Person otherPerson) {
         if (otherPerson == this) {
@@ -127,8 +165,8 @@ public class Person {
     }
 
     /**
-     * Returns true if both persons have the same identity and data fields,
-     * including their subjects, cost, and lesson timing.
+     * Returns true if both persons have the same identity and data fields.
+     * This defines a stronger notion of equality between two persons.
      */
     @Override
     public boolean equals(Object other) {
@@ -146,27 +184,34 @@ public class Person {
                 && email.equals(otherPerson.email)
                 && address.equals(otherPerson.address)
                 && tags.equals(otherPerson.tags)
-                && subjects.equals(otherPerson.subjects)
-                && cost.equals(otherPerson.cost)
-                && lesson.equals(otherPerson.lesson);
+                && lessons.equals(otherPerson.lessons)
+                && legacySubjects.equals(otherPerson.legacySubjects)
+                && legacyCost.equals(otherPerson.legacyCost)
+                && legacyLesson.equals(otherPerson.legacyLesson);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, phone, email, address, tags, subjects, cost, lesson);
+        // use this method for custom fields hashing instead of implementing your own
+        return Objects.hash(name, phone, email, address, tags, lessons,
+                legacySubjects, legacyCost, legacyLesson);
     }
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this)
+        ToStringBuilder builder = new ToStringBuilder(this)
                 .add("name", name)
                 .add("phone", phone)
                 .add("email", email)
                 .add("address", address)
-                .add("tags", tags)
-                .add("subjects", subjects)
-                .add("cost", cost)
-                .add("lesson", lesson)
-                .toString();
+                .add("tags", tags);
+        if (!lessons.isEmpty() && legacySubjects.isEmpty() && legacyCost.isEmpty() && legacyLesson.isEmpty()) {
+            builder.add("lessons", lessons);
+        }
+        builder.add("subjects", legacySubjects)
+                .add("cost", legacyCost)
+                .add("lesson", legacyLesson);
+        return builder.toString();
     }
+
 }

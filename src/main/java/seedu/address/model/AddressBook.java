@@ -87,9 +87,8 @@ public class AddressBook implements ReadOnlyAddressBook {
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this)
-                .add("persons", persons)
-                .toString();
+        ToStringBuilder builder = new ToStringBuilder(this).add("persons", persons);
+        return builder.toString();
     }
 
     @Override
