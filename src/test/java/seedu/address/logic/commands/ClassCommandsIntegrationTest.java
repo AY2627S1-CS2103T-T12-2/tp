@@ -57,12 +57,15 @@ public class ClassCommandsIntegrationTest {
     }
 
     @Test
-    public void timetable_groupsSameClassStudents() throws CommandException {
+    public void timetable_switchesViewWithoutChangingModel() throws CommandException {
         new AddClassCommand(Index.fromOneBased(1), LESSON).execute(model);
         new AddClassCommand(Index.fromOneBased(2), LESSON).execute(model);
-        String output = new TimetableCommand().execute(model).getFeedbackToUser();
-        assertTrue(output.contains("Math"));
-        assertTrue(output.contains("Alice Pauline"));
-        assertTrue(output.contains("Benson Meier"));
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+
+        CommandResult result = new TimetableCommand().execute(model);
+
+        assertEquals(TimetableCommand.MESSAGE_SUCCESS, result.getFeedbackToUser());
+        assertEquals(CommandResult.ViewChange.TIMETABLE, result.getViewChange());
+        assertEquals(expectedModel, model);
     }
 }

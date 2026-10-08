@@ -71,7 +71,10 @@ The **API** of this component is specified in [`Ui.java`](https://github.com/se-
 
 <puml src="diagrams/UiClassDiagram.puml" alt="Structure of the UI Component"/>
 
-The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
+The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`,
+`TimetablePanel`, and `StatusBarFooter`. `MainWindow` switches the main content placeholder between the person list and
+the read-only timetable according to the `ViewChange` carried by a successful `CommandResult`. These UI classes inherit
+from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
 
 The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
 
@@ -108,6 +111,10 @@ How the `Logic` component works:
    Note that although this is shown as a single step in the diagram above for simplicity, the code can require several interactions between the command object and the `Model` to complete the operation.
 1. The result of the command execution is encapsulated as a `CommandResult` object which is returned from `Logic`.
 
+`LogicManager` also tracks whether the person list or timetable is active. In timetable mode it rejects every command
+except `list`, `help`, and `exit` before execution. `timetable` and `list` return view-change instructions that keep this
+state synchronized with `MainWindow`.
+
 Here are the other classes in `Logic` (omitted from the class diagram above) that are used for parsing a user command:
 
 <puml src="diagrams/ParserClasses.puml" width="600"/>
@@ -127,6 +134,8 @@ The `Model` component,
 * stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
+* derives immutable timetable day and class entries from every person's lessons. The timetable is not stored separately,
+  and it uses the complete address book rather than the filtered person list.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
 
@@ -158,6 +167,21 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 ## **Implementation**
 
 This section describes some noteworthy details on how certain features are implemented.
+
+### Timetable view
+
+`TimetableCommand` does not modify model data. It returns a `CommandResult` requesting the `TIMETABLE` view.
+`MainWindow` responds by requesting a current timetable from `Logic` and replacing `PersonListPanel` with a newly built
+`TimetablePanel`.
+
+`ModelManager#getTimetable(LocalDate)` passes the complete address-book person list to `TimetableBuilder`. The builder
+iterates through each person's `Lesson` values, omits days before the supplied date's weekday, and groups equal lessons
+with their students. It then returns one immutable `TimetableDay` from the current day through Saturday, including empty
+days. Entries within a day are ordered by start time, subject, and end time.
+
+The UI renders the projection in three levels: `TimetablePanel` provides the scrolling list, `TimetableDayCard` displays
+a day heading and empty state, and `TimetableEntryCard` displays a class's time, subject, and students. Entering `list`
+restores the existing person panel and normal command availability.
 
 ### \[Proposed\] Undo/redo feature
 
