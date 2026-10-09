@@ -34,6 +34,7 @@ import seedu.address.model.person.Lesson;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.Subject;
+import seedu.address.model.tag.Tag;
 
 /**
  * Tests student details across parsing, commands, the model, editing and storage.
@@ -139,6 +140,33 @@ public class StudentDetailsIntegrationTest {
         assertEquals(original.getSubjects(), edited.getSubjects());
         assertEquals(original.getCost(), edited.getCost());
         assertEquals(original.getLesson(), edited.getLesson());
+    }
+
+    @Test
+    public void tagAndUntag_preserveStudentDetails() throws Exception {
+        Model model = new ModelManager();
+        Person original = addTo(model, BASE + " t/friends" + DETAILS);
+
+        new AddressBookParser().parseCommand("tag 1 exam-prep").execute(model);
+        Person tagged = model.getFilteredPersonList().get(0);
+        assertEquals(Set.of(new Tag("friends"), new Tag("exam-prep")), tagged.getTags());
+        assertEquals(original.getSubjects(), tagged.getSubjects());
+        assertEquals(original.getCost(), tagged.getCost());
+        assertEquals(original.getLesson(), tagged.getLesson());
+
+        new AddressBookParser().parseCommand("untag 1 friends").execute(model);
+        Person untagged = model.getFilteredPersonList().get(0);
+        assertEquals(Set.of(new Tag("exam-prep")), untagged.getTags());
+        assertEquals(original.getSubjects(), untagged.getSubjects());
+        assertEquals(original.getCost(), untagged.getCost());
+        assertEquals(original.getLesson(), untagged.getLesson());
+
+        new AddressBookParser().parseCommand("untag 1 -all").execute(model);
+        Person withoutTags = model.getFilteredPersonList().get(0);
+        assertTrue(withoutTags.getTags().isEmpty());
+        assertEquals(original.getSubjects(), withoutTags.getSubjects());
+        assertEquals(original.getCost(), withoutTags.getCost());
+        assertEquals(original.getLesson(), withoutTags.getLesson());
     }
 
     @Test

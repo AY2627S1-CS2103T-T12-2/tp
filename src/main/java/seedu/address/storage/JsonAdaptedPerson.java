@@ -1,7 +1,7 @@
 package seedu.address.storage;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -83,7 +83,6 @@ class JsonAdaptedPerson {
         phone = source.getPhone().value;
         email = source.getEmail().value;
         address = source.getAddress().value;
-
         tags.addAll(source.getTags().stream()
                 .map(JsonAdaptedTag::new)
                 .collect(Collectors.toList()));
@@ -103,9 +102,9 @@ class JsonAdaptedPerson {
      * @throws IllegalValueException if any stored field violates its constraints.
      */
     public Person toModelType() throws IllegalValueException {
-        final Set<Tag> modelTags = new HashSet<>();
+        final List<Tag> personTags = new ArrayList<>();
         for (JsonAdaptedTag tag : tags) {
-            modelTags.add(tag.toModelType());
+            personTags.add(tag.toModelType());
         }
 
         if (name == null) {
@@ -144,7 +143,14 @@ class JsonAdaptedPerson {
         }
         final Address modelAddress = new Address(address);
 
-        final Set<Subject> modelSubjects = new HashSet<>();
+        final Set<Tag> modelTags = new LinkedHashSet<>(personTags);
+        if (modelTags.size() != personTags.size()) {
+            throw new IllegalValueException(Tag.MESSAGE_DUPLICATE_TAGS);
+        }
+        if (modelTags.size() > Tag.MAX_TAGS_PER_PERSON) {
+            throw new IllegalValueException(Tag.MESSAGE_TAG_LIMIT);
+        }
+        final Set<Subject> modelSubjects = new LinkedHashSet<>();
         for (String subject : subjects) {
             if (subject == null || !Subject.isValidSubject(subject)) {
                 throw new IllegalValueException(Subject.MESSAGE_CONSTRAINTS);

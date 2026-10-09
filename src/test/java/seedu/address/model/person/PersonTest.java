@@ -14,9 +14,18 @@ import static seedu.address.testutil.TypicalPersons.BOB;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.model.tag.Tag;
 import seedu.address.testutil.PersonBuilder;
 
 public class PersonTest {
+
+    @Test
+    public void constructor_moreThanTenTags_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, Tag.MESSAGE_TAG_LIMIT, () -> new PersonBuilder()
+                .withTags("one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
+                        "eleven")
+                .build());
+    }
 
     @Test
     public void asObservableList_modifyList_throwsUnsupportedOperationException() {

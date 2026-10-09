@@ -7,6 +7,7 @@ import static seedu.address.testutil.TypicalPersons.BENSON;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,7 @@ import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.tag.Tag;
 
 public class JsonAdaptedPersonTest {
     private static final String INVALID_NAME = "R@chel";
@@ -105,6 +107,37 @@ public class JsonAdaptedPersonTest {
         JsonAdaptedPerson person =
                 new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS, invalidTags);
         assertThrows(IllegalValueException.class, person::toModelType);
+    }
+
+    @Test
+    public void toModelType_legacyCamelCaseTag_migratesTag() throws Exception {
+        List<JsonAdaptedTag> legacyTags = List.of(new JsonAdaptedTag("owesMoney"));
+        JsonAdaptedPerson person =
+                new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS, legacyTags);
+
+        assertEquals(Set.of(new Tag("owes-money")), person.toModelType().getTags());
+    }
+
+    @Test
+    public void toModelType_duplicateTags_throwsIllegalValueException() {
+        List<JsonAdaptedTag> duplicateTags = List.of(new JsonAdaptedTag("friends"),
+                new JsonAdaptedTag("friends"));
+        JsonAdaptedPerson person =
+                new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS, duplicateTags);
+
+        assertThrows(IllegalValueException.class, Tag.MESSAGE_DUPLICATE_TAGS, person::toModelType);
+    }
+
+    @Test
+    public void toModelType_tooManyTags_throwsIllegalValueException() {
+        List<JsonAdaptedTag> tags = List.of(new JsonAdaptedTag("one"), new JsonAdaptedTag("two"),
+                new JsonAdaptedTag("three"), new JsonAdaptedTag("four"), new JsonAdaptedTag("five"),
+                new JsonAdaptedTag("six"), new JsonAdaptedTag("seven"), new JsonAdaptedTag("eight"),
+                new JsonAdaptedTag("nine"), new JsonAdaptedTag("ten"), new JsonAdaptedTag("eleven"));
+        JsonAdaptedPerson person =
+                new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS, tags);
+
+        assertThrows(IllegalValueException.class, Tag.MESSAGE_TAG_LIMIT, person::toModelType);
     }
 
 }

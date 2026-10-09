@@ -180,6 +180,19 @@ public class ParserUtilTest {
     }
 
     @Test
+    public void parseTags_collectionWithDuplicateTags_throwsParseException() {
+        assertThrows(ParseException.class, Tag.MESSAGE_DUPLICATE_TAGS, () -> ParserUtil.parseTags(
+                List.of(VALID_TAG_1, VALID_TAG_1)));
+    }
+
+    @Test
+    public void parseTags_collectionExceedingLimit_throwsParseException() {
+        List<String> tags = List.of("one", "two", "three", "four", "five", "six",
+                "seven", "eight", "nine", "ten", "eleven");
+        assertThrows(ParseException.class, Tag.MESSAGE_TAG_LIMIT, () -> ParserUtil.parseTags(tags));
+    }
+
+    @Test
     public void parseTags_emptyCollection_returnsEmptySet() throws Exception {
         assertTrue(ParserUtil.parseTags(List.of()).isEmpty());
     }

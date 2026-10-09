@@ -80,16 +80,22 @@ Format: `help`
 
 Adds a person to the address book.
 
-Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... `
+Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [sub/SUBJECT]... [cost/COST] [c/DAYHHmm]`
 
 <box type="tip" seamless>
 
-**Tip:** A person can have any number of tags, including zero.
+**Tip:** A student can have up to 10 tags. Tags must be unique, contain no more than 30 characters,
+and use only lowercase letters, numbers, and single hyphens between characters.
 </box>
+
+* `sub/SUBJECT` adds an optional subject and can be repeated.
+* `cost/COST` records an optional positive whole-number hourly cost.
+* `c/DAYHHmm` records an optional lesson time, such as `Monday1800`.
 
 Examples:
 * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
 * `add n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
+* `add n/John Davis p/91234567 e/johndavis@gmail.com a/Clementi t/exam-prep sub/Math cost/30 c/Monday1800`
 
 ### Listing all persons: `list`
 
@@ -112,6 +118,32 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]... `
 Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing tags.
+
+### Tagging a student: `tag`
+
+Adds one or more tags to an existing student.
+
+Format: `tag INDEX TAG [MORE_TAGS]`
+
+* `INDEX` refers to the index number shown in the displayed student list.
+* Each tag must be unique for that student.
+* A tag can contain up to 30 characters and use only lowercase letters, numbers, and single hyphens between
+  characters.
+* Spaces separate tags. For example, `exam prep` adds the two tags `exam` and `prep`, while `exam-prep` adds
+  one tag. Use hyphens when a single tag contains multiple words.
+* A student can have at most 10 tags.
+
+Example: `tag 3 exam-prep needs-follow-up`
+
+### Removing tags from a student: `untag`
+
+Removes one or more existing tags from a student, or removes all their tags.
+
+Format: `untag INDEX TAG [MORE_TAGS]` or `untag INDEX -all`
+
+Examples:
+* `untag 2 parent-follow-up`
+* `untag 5 -all`
 
 ### Locating persons by name, tag, or lesson: `find`
 
@@ -202,10 +234,12 @@ _Details coming soon ..._
 
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... ` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague`
+**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [sub/SUBJECT]... [cost/COST] [c/DAYHHmm]` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/Clementi t/friend sub/Math cost/30 c/Monday1800`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
+**Tag**    | `tag INDEX TAG [MORE_TAGS]`<br> e.g., `tag 3 exam-prep needs-follow-up`
+**Untag**  | `untag INDEX TAG [MORE_TAGS]` or `untag INDEX -all`<br> e.g., `untag 2 parent-follow-up`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`, `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]`, or `find c/LESSON_KEYWORD [MORE_LESSON_KEYWORDS]`<br> e.g., `find James Jake`, `find t/friends`, `find c/Monday`
 **List**   | `list`
 **Help**   | `help`

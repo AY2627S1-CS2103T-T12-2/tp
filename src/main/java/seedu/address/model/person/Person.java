@@ -1,9 +1,10 @@
 package seedu.address.model.person;
 
+import static seedu.address.commons.util.AppUtil.checkArgument;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -25,7 +26,7 @@ public class Person {
 
     // Data fields
     private final Address address;
-    private final Set<Tag> tags = new HashSet<>();
+    private final Set<Tag> tags = new LinkedHashSet<>();
     private final Set<Subject> subjects;
     private final Optional<Cost> cost;
     private final Optional<Lesson> lesson;
@@ -52,6 +53,7 @@ public class Person {
         this.phone = phone;
         this.email = email;
         this.address = address;
+        checkArgument(tags.size() <= Tag.MAX_TAGS_PER_PERSON, Tag.MESSAGE_TAG_LIMIT);
         this.tags.addAll(tags);
         this.subjects = Set.copyOf(subjects);
         this.cost = cost;
@@ -79,6 +81,15 @@ public class Person {
      */
     public Set<Tag> getTags() {
         return Collections.unmodifiableSet(tags);
+    }
+
+    /**
+     * Returns the tag names in insertion order as an immutable set.
+     */
+    public Set<String> getTagNames() {
+        Set<String> tagNames = new LinkedHashSet<>();
+        tags.stream().map(tag -> tag.tagName).forEach(tagNames::add);
+        return Collections.unmodifiableSet(tagNames);
     }
 
     /**
