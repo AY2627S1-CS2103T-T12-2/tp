@@ -114,6 +114,8 @@
         "adding-a-person-add": "Adding a person: add",
         "listing-all-persons-list": "Listing all persons: list",
         "editing-a-person-edit": "Editing a person: edit",
+        "tagging-a-student-tag": "Tagging a student: tag",
+        "removing-tags-from-a-student-untag": "Removing tags from a student: untag",
         "locating-persons-by-name-tag-or-lesson-find": "Locating persons by name, tag, or lesson: find",
         "deleting-a-person-delete": "Deleting a person: delete",
         "clearing-all-entries-clear": "Clearing all entries: clear",
