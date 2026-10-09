@@ -80,7 +80,7 @@ Format: `help`
 
 Adds a person to the address book.
 
-Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... `
+Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [sub/SUBJECT]... [cost/COST] [c/DAYHHmm]`
 
 <box type="tip" seamless>
 
@@ -88,9 +88,14 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... `
 and use only lowercase letters, numbers, and single hyphens between characters.
 </box>
 
+* `sub/SUBJECT` adds an optional subject and can be repeated.
+* `cost/COST` records an optional positive whole-number hourly cost.
+* `c/DAYHHmm` records an optional lesson time, such as `Monday1800`.
+
 Examples:
 * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
 * `add n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
+* `add n/John Davis p/91234567 e/johndavis@gmail.com a/Clementi t/exam-prep sub/Math cost/30 c/Monday1800`
 
 ### Listing all persons: `list`
 
@@ -140,20 +145,27 @@ Examples:
 * `untag 2 parent-follow-up`
 * `untag 5 -all`
 
-### Locating persons by name: `find`
+### Locating persons by name, tag, or lesson: `find`
 
-Finds persons whose names contain any of the given keywords.
+Finds persons whose names, tags, or lessons contain any of the given keywords.
 
-Format: `find KEYWORD [MORE_KEYWORDS]`
+Formats:
+* `find KEYWORD [MORE_KEYWORDS]`
+* `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]`
+* `find c/LESSON_KEYWORD [MORE_LESSON_KEYWORDS]`
 
 * The search is case-insensitive; for example, `hans` matches `Hans`.
 * Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
-* The search considers only names.
-* Only full words match; for example, `Han` does not match `Hans`.
+* Without `t/`, the search considers only names.
+* With `t/`, the search considers only tags.
+* With `c/`, the search considers only lessons, and partial lesson matches are accepted.
+* Name and tag searches require full-word matches; for example, `Han` does not match `Hans`.
 * Persons matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
 
 Examples:
 * `find John` returns `john` and `John Doe`
+* `find t/friends` returns persons tagged `friends`
+* `find c/Monday` returns persons whose lesson timing contains `Monday`, such as `Monday1800`
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
 
@@ -222,12 +234,12 @@ _Details coming soon ..._
 
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... ` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague`
+**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [sub/SUBJECT]... [cost/COST] [c/DAYHHmm]` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/Clementi t/friend sub/Math cost/30 c/Monday1800`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Tag**    | `tag INDEX TAG [MORE_TAGS]`<br> e.g., `tag 3 exam-prep needs-follow-up`
 **Untag**  | `untag INDEX TAG [MORE_TAGS]` or `untag INDEX -all`<br> e.g., `untag 2 parent-follow-up`
-**Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
+**Find**   | `find KEYWORD [MORE_KEYWORDS]`, `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]`, or `find c/LESSON_KEYWORD [MORE_LESSON_KEYWORDS]`<br> e.g., `find James Jake`, `find t/friends`, `find c/Monday`
 **List**   | `list`
 **Help**   | `help`

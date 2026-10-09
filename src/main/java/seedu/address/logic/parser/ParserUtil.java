@@ -10,9 +10,12 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Address;
+import seedu.address.model.person.Cost;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.Lesson;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.Subject;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -125,5 +128,62 @@ public class ParserUtil {
             throw new ParseException(Tag.MESSAGE_TAG_LIMIT);
         }
         return tagSet;
+    }
+
+    /**
+     * Parses a subject, trimming leading and trailing whitespace.
+     *
+     * @throws ParseException if the subject is invalid.
+     */
+    public static Subject parseSubject(String subject) throws ParseException {
+        requireNonNull(subject);
+        String trimmedSubject = subject.trim();
+        if (!Subject.isValidSubject(trimmedSubject)) {
+            throw new ParseException(Subject.MESSAGE_CONSTRAINTS);
+        }
+        return new Subject(trimmedSubject);
+    }
+
+    /**
+     * Parses multiple subjects into a set, removing identical duplicates.
+     *
+     * @throws ParseException if any subject is invalid.
+     */
+    public static Set<Subject> parseSubjects(Collection<String> subjects)
+            throws ParseException {
+        requireNonNull(subjects);
+        Set<Subject> subjectSet = new LinkedHashSet<>();
+        for (String subject : subjects) {
+            subjectSet.add(parseSubject(subject));
+        }
+        return subjectSet;
+    }
+
+    /**
+     * Parses an hourly cost, trimming leading and trailing whitespace.
+     *
+     * @throws ParseException if the cost is invalid.
+     */
+    public static Cost parseCost(String cost) throws ParseException {
+        requireNonNull(cost);
+        String trimmedCost = cost.trim();
+        if (!Cost.isValidCost(trimmedCost)) {
+            throw new ParseException(Cost.MESSAGE_CONSTRAINTS);
+        }
+        return new Cost(trimmedCost);
+    }
+
+    /**
+     * Parses a lesson timing, trimming leading and trailing whitespace.
+     *
+     * @throws ParseException if the lesson timing is invalid.
+     */
+    public static Lesson parseLesson(String lesson) throws ParseException {
+        requireNonNull(lesson);
+        String trimmedLesson = lesson.trim();
+        if (!Lesson.isValidLesson(trimmedLesson)) {
+            throw new ParseException(Lesson.MESSAGE_CONSTRAINTS);
+        }
+        return new Lesson(trimmedLesson);
     }
 }

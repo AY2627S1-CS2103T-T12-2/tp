@@ -64,7 +64,8 @@ public class TagCommand extends Command {
 
         updatedTags.addAll(tagsToAdd);
         Person taggedPerson = new Person(personToTag.getName(), personToTag.getPhone(), personToTag.getEmail(),
-                personToTag.getAddress(), updatedTags);
+                personToTag.getAddress(), updatedTags, personToTag.getSubjects(), personToTag.getCost(),
+                personToTag.getLesson());
         model.setPerson(personToTag, taggedPerson);
 
         return new CommandResult(String.format(MESSAGE_TAG_PERSON_SUCCESS,
