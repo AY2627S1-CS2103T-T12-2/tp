@@ -23,6 +23,7 @@ public class LessonTest {
         Lesson other = new Lesson(new Subject("Physics"), new Cost("30"),
                 new LessonTiming("Monday1800-1930"));
         assertFalse(MATH.equals(other));
+        assertFalse(MATH.equals("Math"));
     }
 
     @Test

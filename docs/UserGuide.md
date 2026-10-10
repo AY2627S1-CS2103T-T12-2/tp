@@ -106,9 +106,17 @@ Example: `addclass 1 sub/Physics cost/35 c/Wednesday1700-1830`
 
 ### Viewing the weekly timetable: `timetable`
 
-Displays classes grouped by day and ordered by start time. Each entry includes its subject and students.
+Opens a graphical, read-only timetable containing classes from the current day through Saturday. Classes that occurred
+earlier on the current day remain visible, while days earlier in the week are omitted. Every included day has a heading,
+even when it has no classes.
+
+Each class entry shows its start and end time, subject, and all attending students. Classes are ordered by start time,
+then subject.
 
 Format: `timetable`
+
+While the timetable is open, only `list`, `help`, and `exit` are available. Use `list` to return to the student list and
+re-enable the other commands.
 
 ### Listing all persons: `list`
 

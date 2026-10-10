@@ -13,20 +13,31 @@ import static seedu.address.testutil.TypicalPersons.AMY;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Path;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneOffset;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.AddCommand;
+import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.ExitCommand;
+import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.TimetableCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.lesson.Cost;
+import seedu.address.model.lesson.Lesson;
+import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.Subject;
 import seedu.address.model.person.Person;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
@@ -42,13 +53,14 @@ public class LogicManagerTest {
 
     private Model model = new ModelManager();
     private Logic logic;
+    private StorageManager storage;
 
     @BeforeEach
     public void setUp() {
         JsonAddressBookStorage addressBookStorage =
                 new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
         JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"));
-        StorageManager storage = new StorageManager(addressBookStorage, userPrefsStorage);
+        storage = new StorageManager(addressBookStorage, userPrefsStorage);
         logic = new LogicManager(model, storage);
     }
 
@@ -85,6 +97,43 @@ public class LogicManagerTest {
     @Test
     public void getFilteredPersonList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> logic.getFilteredPersonList().remove(0));
+    }
+
+    @Test
+    public void execute_timetableMode_onlyListHelpAndExitAllowed() throws Exception {
+        CommandResult timetableResult = logic.execute(TimetableCommand.COMMAND_WORD);
+        assertEquals(CommandResult.ViewChange.TIMETABLE, timetableResult.getViewChange());
+
+        assertCommandException("clear", LogicManager.MESSAGE_TIMETABLE_READ_ONLY);
+        assertCommandException("find Alice", LogicManager.MESSAGE_TIMETABLE_READ_ONLY);
+        assertCommandException("timetable", LogicManager.MESSAGE_TIMETABLE_READ_ONLY);
+        assertCommandException("addclass 1 sub/Math cost/30 c/Monday1800-1930",
+                LogicManager.MESSAGE_TIMETABLE_READ_ONLY);
+        assertCommandException("delete 1", LogicManager.MESSAGE_TIMETABLE_READ_ONLY);
+        assertCommandException("edit 1 n/Edited", LogicManager.MESSAGE_TIMETABLE_READ_ONLY);
+        assertCommandException("add n/Alice p/91234567 e/alice@example.com a/Address",
+                LogicManager.MESSAGE_TIMETABLE_READ_ONLY);
+
+        assertEquals(HelpCommand.SHOWING_HELP_MESSAGE,
+                logic.execute(HelpCommand.COMMAND_WORD).getFeedbackToUser());
+        assertEquals(ExitCommand.MESSAGE_EXIT_ACKNOWLEDGEMENT,
+                logic.execute(ExitCommand.COMMAND_WORD).getFeedbackToUser());
+
+        CommandResult listResult = logic.execute(ListCommand.COMMAND_WORD);
+        assertEquals(CommandResult.ViewChange.PERSON_LIST, listResult.getViewChange());
+        assertEquals(ClearCommand.MESSAGE_SUCCESS, logic.execute("clear").getFeedbackToUser());
+    }
+
+    @Test
+    public void getTimetable_fixedClock_usesClockDate() {
+        Lesson fridayLesson = new Lesson(new Subject("Math"), new Cost("30"),
+                new LessonTiming("Friday1800-1930"));
+        model.addPerson(new PersonBuilder().withLessons(fridayLesson).build());
+        Clock thursdayClock = Clock.fixed(Instant.parse("2026-10-08T04:00:00Z"), ZoneOffset.UTC);
+        logic = new LogicManager(model, storage, thursdayClock);
+
+        assertEquals(3, logic.getTimetable().size());
+        assertEquals(1, logic.getTimetable().get(1).getEntries().size());
     }
 
     /**

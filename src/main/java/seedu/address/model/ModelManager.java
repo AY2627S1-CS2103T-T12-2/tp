@@ -3,6 +3,8 @@ package seedu.address.model;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
@@ -11,6 +13,8 @@ import javafx.collections.transformation.FilteredList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.person.Person;
+import seedu.address.model.timetable.TimetableBuilder;
+import seedu.address.model.timetable.TimetableDay;
 
 /**
  * Represents the in-memory model of the address book data.
@@ -108,6 +112,12 @@ public class ModelManager implements Model {
     public void updateFilteredPersonList(Predicate<Person> predicate) {
         requireNonNull(predicate);
         filteredPersons.setPredicate(predicate);
+    }
+
+    @Override
+    public List<TimetableDay> getTimetable(LocalDate today) {
+        requireNonNull(today);
+        return TimetableBuilder.build(addressBook.getPersonList(), today);
     }
 
     @Override

@@ -351,3 +351,39 @@
     -fx-hgap: 7;
     -fx-vgap: 3;
 }
+
+.timetable-day-card {
+    -fx-background-color: transparent;
+}
+
+.timetable-day-heading {
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-size: 19px;
+    -fx-text-fill: white;
+}
+
+.timetable-entry-card {
+    -fx-background-color: derive(#1d1d1d, 28%);
+    -fx-background-radius: 3;
+}
+
+.timetable-entry-time,
+.timetable-entry-subject {
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-size: 14px;
+    -fx-text-fill: white;
+}
+
+.timetable-entry-students {
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 13px;
+    -fx-text-fill: #dddddd;
+}
+
+.timetable-empty-message {
+    -fx-font-family: "Segoe UI";
+    -fx-font-style: italic;
+    -fx-font-size: 13px;
+    -fx-text-fill: #bbbbbb;
+    -fx-padding: 4 0 4 18;
+}
