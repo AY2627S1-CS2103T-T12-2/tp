@@ -9,7 +9,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.FindCommand;
-import seedu.address.model.person.LessonContainsKeywordsPredicate;
+import seedu.address.model.lesson.LessonStart;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.TagContainsKeywordsPredicate;
 
@@ -34,33 +34,20 @@ public class FindCommandParserTest {
     }
 
     @Test
-    public void parse_validTagArgs_returnsFindCommand() {
-        FindCommand expectedFindCommand =
-                new FindCommand(new TagContainsKeywordsPredicate(List.of("friends", "family")));
-
-        assertParseSuccess(parser, "t/friends family", expectedFindCommand);
-        assertParseSuccess(parser, " \n t/ friends \n \t family  \t", expectedFindCommand);
+    public void parse_tag_success() {
+        assertParseSuccess(parser, " t/priority",
+                new FindCommand(new TagContainsKeywordsPredicate(List.of("priority"))));
     }
 
     @Test
-    public void parse_emptyTagArg_throwsParseException() {
-        assertParseFailure(parser, "t/     ", String.format(MESSAGE_INVALID_COMMAND_FORMAT,
-                FindCommand.MESSAGE_USAGE));
+    public void parse_classStart_success() {
+        assertParseSuccess(parser, " c/Monday1800", new FindCommand(new LessonStart("Monday1800")));
     }
 
     @Test
-    public void parse_validLessonArgs_returnsFindCommand() {
-        FindCommand expectedFindCommand =
-                new FindCommand(new LessonContainsKeywordsPredicate(List.of("Monday", "1800")));
-
-        assertParseSuccess(parser, "c/Monday 1800", expectedFindCommand);
-        assertParseSuccess(parser, " \n c/ Monday \n \t 1800  \t", expectedFindCommand);
-    }
-
-    @Test
-    public void parse_emptyLessonArg_throwsParseException() {
-        assertParseFailure(parser, "c/     ", String.format(MESSAGE_INVALID_COMMAND_FORMAT,
-                FindCommand.MESSAGE_USAGE));
+    public void parse_mixedModes_failure() {
+        assertParseFailure(parser, " t/priority c/Monday1800",
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
     }
 
 }

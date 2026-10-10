@@ -80,7 +80,7 @@ Format: `help`
 
 Adds a person to the address book.
 
-Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [sub/SUBJECT]... [cost/COST] [c/DAYHHmm]`
+Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [sub/SUBJECT cost/COST c/DAYHHmm-HHmm]`
 
 <box type="tip" seamless>
 
@@ -88,14 +88,27 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [sub/SUBJECT]...
 and use only lowercase letters, numbers, and single hyphens between characters.
 </box>
 
-* `sub/SUBJECT` adds an optional subject and can be repeated.
-* `cost/COST` records an optional positive whole-number hourly cost.
-* `c/DAYHHmm` records an optional lesson time, such as `Monday1800`.
+* `sub/SUBJECT`, `cost/COST`, and `c/DAYHHmm-HHmm` must be supplied together when adding a class.
+* Times use the 24-hour range `0000`–`2359`, and the end time must be later than the start time.
 
 Examples:
 * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
 * `add n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
-* `add n/John Davis p/91234567 e/johndavis@gmail.com a/Clementi t/exam-prep sub/Math cost/30 c/Monday1800`
+* `add n/John Davis p/91234567 e/johndavis@gmail.com a/Clementi t/exam-prep sub/Math cost/30 c/Monday1800-1930`
+
+### Adding a class to a student: `addclass`
+
+Adds a recurring weekly class to an existing student.
+
+Format: `addclass INDEX sub/SUBJECT cost/COST c/DAYHHmm-HHmm`
+
+Example: `addclass 1 sub/Physics cost/35 c/Wednesday1700-1830`
+
+### Viewing the weekly timetable: `timetable`
+
+Displays classes grouped by day and ordered by start time. Each entry includes its subject and students.
+
+Format: `timetable`
 
 ### Listing all persons: `list`
 
@@ -152,20 +165,20 @@ Finds persons whose names, tags, or lessons contain any of the given keywords.
 Formats:
 * `find KEYWORD [MORE_KEYWORDS]`
 * `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]`
-* `find c/LESSON_KEYWORD [MORE_LESSON_KEYWORDS]`
+* `find c/DAYHHmm`
 
 * The search is case-insensitive; for example, `hans` matches `Hans`.
 * Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
 * Without `t/`, the search considers only names.
 * With `t/`, the search considers only tags.
-* With `c/`, the search considers only lessons, and partial lesson matches are accepted.
+* With `c/`, the search returns students whose classes start at the specified day and time.
 * Name and tag searches require full-word matches; for example, `Han` does not match `Hans`.
 * Persons matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
 
 Examples:
 * `find John` returns `john` and `John Doe`
 * `find t/friends` returns persons tagged `friends`
-* `find c/Monday` returns persons whose lesson timing contains `Monday`, such as `Monday1800`
+* `find c/Monday1800` returns students whose class starts on Monday at 18:00
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
 
@@ -234,12 +247,14 @@ _Details coming soon ..._
 
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [sub/SUBJECT]... [cost/COST] [c/DAYHHmm]` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/Clementi t/friend sub/Math cost/30 c/Monday1800`
+**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [sub/SUBJECT cost/COST c/DAYHHmm-HHmm]` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/Clementi t/friend sub/Math cost/30 c/Monday1800-1930`
+**Add class** | `addclass INDEX sub/SUBJECT cost/COST c/DAYHHmm-HHmm`<br> e.g., `addclass 1 sub/Physics cost/35 c/Wednesday1700-1830`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Tag**    | `tag INDEX TAG [MORE_TAGS]`<br> e.g., `tag 3 exam-prep needs-follow-up`
 **Untag**  | `untag INDEX TAG [MORE_TAGS]` or `untag INDEX -all`<br> e.g., `untag 2 parent-follow-up`
-**Find**   | `find KEYWORD [MORE_KEYWORDS]`, `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]`, or `find c/LESSON_KEYWORD [MORE_LESSON_KEYWORDS]`<br> e.g., `find James Jake`, `find t/friends`, `find c/Monday`
+**Find**   | `find KEYWORD [MORE_KEYWORDS]`, `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]`, or `find c/DAYHHmm`<br> e.g., `find James Jake`, `find t/friends`, `find c/Monday1800`
 **List**   | `list`
 **Help**   | `help`
+**Timetable** | `timetable`

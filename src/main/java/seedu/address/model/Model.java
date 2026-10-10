@@ -4,6 +4,7 @@ import java.util.function.Predicate;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.model.lesson.Lesson;
 import seedu.address.model.person.Person;
 
 /**
@@ -68,4 +69,13 @@ public interface Model {
      * @throws NullPointerException if {@code predicate} is null.
      */
     void updateFilteredPersonList(Predicate<Person> predicate);
+
+    /** Returns whether an existing student has the same class with a different cost. */
+    default boolean hasClassCostConflict(Lesson candidate) {
+        return getAddressBook().getPersonList().stream()
+                .flatMap(person -> person.getLessons().stream())
+                .anyMatch(existing -> existing.isSameClass(candidate)
+                        && !existing.getCost().equals(candidate.getCost()));
+    }
+
 }

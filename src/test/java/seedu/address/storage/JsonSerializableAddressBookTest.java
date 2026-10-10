@@ -11,6 +11,12 @@ import org.junit.jupiter.api.Test;
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.commons.util.JsonUtil;
 import seedu.address.model.AddressBook;
+import seedu.address.model.lesson.Cost;
+import seedu.address.model.lesson.Lesson;
+import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.Subject;
+import seedu.address.model.person.Person;
+import seedu.address.testutil.PersonBuilder;
 import seedu.address.testutil.TypicalPersons;
 
 public class JsonSerializableAddressBookTest {
@@ -42,6 +48,37 @@ public class JsonSerializableAddressBookTest {
                 JsonSerializableAddressBook.class).get();
         assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_DUPLICATE_PERSON,
                 dataFromFile::toModelType);
+    }
+
+    @Test
+    public void jsonRoundTrip_lessonAndEnrolments_success() throws Exception {
+        AddressBook original = TypicalPersons.getTypicalAddressBook();
+        Lesson lesson = new Lesson(new Subject("Math"), new Cost("30"),
+                new LessonTiming("Monday1800-1930"));
+        Person firstPerson = original.getPersonList().get(0);
+        original.setPerson(firstPerson, new PersonBuilder(firstPerson).withLessons(lesson).build());
+
+        String json = JsonUtil.toJsonString(new JsonSerializableAddressBook(original));
+        JsonSerializableAddressBook restoredData = JsonUtil.fromJsonString(json, JsonSerializableAddressBook.class);
+
+        assertEquals(original, restoredData.toModelType());
+    }
+
+    @Test
+    public void toModelType_sameClassWithDifferentCosts_throwsIllegalValueException() {
+        AddressBook addressBook = TypicalPersons.getTypicalAddressBook();
+        Lesson firstCost = new Lesson(new Subject("Math"), new Cost("30"),
+                new LessonTiming("Monday1800-1930"));
+        Lesson secondCost = new Lesson(new Subject("Math"), new Cost("40"),
+                new LessonTiming("Monday1800-1930"));
+        Person firstPerson = addressBook.getPersonList().get(0);
+        Person secondPerson = addressBook.getPersonList().get(1);
+        addressBook.setPerson(firstPerson, new PersonBuilder(firstPerson).withLessons(firstCost).build());
+        addressBook.setPerson(secondPerson, new PersonBuilder(secondPerson).withLessons(secondCost).build());
+
+        JsonSerializableAddressBook data = new JsonSerializableAddressBook(addressBook);
+        assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_CLASS_COST_CONFLICT,
+                data::toModelType);
     }
 
 }

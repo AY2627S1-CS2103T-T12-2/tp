@@ -9,6 +9,8 @@ import java.util.Set;
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.lesson.LessonStart;
+import seedu.address.model.lesson.LessonTiming;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Cost;
 import seedu.address.model.person.Email;
@@ -130,11 +132,7 @@ public class ParserUtil {
         return tagSet;
     }
 
-    /**
-     * Parses a subject, trimming leading and trailing whitespace.
-     *
-     * @throws ParseException if the subject is invalid.
-     */
+    /** Parses a subject. */
     public static Subject parseSubject(String subject) throws ParseException {
         requireNonNull(subject);
         String trimmedSubject = subject.trim();
@@ -144,26 +142,17 @@ public class ParserUtil {
         return new Subject(trimmedSubject);
     }
 
-    /**
-     * Parses multiple subjects into a set, removing identical duplicates.
-     *
-     * @throws ParseException if any subject is invalid.
-     */
-    public static Set<Subject> parseSubjects(Collection<String> subjects)
-            throws ParseException {
+    /** Parses multiple subjects used by the previous student model. */
+    public static Set<Subject> parseSubjects(Collection<String> subjects) throws ParseException {
         requireNonNull(subjects);
-        Set<Subject> subjectSet = new LinkedHashSet<>();
+        Set<Subject> parsedSubjects = new LinkedHashSet<>();
         for (String subject : subjects) {
-            subjectSet.add(parseSubject(subject));
+            parsedSubjects.add(parseSubject(subject));
         }
-        return subjectSet;
+        return parsedSubjects;
     }
 
-    /**
-     * Parses an hourly cost, trimming leading and trailing whitespace.
-     *
-     * @throws ParseException if the cost is invalid.
-     */
+    /** Parses a lesson cost. */
     public static Cost parseCost(String cost) throws ParseException {
         requireNonNull(cost);
         String trimmedCost = cost.trim();
@@ -173,11 +162,7 @@ public class ParserUtil {
         return new Cost(trimmedCost);
     }
 
-    /**
-     * Parses a lesson timing, trimming leading and trailing whitespace.
-     *
-     * @throws ParseException if the lesson timing is invalid.
-     */
+    /** Parses a start-only lesson value used by the previous student model. */
     public static Lesson parseLesson(String lesson) throws ParseException {
         requireNonNull(lesson);
         String trimmedLesson = lesson.trim();
@@ -185,5 +170,45 @@ public class ParserUtil {
             throw new ParseException(Lesson.MESSAGE_CONSTRAINTS);
         }
         return new Lesson(trimmedLesson);
+    }
+
+    /** Parses a subject for the recurring lesson model. */
+    public static seedu.address.model.lesson.Subject parseLessonSubject(String subject) throws ParseException {
+        requireNonNull(subject);
+        String trimmedSubject = subject.trim();
+        if (!seedu.address.model.lesson.Subject.isValidSubject(trimmedSubject)) {
+            throw new ParseException(seedu.address.model.lesson.Subject.MESSAGE_CONSTRAINTS);
+        }
+        return new seedu.address.model.lesson.Subject(trimmedSubject);
+    }
+
+    /** Parses a cost for the recurring lesson model. */
+    public static seedu.address.model.lesson.Cost parseLessonCost(String cost) throws ParseException {
+        requireNonNull(cost);
+        String trimmedCost = cost.trim();
+        if (!seedu.address.model.lesson.Cost.isValidCost(trimmedCost)) {
+            throw new ParseException(seedu.address.model.lesson.Cost.MESSAGE_CONSTRAINTS);
+        }
+        return new seedu.address.model.lesson.Cost(trimmedCost);
+    }
+
+    /** Parses a complete weekly lesson timing. */
+    public static LessonTiming parseLessonTiming(String timing) throws ParseException {
+        requireNonNull(timing);
+        String trimmedTiming = timing.trim();
+        if (!LessonTiming.isValidLessonTiming(trimmedTiming)) {
+            throw new ParseException(LessonTiming.MESSAGE_CONSTRAINTS);
+        }
+        return new LessonTiming(trimmedTiming);
+    }
+
+    /** Parses the day and start time used for class searching. */
+    public static LessonStart parseLessonStart(String start) throws ParseException {
+        requireNonNull(start);
+        String trimmedStart = start.trim();
+        if (!LessonStart.isValidLessonStart(trimmedStart)) {
+            throw new ParseException(LessonStart.MESSAGE_CONSTRAINTS);
+        }
+        return new LessonStart(trimmedStart);
     }
 }
