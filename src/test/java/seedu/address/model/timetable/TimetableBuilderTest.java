@@ -1,6 +1,7 @@
 package seedu.address.model.timetable;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -98,6 +99,29 @@ public class TimetableBuilderTest {
                 timetable.get(0).getEntries().add(timetable.get(1).getEntries().get(0)));
         assertThrows(UnsupportedOperationException.class, () ->
                 timetable.get(1).getEntries().get(0).getStudents().add(notEnrolled));
+    }
+
+    @Test
+    public void timetableValueObjects_equalsAndHashCode() {
+        Lesson lesson = lesson("Math", "30", "Friday1800-1930");
+        Lesson otherLesson = lesson("Physics", "35", "Friday1800-1930");
+        Person student = new PersonBuilder().build();
+        TimetableEntry entry = new TimetableEntry(lesson, List.of(student));
+        TimetableEntry entryCopy = new TimetableEntry(lesson, List.of(student));
+        TimetableDay day = new TimetableDay(DayOfWeek.FRIDAY, List.of(entry));
+        TimetableDay dayCopy = new TimetableDay(DayOfWeek.FRIDAY, List.of(entryCopy));
+
+        assertEquals(entry, entry);
+        assertEquals(entry, entryCopy);
+        assertEquals(entry.hashCode(), entryCopy.hashCode());
+        assertNotEquals(entry, new TimetableEntry(otherLesson, List.of(student)));
+        assertNotEquals(entry, "entry");
+
+        assertEquals(day, day);
+        assertEquals(day, dayCopy);
+        assertEquals(day.hashCode(), dayCopy.hashCode());
+        assertNotEquals(day, new TimetableDay(DayOfWeek.SATURDAY, List.of(entry)));
+        assertNotEquals(day, "day");
     }
 
     private static Lesson lesson(String subject, String cost, String timing) {

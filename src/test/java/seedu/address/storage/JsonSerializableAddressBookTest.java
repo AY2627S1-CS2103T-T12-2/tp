@@ -81,4 +81,20 @@ public class JsonSerializableAddressBookTest {
                 data::toModelType);
     }
 
+    @Test
+    public void toModelType_onePersonHasSameClassWithDifferentCosts_throwsIllegalValueException() {
+        AddressBook addressBook = TypicalPersons.getTypicalAddressBook();
+        Lesson firstCost = new Lesson(new Subject("Math"), new Cost("30"),
+                new LessonTiming("Monday1800-1930"));
+        Lesson secondCost = new Lesson(new Subject("Math"), new Cost("40"),
+                new LessonTiming("Monday1800-1930"));
+        Person firstPerson = addressBook.getPersonList().get(0);
+        addressBook.setPerson(firstPerson,
+                new PersonBuilder(firstPerson).withLessons(firstCost, secondCost).build());
+
+        JsonSerializableAddressBook data = new JsonSerializableAddressBook(addressBook);
+        assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_CLASS_COST_CONFLICT,
+                data::toModelType);
+    }
+
 }
