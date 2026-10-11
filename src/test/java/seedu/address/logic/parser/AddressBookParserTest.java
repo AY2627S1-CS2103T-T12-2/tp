@@ -23,6 +23,7 @@ import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.TagCommand;
+import seedu.address.logic.commands.TimetableCommand;
 import seedu.address.logic.commands.UntagCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
@@ -101,6 +102,12 @@ public class AddressBookParserTest {
     public void parseCommand_untag() throws Exception {
         UntagCommand command = (UntagCommand) parser.parseCommand("untag 1 -all");
         assertEquals(new UntagCommand(INDEX_FIRST_PERSON), command);
+    }
+
+    @Test
+    public void parseCommand_timetable() throws Exception {
+        assertTrue(parser.parseCommand(TimetableCommand.COMMAND_WORD) instanceof TimetableCommand);
+        assertTrue(parser.parseCommand(TimetableCommand.COMMAND_WORD + " ignored") instanceof TimetableCommand);
     }
 
     @Test

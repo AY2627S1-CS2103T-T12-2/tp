@@ -34,6 +34,7 @@ public class MainWindow extends UiPart<Stage> {
 
     // Independent Ui parts residing in this Ui container
     private PersonListPanel personListPanel;
+    private TimetablePanel timetablePanel;
     private ResultDisplay resultDisplay;
     private HelpWindow helpWindow;
 
@@ -182,6 +183,15 @@ public class MainWindow extends UiPart<Stage> {
             logger.info("Result: " + commandResult.getFeedbackToUser());
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
 
+            switch (commandResult.getViewChange()) {
+                case TIMETABLE -> showTimetable();
+                case PERSON_LIST -> showPersonList();
+                case NONE -> {
+                    // Keep the current main content.
+                }
+                default -> throw new AssertionError("Unknown view change: " + commandResult.getViewChange());
+            }
+
             if (commandResult.isShowHelp()) {
                 handleHelp();
             }
@@ -196,5 +206,14 @@ public class MainWindow extends UiPart<Stage> {
             resultDisplay.setFeedbackToUser(e.getMessage());
             throw e;
         }
+    }
+
+    private void showTimetable() {
+        timetablePanel = new TimetablePanel(logic.getTimetable());
+        personListPanelPlaceholder.getChildren().setAll(timetablePanel.getRoot());
+    }
+
+    private void showPersonList() {
+        personListPanelPlaceholder.getChildren().setAll(personListPanel.getRoot());
     }
 }

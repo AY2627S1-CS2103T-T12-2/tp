@@ -8,13 +8,21 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.model.lesson.Cost;
+import seedu.address.model.lesson.Lesson;
+import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.Subject;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.model.person.Person;
+import seedu.address.model.timetable.TimetableEntry;
 import seedu.address.testutil.AddressBookBuilder;
+import seedu.address.testutil.PersonBuilder;
 
 public class ModelManagerTest {
 
@@ -71,6 +79,25 @@ public class ModelManagerTest {
     @Test
     public void getFilteredPersonList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> modelManager.getFilteredPersonList().remove(0));
+    }
+
+    @Test
+    public void getTimetable_filteredPersonList_usesAllAddressBookPersons() {
+        Lesson lesson = new Lesson(new Subject("Math"), new Cost("30"),
+                new LessonTiming("Thursday1800-1930"));
+        Person aliceWithLesson = new PersonBuilder(ALICE).withLessons(lesson).build();
+        Person bensonWithLesson = new PersonBuilder(BENSON).withLessons(lesson).build();
+        AddressBook addressBook = new AddressBookBuilder()
+                .withPerson(aliceWithLesson).withPerson(bensonWithLesson).build();
+        modelManager = new ModelManager(addressBook, new UserPrefs());
+        modelManager.updateFilteredPersonList(
+                new NameContainsKeywordsPredicate(List.of(ALICE.getName().fullName.split(" ")[0])));
+
+        TimetableEntry entry = modelManager.getTimetable(LocalDate.of(2026, 10, 8))
+                .get(0).getEntries().get(0);
+
+        assertEquals(1, modelManager.getFilteredPersonList().size());
+        assertEquals(List.of(aliceWithLesson, bensonWithLesson), entry.getStudents());
     }
 
     @Test

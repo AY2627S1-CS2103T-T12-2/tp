@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      styleClass="timetable-day-card" spacing="4">
+  <padding>
+    <Insets top="10" right="10" bottom="10" left="10" />
+  </padding>
+  <Label fx:id="dayHeading" styleClass="timetable-day-heading" />
+  <VBox fx:id="entriesContainer" spacing="3" />
+  <Label fx:id="emptyMessage" styleClass="timetable-empty-message" text="No classes" />
+</VBox>

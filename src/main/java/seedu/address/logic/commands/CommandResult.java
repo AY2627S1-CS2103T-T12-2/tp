@@ -11,6 +11,13 @@ import seedu.address.commons.util.ToStringBuilder;
  */
 public class CommandResult {
 
+    /** Describes whether a command should change the main content shown by the UI. */
+    public enum ViewChange {
+        NONE,
+        PERSON_LIST,
+        TIMETABLE
+    }
+
     private final String feedbackToUser;
 
     /** Help information should be shown to the user. */
@@ -19,13 +26,24 @@ public class CommandResult {
     /** The application should exit. */
     private final boolean exit;
 
+    /** The main content view requested by this command. */
+    private final ViewChange viewChange;
+
     /**
      * Constructs a {@code CommandResult} with the specified fields.
      */
     public CommandResult(String feedbackToUser, boolean showHelp, boolean exit) {
+        this(feedbackToUser, showHelp, exit, ViewChange.NONE);
+    }
+
+    /**
+     * Constructs a {@code CommandResult} with all fields specified.
+     */
+    public CommandResult(String feedbackToUser, boolean showHelp, boolean exit, ViewChange viewChange) {
         this.feedbackToUser = requireNonNull(feedbackToUser);
         this.showHelp = showHelp;
         this.exit = exit;
+        this.viewChange = requireNonNull(viewChange);
     }
 
     /**
@@ -34,6 +52,13 @@ public class CommandResult {
      */
     public CommandResult(String feedbackToUser) {
         this(feedbackToUser, false, false);
+    }
+
+    /**
+     * Constructs a {@code CommandResult} that requests a change to the main content view.
+     */
+    public CommandResult(String feedbackToUser, ViewChange viewChange) {
+        this(feedbackToUser, false, false, viewChange);
     }
 
     public String getFeedbackToUser() {
@@ -46,6 +71,10 @@ public class CommandResult {
 
     public boolean isExit() {
         return exit;
+    }
+
+    public ViewChange getViewChange() {
+        return viewChange;
     }
 
     @Override
@@ -61,12 +90,13 @@ public class CommandResult {
 
         return feedbackToUser.equals(otherCommandResult.feedbackToUser)
                 && showHelp == otherCommandResult.showHelp
-                && exit == otherCommandResult.exit;
+                && exit == otherCommandResult.exit
+                && viewChange == otherCommandResult.viewChange;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(feedbackToUser, showHelp, exit);
+        return Objects.hash(feedbackToUser, showHelp, exit, viewChange);
     }
 
     @Override
@@ -75,6 +105,7 @@ public class CommandResult {
                 .add("feedbackToUser", feedbackToUser)
                 .add("showHelp", showHelp)
                 .add("exit", exit)
+                .add("viewChange", viewChange)
                 .toString();
     }
 

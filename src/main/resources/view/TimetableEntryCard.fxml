@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<HBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      styleClass="timetable-entry-card" spacing="12">
+  <padding>
+    <Insets top="6" right="10" bottom="6" left="18" />
+  </padding>
+  <Label fx:id="time" styleClass="timetable-entry-time" minWidth="105" />
+  <VBox spacing="2" HBox.hgrow="ALWAYS">
+    <Label fx:id="subject" styleClass="timetable-entry-subject" />
+    <Label fx:id="students" styleClass="timetable-entry-students" wrapText="true" />
+  </VBox>
+</HBox>

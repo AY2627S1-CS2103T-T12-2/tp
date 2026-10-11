@@ -1,11 +1,14 @@
 package seedu.address.model;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.function.Predicate;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.person.Person;
+import seedu.address.model.timetable.TimetableDay;
 
 /**
  * The API of the Model component.
@@ -69,6 +72,9 @@ public interface Model {
      * @throws NullPointerException if {@code predicate} is null.
      */
     void updateFilteredPersonList(Predicate<Person> predicate);
+
+    /** Returns the timetable derived from all persons for the specified date. */
+    List<TimetableDay> getTimetable(LocalDate today);
 
     /** Returns whether an existing student has the same class with a different cost. */
     default boolean hasClassCostConflict(Lesson candidate) {

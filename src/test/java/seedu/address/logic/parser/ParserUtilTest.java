@@ -204,4 +204,24 @@ public class ParserUtilTest {
 
         assertEquals(expectedTagSet, actualTagSet);
     }
+
+    @Test
+    public void parseRecurringLessonFields_validValues_success() throws Exception {
+        assertEquals(new seedu.address.model.lesson.Subject("Math"),
+                ParserUtil.parseLessonSubject("  Math  "));
+        assertEquals(new seedu.address.model.lesson.Cost("30"),
+                ParserUtil.parseLessonCost("  30  "));
+        assertEquals(new seedu.address.model.lesson.LessonTiming("Monday1800-1930"),
+                ParserUtil.parseLessonTiming("  Monday1800-1930  "));
+        assertEquals(new seedu.address.model.lesson.LessonStart("Monday1800"),
+                ParserUtil.parseLessonStart("  Monday1800  "));
+    }
+
+    @Test
+    public void parseRecurringLessonFields_invalidValues_throwsParseException() {
+        assertThrows(ParseException.class, () -> ParserUtil.parseLessonSubject("Math!"));
+        assertThrows(ParseException.class, () -> ParserUtil.parseLessonCost("-1"));
+        assertThrows(ParseException.class, () -> ParserUtil.parseLessonTiming("Monday2400-0100"));
+        assertThrows(ParseException.class, () -> ParserUtil.parseLessonStart("Monday2400"));
+    }
 }

@@ -1,6 +1,7 @@
 package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
@@ -9,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
+import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
@@ -57,12 +59,44 @@ public class ClassCommandsIntegrationTest {
     }
 
     @Test
-    public void timetable_groupsSameClassStudents() throws CommandException {
+    public void addClass_invalidPersonIndex_failure() {
+        Index invalidIndex = Index.fromOneBased(model.getFilteredPersonList().size() + 1);
+
+        assertCommandFailure(new AddClassCommand(invalidIndex, LESSON), model,
+                Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+    }
+
+    @Test
+    public void addClass_sameClassForSameStudent_failure() throws CommandException {
+        AddClassCommand command = new AddClassCommand(Index.fromOneBased(1), LESSON);
+        command.execute(model);
+
+        assertCommandFailure(command, model, AddClassCommand.MESSAGE_DUPLICATE_CLASS);
+    }
+
+    @Test
+    public void addClassCommand_equals() {
+        AddClassCommand command = new AddClassCommand(Index.fromOneBased(1), LESSON);
+        Lesson differentLesson = new Lesson(new Subject("Physics"), new Cost("30"),
+                new LessonTiming("Monday1800-1930"));
+
+        assertEquals(command, command);
+        assertEquals(command, new AddClassCommand(Index.fromOneBased(1), LESSON));
+        assertNotEquals(command, new AddClassCommand(Index.fromOneBased(2), LESSON));
+        assertNotEquals(command, new AddClassCommand(Index.fromOneBased(1), differentLesson));
+        assertNotEquals(command, null);
+    }
+
+    @Test
+    public void timetable_switchesViewWithoutChangingModel() throws CommandException {
         new AddClassCommand(Index.fromOneBased(1), LESSON).execute(model);
         new AddClassCommand(Index.fromOneBased(2), LESSON).execute(model);
-        String output = new TimetableCommand().execute(model).getFeedbackToUser();
-        assertTrue(output.contains("Math"));
-        assertTrue(output.contains("Alice Pauline"));
-        assertTrue(output.contains("Benson Meier"));
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+
+        CommandResult result = new TimetableCommand().execute(model);
+
+        assertEquals(TimetableCommand.MESSAGE_SUCCESS, result.getFeedbackToUser());
+        assertEquals(CommandResult.ViewChange.TIMETABLE, result.getViewChange());
+        assertEquals(expectedModel, model);
     }
 }
