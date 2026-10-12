@@ -58,6 +58,11 @@ public class NameContainsKeywordsPredicateTest {
         // Partial keyword
         predicate = new NameContainsKeywordsPredicate(List.of("lic"));
         assertTrue(predicate.test(new PersonBuilder().withName("Alice Bob").build()));
+
+        // Blank keywords are ignored
+        predicate = new NameContainsKeywordsPredicate(List.of("", " ", "lic"));
+        assertTrue(predicate.test(new PersonBuilder().withName("Alice Bob").build()));
+        assertEquals(1, predicate.score(new PersonBuilder().withName("Alice Bob").build()));
     }
 
     @Test

@@ -40,6 +40,13 @@ public class LessonContainsKeywordsPredicateTest {
 
         // different person -> returns false
         assertFalse(firstPredicate.equals(secondPredicate));
+
+        // same day but different time -> returns false
+        LessonContainsKeywordsPredicate sameDayDifferentTimePredicate =
+                new LessonContainsKeywordsPredicate(Optional.of("first"), Optional.of("1800"));
+        LessonContainsKeywordsPredicate sameDayDifferentTimePredicateCopy =
+                new LessonContainsKeywordsPredicate(Optional.of("first"), Optional.of("1900"));
+        assertFalse(sameDayDifferentTimePredicate.equals(sameDayDifferentTimePredicateCopy));
     }
 
     @Test
@@ -98,6 +105,10 @@ public class LessonContainsKeywordsPredicateTest {
 
         // Structured class time matches but day does not match
         predicate = new LessonContainsKeywordsPredicate(List.of("Tuesday", "1800"));
+        assertFalse(predicate.test(personWithClass("Math", "30", "Monday1800-1930")));
+
+        // Structured class day matches but time does not match
+        predicate = new LessonContainsKeywordsPredicate(List.of("Monday", "2359"));
         assertFalse(predicate.test(personWithClass("Math", "30", "Monday1800-1930")));
     }
 

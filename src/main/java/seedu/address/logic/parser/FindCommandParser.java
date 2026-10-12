@@ -126,10 +126,6 @@ public class FindCommandParser implements Parser<FindCommand> {
             }
         }
 
-        if (dayKeyword.isEmpty() && timeKeyword.isEmpty()) {
-            throw new ParseException(FindCommand.MESSAGE_INVALID_LESSON);
-        }
-
         return new LessonSearchParts(dayKeyword, timeKeyword);
     }
 
