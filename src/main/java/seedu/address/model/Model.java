@@ -1,6 +1,7 @@
 package seedu.address.model;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -72,6 +73,14 @@ public interface Model {
      * @throws NullPointerException if {@code predicate} is null.
      */
     void updateFilteredPersonList(Predicate<Person> predicate);
+
+    /**
+     * Updates the filtered person list and sorts matching persons with the given comparator.
+     * @throws NullPointerException if {@code predicate} or {@code comparator} is null.
+     */
+    default void updateFilteredPersonList(Predicate<Person> predicate, Comparator<Person> comparator) {
+        updateFilteredPersonList(predicate);
+    }
 
     /** Returns the timetable derived from all persons for the specified date. */
     List<TimetableDay> getTimetable(LocalDate today);

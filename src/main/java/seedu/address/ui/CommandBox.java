@@ -5,6 +5,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Region;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 
@@ -15,11 +16,19 @@ public class CommandBox extends UiPart<Region> {
 
     public static final String ERROR_STYLE_CLASS = "error";
     private static final String FXML = "CommandBox.fxml";
+    private static final String FIND_FORMAT_HINT =
+            "find KEYWORD | find t/TAG (e.g. priority) | find c/DAY TIME (e.g. Monday 1800)";
+    private static final String FIND_TAG_HINT = "find t/TAG (e.g. priority)";
+    private static final String FIND_LESSON_HINT = "find c/DAY TIME (e.g. Monday 1800; time uses HHmm)";
+    private static final String FIND_HOME_HINT = "Type 'list' to return to the home page.";
 
     private final CommandExecutor commandExecutor;
 
     @FXML
     private TextField commandTextField;
+
+    @FXML
+    private TextField commandSuggestionTextField;
 
     /**
      * Creates a {@code CommandBox} with the given {@code CommandExecutor}.
@@ -28,7 +37,11 @@ public class CommandBox extends UiPart<Region> {
         super(FXML);
         this.commandExecutor = commandExecutor;
         // calls #setStyleToDefault() whenever there is a change to the text of the command box.
-        commandTextField.textProperty().addListener((unused1, unused2, unused3) -> setStyleToDefault());
+        commandTextField.textProperty().addListener((unused1, unused2, unused3) -> {
+            setStyleToDefault();
+            updateCommandSuggestion();
+        });
+        updateCommandSuggestion();
     }
 
     /**
@@ -44,6 +57,7 @@ public class CommandBox extends UiPart<Region> {
         try {
             commandExecutor.execute(commandText);
             commandTextField.setText("");
+            commandSuggestionTextField.setText(isFindCommand(commandText) ? FIND_HOME_HINT : "");
         } catch (CommandException | ParseException e) {
             setStyleToIndicateCommandFailure();
         }
@@ -67,6 +81,48 @@ public class CommandBox extends UiPart<Region> {
         }
 
         styleClass.add(ERROR_STYLE_CLASS);
+    }
+
+    private void updateCommandSuggestion() {
+        commandSuggestionTextField.setText(getCommandSuggestion(commandTextField.getText()));
+    }
+
+    private String getCommandSuggestion(String commandText) {
+        if (commandText == null || commandText.isEmpty()) {
+            return "";
+        }
+
+        if ("find".startsWith(commandText) && commandText.length() < "find".length()) {
+            return "find";
+        }
+
+        if (commandText.equals("find") || commandText.equals("find ")) {
+            return FIND_FORMAT_HINT;
+        }
+
+        if (commandText.equals("find t/")) {
+            return FIND_TAG_HINT;
+        }
+
+        if (commandText.equals("find c/")) {
+            return FIND_LESSON_HINT;
+        }
+
+        if (commandText.equals("t/")) {
+            return "t/TAG (e.g. priority)";
+        }
+
+        if (commandText.equals("c/")) {
+            return "c/DAY TIME (e.g. Monday 1800; time uses HHmm)";
+        }
+
+        return "";
+    }
+
+    private boolean isFindCommand(String commandText) {
+        String trimmedCommandText = commandText.trim();
+        return trimmedCommandText.equals(FindCommand.COMMAND_WORD)
+                || trimmedCommandText.startsWith(FindCommand.COMMAND_WORD + " ");
     }
 
     /**

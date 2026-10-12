@@ -116,6 +116,42 @@ public class FindCommandTest {
     }
 
     @Test
+    public void execute_multiplePartialNameKeywords_matchingPersonsRankedByScore() {
+        AddressBook addressBook = new AddressBook();
+        Person oneMatchFirst = new PersonBuilder().withName("Annabelle Tan").build();
+        Person twoMatches = new PersonBuilder().withName("Ann Marie").build();
+        Person oneMatchSecond = new PersonBuilder().withName("Mary Tan").build();
+        addressBook.addPerson(oneMatchFirst);
+        addressBook.addPerson(twoMatches);
+        addressBook.addPerson(oneMatchSecond);
+
+        Model rankedModel = new ModelManager(addressBook, new UserPrefs());
+        NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of("ann", "mar"));
+        FindCommand command = new FindCommand(predicate);
+
+        command.execute(rankedModel);
+        assertEquals(List.of(twoMatches, oneMatchFirst, oneMatchSecond), rankedModel.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_multiplePartialTagKeywords_matchingPersonsRankedByScore() {
+        AddressBook addressBook = new AddressBook();
+        Person oneMatchFirst = new PersonBuilder().withName("First Student").withTags("priority").build();
+        Person twoMatches = new PersonBuilder().withName("Second Student").withTags("priority", "urgent").build();
+        Person oneMatchSecond = new PersonBuilder().withName("Third Student").withTags("urgent").build();
+        addressBook.addPerson(oneMatchFirst);
+        addressBook.addPerson(twoMatches);
+        addressBook.addPerson(oneMatchSecond);
+
+        Model rankedModel = new ModelManager(addressBook, new UserPrefs());
+        TagContainsKeywordsPredicate predicate = new TagContainsKeywordsPredicate(List.of("pri", "urg"));
+        FindCommand command = new FindCommand(predicate);
+
+        command.execute(rankedModel);
+        assertEquals(List.of(twoMatches, oneMatchFirst, oneMatchSecond), rankedModel.getFilteredPersonList());
+    }
+
+    @Test
     public void toStringMethod() {
         NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of("keyword"));
         FindCommand findCommand = new FindCommand(predicate);

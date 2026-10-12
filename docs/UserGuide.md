@@ -168,27 +168,32 @@ Examples:
 
 ### Locating persons by name, tag, or lesson: `find`
 
-Finds persons whose names, tags, or lessons contain any of the given keywords.
+Finds students whose names, tags, or lesson timings partially match the given search input.
 
 Formats:
 * `find KEYWORD [MORE_KEYWORDS]`
 * `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]`
-* `find c/DAYHHmm`
+* `find c/DAY [TIME_HHmm]` or `find c/TIME_HHmm`
 
 * The search is case-insensitive; for example, `hans` matches `Hans`.
-* Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
 * Without `t/`, the search considers only names.
 * With `t/`, the search considers only tags.
-* With `c/`, the search returns students whose classes start at the specified day and time.
-* Name and tag searches require full-word matches; for example, `Han` does not match `Hans`.
-* Persons matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
+* Name and tag searches use partial matching, e.g. `ali` matches `Alice`, and `pri` matches `priority`.
+* With `c/`, search by lesson day, time, or both. Days accept full names or prefixes, e.g. `Monday` or `Mon`. Times use HHmm style from `0000` to `2400`, e.g. `1800`; shorter fragments such as `18` are accepted for partial matching.
+* Name and tag searches return students matching at least one keyword. Students with more matching keywords are shown first; ties keep the current list order.
+* After a successful `find`, the command box shows this light-grey hint: `Type 'list' to return to the home page.`
 
 Examples:
-* `find John` returns `john` and `John Doe`
-* `find t/friends` returns persons tagged `friends`
-* `find c/Monday1800` returns students whose class starts on Monday at 18:00
+* `find Joh` returns `John` and `John Doe`
+* `find t/fri` returns students tagged `friends`
+* `find c/Monday` returns students with Monday lessons
+* `find c/1800` returns students with lessons containing `1800`
+* `find c/Mon 1800` returns students with Monday lessons containing `1800`
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
+
+The command box shows light-grey hints for common `find` inputs, such as `find`, the available search formats, the
+lesson example `find c/Monday 1800`, and the post-search `Type 'list'...` hint.
 
 ### Deleting a person: `delete`
 
@@ -262,7 +267,7 @@ Action     | Format, Examples
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Tag**    | `tag INDEX TAG [MORE_TAGS]`<br> e.g., `tag 3 exam-prep needs-follow-up`
 **Untag**  | `untag INDEX TAG [MORE_TAGS]` or `untag INDEX -all`<br> e.g., `untag 2 parent-follow-up`
-**Find**   | `find KEYWORD [MORE_KEYWORDS]`, `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]`, or `find c/DAYHHmm`<br> e.g., `find James Jake`, `find t/friends`, `find c/Monday1800`
+**Find**   | `find KEYWORD [MORE_KEYWORDS]`, `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]`, `find c/DAY [TIME_HHmm]`, or `find c/TIME_HHmm`<br> e.g., `find Jam`, `find t/fri`, `find c/Mon 1800`
 **List**   | `list`
 **Help**   | `help`
 **Timetable** | `timetable`
