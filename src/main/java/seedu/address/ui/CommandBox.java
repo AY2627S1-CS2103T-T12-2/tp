@@ -87,7 +87,7 @@ public class CommandBox extends UiPart<Region> {
         commandSuggestionTextField.setText(getCommandSuggestion(commandTextField.getText()));
     }
 
-    private String getCommandSuggestion(String commandText) {
+    static String getCommandSuggestion(String commandText) {
         if (commandText == null || commandText.isEmpty()) {
             return "";
         }
@@ -119,7 +119,7 @@ public class CommandBox extends UiPart<Region> {
         return "";
     }
 
-    private boolean isFindCommand(String commandText) {
+    static boolean isFindCommand(String commandText) {
         String trimmedCommandText = commandText.trim();
         return trimmedCommandText.equals(FindCommand.COMMAND_WORD)
                 || trimmedCommandText.startsWith(FindCommand.COMMAND_WORD + " ");

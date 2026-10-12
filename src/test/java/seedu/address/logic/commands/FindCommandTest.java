@@ -152,6 +152,16 @@ public class FindCommandTest {
     }
 
     @Test
+    public void execute_unscoredPredicate_filtersWithoutRanking() {
+        FindCommand command = new FindCommand(person -> person.getName().fullName.contains("Alice"));
+        Model expectedModel = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+        expectedModel.updateFilteredPersonList(person -> person.getName().fullName.contains("Alice"));
+
+        CommandResult expectedResult = new CommandResult(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 1));
+        assertCommandSuccess(command, model, expectedResult, expectedModel);
+    }
+
+    @Test
     public void toStringMethod() {
         NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of("keyword"));
         FindCommand findCommand = new FindCommand(predicate);

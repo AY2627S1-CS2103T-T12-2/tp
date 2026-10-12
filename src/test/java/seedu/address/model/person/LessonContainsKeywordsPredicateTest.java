@@ -63,6 +63,14 @@ public class LessonContainsKeywordsPredicateTest {
         // Mixed-case keywords
         predicate = new LessonContainsKeywordsPredicate(List.of("mOnDaY"));
         assertTrue(predicate.test(personWithLesson("Monday1800")));
+
+        // Structured class day and start time match
+        predicate = new LessonContainsKeywordsPredicate(List.of("Mon", "1800"));
+        assertTrue(predicate.test(personWithClass("Math", "30", "Monday1800-1930")));
+
+        // Structured class end time matches
+        predicate = new LessonContainsKeywordsPredicate(List.of("1930"));
+        assertTrue(predicate.test(personWithClass("Math", "30", "Monday1800-1930")));
     }
 
     @Test
@@ -87,6 +95,10 @@ public class LessonContainsKeywordsPredicateTest {
         // Person has no lesson
         predicate = new LessonContainsKeywordsPredicate(List.of("Monday"));
         assertFalse(predicate.test(new PersonBuilder().build()));
+
+        // Structured class time matches but day does not match
+        predicate = new LessonContainsKeywordsPredicate(List.of("Tuesday", "1800"));
+        assertFalse(predicate.test(personWithClass("Math", "30", "Monday1800-1930")));
     }
 
     @Test
@@ -103,5 +115,15 @@ public class LessonContainsKeywordsPredicateTest {
         Person person = new PersonBuilder().build();
         return new Person(person.getName(), person.getPhone(), person.getEmail(), person.getAddress(),
                 person.getTags(), Set.of(), Optional.empty(), Optional.of(new Lesson(lesson)));
+    }
+
+    private Person personWithClass(String subject, String cost, String timing) {
+        Person person = new PersonBuilder().build();
+        seedu.address.model.lesson.Lesson lesson = new seedu.address.model.lesson.Lesson(
+                new seedu.address.model.lesson.Subject(subject),
+                new seedu.address.model.lesson.Cost(cost),
+                new seedu.address.model.lesson.LessonTiming(timing));
+        return new Person(person.getName(), person.getPhone(), person.getEmail(), person.getAddress(),
+                person.getTags(), Set.<seedu.address.model.lesson.Lesson>of(lesson));
     }
 }

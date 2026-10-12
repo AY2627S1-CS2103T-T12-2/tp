@@ -94,6 +94,12 @@ public class FindCommandParserTest {
     public void parse_invalidLessonKeyword_failure() {
         assertParseFailure(parser, "c/Funday",
                 "Invalid lesson day keyword 'Funday'. " + FindCommand.MESSAGE_INVALID_LESSON);
+        assertParseFailure(parser, "c/Monday Tuesday",
+                "Lesson search can include only one day keyword. " + FindCommand.MESSAGE_INVALID_LESSON);
+        assertParseFailure(parser, "c/1800 1900",
+                "Lesson search can include only one time keyword. " + FindCommand.MESSAGE_INVALID_LESSON);
+        assertParseFailure(parser, "c/Mon18pm",
+                "Invalid lesson time keyword '18pm'. " + FindCommand.MESSAGE_INVALID_LESSON);
         assertParseFailure(parser, "c/Monday 24000",
                 "Invalid lesson time keyword '24000'. " + FindCommand.MESSAGE_INVALID_LESSON);
         assertParseFailure(parser, "c/Monday 2401",
