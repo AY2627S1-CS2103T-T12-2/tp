@@ -11,6 +11,7 @@ import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
@@ -21,8 +22,13 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.lesson.Cost;
+import seedu.address.model.lesson.Lesson;
+import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.Subject;
 import seedu.address.model.person.Person;
 import seedu.address.model.tag.Tag;
+import seedu.address.testutil.AddressBookBuilder;
 import seedu.address.testutil.PersonBuilder;
 
 public class UntagCommandTest {
@@ -64,6 +70,21 @@ public class UntagCommandTest {
     }
 
     @Test
+    public void execute_removeTag_preservesStudentDetails() {
+        Person personToUntag = createStudentWithDetails(getTagSet("friends", "exam-prep"));
+        model = new ModelManager(new AddressBookBuilder().withPerson(personToUntag).build(), new UserPrefs());
+        UntagCommand untagCommand = new UntagCommand(INDEX_FIRST_PERSON, getTagSet("exam-prep"));
+        Person untaggedPerson = createStudentWithDetails(getTagSet("friends"));
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(personToUntag, untaggedPerson);
+        String expectedMessage = String.format(UntagCommand.MESSAGE_UNTAG_PERSON_SUCCESS,
+                personToUntag.getName(), "exam-prep");
+
+        assertCommandSuccess(untagCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
     public void execute_invalidPersonIndex_failure() {
         Index outOfBoundsIndex = Index.fromOneBased(model.getFilteredPersonList().size() + 1);
         UntagCommand untagCommand = new UntagCommand(outOfBoundsIndex, getTagSet("friends"));
@@ -102,5 +123,16 @@ public class UntagCommandTest {
         Set<Tag> tags = new LinkedHashSet<>();
         List.of(tagNames).stream().map(Tag::new).forEach(tags::add);
         return tags;
+    }
+
+    private static Person createStudentWithDetails(Set<Tag> tags) {
+        Person basePerson = new PersonBuilder().build();
+        Lesson lesson = new Lesson(new Subject("Mathematics"), new Cost("40"),
+                new LessonTiming("Monday1800-1900"));
+        return new Person(basePerson.getName(), basePerson.getPhone(), basePerson.getEmail(),
+                basePerson.getAddress(), tags, Set.of(lesson),
+                Set.of(new seedu.address.model.person.Subject("Mathematics")),
+                Optional.of(new seedu.address.model.person.Cost("40")),
+                Optional.of(new seedu.address.model.person.Lesson("Monday1800")));
     }
 }

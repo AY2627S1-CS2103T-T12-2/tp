@@ -131,6 +131,15 @@ public class Person {
         return Collections.unmodifiableSet(tags);
     }
 
+    /**
+     * Returns a copy of this person with {@code updatedTags}, retaining every non-tag field.
+     */
+    public Person withTags(Set<Tag> updatedTags) {
+        requireAllNonNull(updatedTags);
+        return new Person(name, phone, email, address, updatedTags, lessons,
+                legacySubjects, legacyCost, legacyLesson);
+    }
+
     /** Returns the immutable set of lessons in which this person is enrolled. */
     public Set<Lesson> getLessons() {
         return Collections.unmodifiableSet(lessons);
