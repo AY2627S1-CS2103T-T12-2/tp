@@ -89,6 +89,18 @@ public class TagCommandTest {
     }
 
     @Test
+    public void execute_existingPersonAboveTagLimit_failure() {
+        Person legacyPerson = new PersonBuilder()
+                .withTags("one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
+                        "eleven")
+                .build();
+        model = new ModelManager(new AddressBookBuilder().withPerson(legacyPerson).build(), new UserPrefs());
+        TagCommand tagCommand = new TagCommand(INDEX_FIRST_PERSON, getTagSet("twelve"));
+
+        assertCommandFailure(tagCommand, model, Tag.MESSAGE_TAG_LIMIT);
+    }
+
+    @Test
     public void execute_addTag_preservesStudentDetails() {
         Person personToTag = createStudentWithDetails(getTagSet("friends"));
         model = new ModelManager(new AddressBookBuilder().withPerson(personToTag).build(), new UserPrefs());

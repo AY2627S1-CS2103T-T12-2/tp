@@ -1,6 +1,5 @@
 package seedu.address.model.person;
 
-import static seedu.address.commons.util.AppUtil.checkArgument;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.time.LocalTime;
@@ -61,7 +60,6 @@ public class Person {
         this.phone = phone;
         this.email = email;
         this.address = address;
-        checkArgument(tags.size() <= Tag.MAX_TAGS_PER_PERSON, Tag.MESSAGE_TAG_LIMIT);
         this.tags.addAll(tags);
         this.lessons.addAll(lessons);
         this.legacySubjects = Set.copyOf(legacySubjects);

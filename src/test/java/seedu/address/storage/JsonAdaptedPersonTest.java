@@ -131,7 +131,7 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
-    public void toModelType_tooManyTags_throwsIllegalValueException() {
+    public void toModelType_moreThanTenTags_loadsLegacyPerson() throws Exception {
         List<JsonAdaptedTag> tags = List.of(new JsonAdaptedTag("one"), new JsonAdaptedTag("two"),
                 new JsonAdaptedTag("three"), new JsonAdaptedTag("four"), new JsonAdaptedTag("five"),
                 new JsonAdaptedTag("six"), new JsonAdaptedTag("seven"), new JsonAdaptedTag("eight"),
@@ -139,7 +139,7 @@ public class JsonAdaptedPersonTest {
         JsonAdaptedPerson person =
                 new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS, tags);
 
-        assertThrows(IllegalValueException.class, Tag.MESSAGE_TAG_LIMIT, person::toModelType);
+        assertEquals(11, person.toModelType().getTags().size());
     }
 
 }

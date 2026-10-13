@@ -85,6 +85,26 @@ public class UntagCommandTest {
     }
 
     @Test
+    public void execute_existingPersonAboveTagLimit_removesTag() {
+        Person personToUntag = new PersonBuilder()
+                .withTags("one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
+                        "eleven")
+                .build();
+        model = new ModelManager(new AddressBookBuilder().withPerson(personToUntag).build(), new UserPrefs());
+        UntagCommand untagCommand = new UntagCommand(INDEX_FIRST_PERSON, getTagSet("eleven"));
+        Person untaggedPerson = new PersonBuilder(personToUntag)
+                .withTags("one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten")
+                .build();
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(personToUntag, untaggedPerson);
+        String expectedMessage = String.format(UntagCommand.MESSAGE_UNTAG_PERSON_SUCCESS,
+                personToUntag.getName(), "eleven");
+
+        assertCommandSuccess(untagCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
     public void execute_invalidPersonIndex_failure() {
         Index outOfBoundsIndex = Index.fromOneBased(model.getFilteredPersonList().size() + 1);
         UntagCommand untagCommand = new UntagCommand(outOfBoundsIndex, getTagSet("friends"));

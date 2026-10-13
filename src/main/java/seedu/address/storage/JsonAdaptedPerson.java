@@ -140,9 +140,6 @@ class JsonAdaptedPerson {
         if (modelTags.size() != personTags.size()) {
             throw new IllegalValueException(Tag.MESSAGE_DUPLICATE_TAGS);
         }
-        if (modelTags.size() > Tag.MAX_TAGS_PER_PERSON) {
-            throw new IllegalValueException(Tag.MESSAGE_TAG_LIMIT);
-        }
         final Set<Lesson> modelLessons = new LinkedHashSet<>();
         for (JsonAdaptedLesson lesson : lessons) {
             modelLessons.add(lesson.toModelType());
