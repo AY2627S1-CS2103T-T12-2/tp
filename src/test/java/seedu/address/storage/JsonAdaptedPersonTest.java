@@ -111,11 +111,13 @@ public class JsonAdaptedPersonTest {
 
     @Test
     public void toModelType_legacyCamelCaseTag_migratesTag() throws Exception {
-        List<JsonAdaptedTag> legacyTags = List.of(new JsonAdaptedTag("owesMoney"));
+        List<JsonAdaptedTag> legacyTags = List.of(new JsonAdaptedTag("owesMoney"),
+                new JsonAdaptedTag("NeedsFollowUp"), new JsonAdaptedTag("VIP"));
         JsonAdaptedPerson person =
                 new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS, legacyTags);
 
-        assertEquals(Set.of(new Tag("owes-money")), person.toModelType().getTags());
+        assertEquals(Set.of(new Tag("owes-money"), new Tag("needs-follow-up"), new Tag("vip")),
+                person.toModelType().getTags());
     }
 
     @Test
