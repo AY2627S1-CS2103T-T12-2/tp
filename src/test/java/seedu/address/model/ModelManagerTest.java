@@ -101,6 +101,42 @@ public class ModelManagerTest {
     }
 
     @Test
+    public void findOverlappingClasses_multiplePersons_returnsDistinctSortedClasses() {
+        Lesson candidate = new Lesson(new Subject("Chemistry"), new Cost("40"),
+                new LessonTiming("Monday1800-1900"));
+        Lesson earlierConflict = new Lesson(new Subject("Physics"), new Cost("35"),
+                new LessonTiming("Monday1700-1830"));
+        Lesson laterConflict = new Lesson(new Subject("Math"), new Cost("30"),
+                new LessonTiming("Monday1800-1930"));
+        Lesson sameClass = new Lesson(new Subject("chemistry"), new Cost("40"),
+                new LessonTiming("Monday1800-1900"));
+        Lesson backToBack = new Lesson(new Subject("English"), new Cost("25"),
+                new LessonTiming("Monday1900-2000"));
+        Lesson differentDay = new Lesson(new Subject("Biology"), new Cost("30"),
+                new LessonTiming("Tuesday1800-1900"));
+        Person aliceWithConflicts = new PersonBuilder(ALICE)
+                .withLessons(laterConflict, earlierConflict, sameClass).build();
+        Person bensonWithDuplicate = new PersonBuilder(BENSON).withLessons(laterConflict).build();
+        Person otherLessons = new PersonBuilder().withName("Other Student").withPhone("81234567")
+                .withEmail("other@example.com").withLessons(backToBack, differentDay).build();
+        AddressBook addressBook = new AddressBookBuilder()
+                .withPerson(aliceWithConflicts)
+                .withPerson(bensonWithDuplicate)
+                .withPerson(otherLessons)
+                .build();
+        modelManager = new ModelManager(addressBook, new UserPrefs());
+        modelManager.updateFilteredPersonList(
+                new NameContainsKeywordsPredicate(List.of(otherLessons.getName().fullName.split(" ")[0])));
+
+        assertEquals(List.of(earlierConflict, laterConflict), modelManager.findOverlappingClasses(candidate));
+    }
+
+    @Test
+    public void findOverlappingClasses_nullCandidate_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> modelManager.findOverlappingClasses(null));
+    }
+
+    @Test
     public void equals() {
         AddressBook addressBook = new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON).build();
         AddressBook differentAddressBook = new AddressBook();
