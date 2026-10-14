@@ -3,6 +3,7 @@ package seedu.address.model.lesson;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.DayOfWeek;
@@ -46,6 +47,27 @@ public class LessonTimingTest {
         assertTrue(mondayMorning.compareTo(mondayEvening) < 0);
         assertTrue(mondayEvening.compareTo(tuesdayMorning) < 0);
         assertEquals(0, mondayMorning.compareTo(new LessonTiming("Monday0900-1100")));
+    }
+
+    @Test
+    public void overlapsWith_variousTimings_returnsExpectedResult() {
+        LessonTiming timing = new LessonTiming("Monday1800-1930");
+
+        assertTrue(timing.overlapsWith(new LessonTiming("Monday1700-1830")));
+        assertTrue(timing.overlapsWith(new LessonTiming("Monday1900-2000")));
+        assertTrue(timing.overlapsWith(new LessonTiming("Monday1830-1900")));
+        assertTrue(timing.overlapsWith(new LessonTiming("Monday1700-2000")));
+        assertTrue(timing.overlapsWith(new LessonTiming("Monday1800-1930")));
+        assertFalse(timing.overlapsWith(new LessonTiming("Monday1700-1800")));
+        assertFalse(timing.overlapsWith(new LessonTiming("Monday1930-2000")));
+        assertFalse(timing.overlapsWith(new LessonTiming("Tuesday1800-1930")));
+    }
+
+    @Test
+    public void overlapsWith_null_throwsNullPointerException() {
+        LessonTiming timing = new LessonTiming("Monday1800-1930");
+
+        assertThrows(NullPointerException.class, () -> timing.overlapsWith(null));
     }
 
     @Test

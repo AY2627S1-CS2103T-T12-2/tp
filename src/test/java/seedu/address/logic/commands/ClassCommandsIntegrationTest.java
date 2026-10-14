@@ -92,6 +92,19 @@ public class ClassCommandsIntegrationTest {
     }
 
     @Test
+    public void enrol_overlappingClass_failure() throws CommandException {
+        new ClassEnrolCommand(Index.fromOneBased(1), LESSON).execute(model);
+        Lesson overlappingLesson = new Lesson(new Subject("Physics"), new Cost("40"),
+                new LessonTiming("Monday1900-2000"));
+        String expectedMessage = "Cannot add Physics (Monday 19:00-20:00) because it overlaps with:"
+                + System.lineSeparator() + "- Math (Monday 18:00-19:30)"
+                + System.lineSeparator() + "Choose a non-overlapping time.";
+
+        assertCommandFailure(new ClassEnrolCommand(Index.fromOneBased(2), overlappingLesson), model,
+                expectedMessage);
+    }
+
+    @Test
     public void enrol_invalidPersonIndex_failure() {
         Index invalidIndex = Index.fromOneBased(model.getFilteredPersonList().size() + 1);
 
