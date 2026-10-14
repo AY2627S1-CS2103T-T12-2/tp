@@ -10,6 +10,8 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
+import java.util.List;
+
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -65,6 +67,12 @@ public class AddCommand extends Command {
         for (Lesson lesson : toAdd.getLessons()) {
             if (model.hasClassCostConflict(lesson)) {
                 throw new CommandException(MESSAGE_CLASS_COST_CONFLICT);
+            }
+        }
+        for (Lesson lesson : toAdd.getLessons()) {
+            List<Lesson> overlappingClasses = model.findOverlappingClasses(lesson);
+            if (!overlappingClasses.isEmpty()) {
+                throw new CommandException(Messages.getClassOverlapMessage(lesson, overlappingClasses));
             }
         }
 

@@ -52,6 +52,10 @@ public class AddClassCommand extends Command {
         if (person.getLessons().stream().anyMatch(existing -> existing.isSameClass(lesson))) {
             throw new CommandException(MESSAGE_DUPLICATE_CLASS);
         }
+        List<Lesson> overlappingClasses = model.findOverlappingClasses(lesson);
+        if (!overlappingClasses.isEmpty()) {
+            throw new CommandException(Messages.getClassOverlapMessage(lesson, overlappingClasses));
+        }
         Set<Lesson> updatedLessons = new HashSet<>(person.getLessons());
         updatedLessons.add(lesson);
         Person updatedPerson = new Person(person.getName(), person.getPhone(), person.getEmail(),

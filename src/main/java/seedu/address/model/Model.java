@@ -1,6 +1,9 @@
 package seedu.address.model;
 
+import static java.util.Objects.requireNonNull;
+
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -82,6 +85,27 @@ public interface Model {
                 .flatMap(person -> person.getLessons().stream())
                 .anyMatch(existing -> existing.isSameClass(candidate)
                         && !existing.getCost().equals(candidate.getCost()));
+    }
+
+    /**
+     * Returns the distinct existing classes that overlap {@code candidate}, ordered by day,
+     * start time, end time, then subject. Copies of the same group class are returned once.
+     */
+    default List<Lesson> findOverlappingClasses(Lesson candidate) {
+        requireNonNull(candidate);
+        Comparator<Lesson> classOrder = Comparator
+                .comparingInt((Lesson lesson) -> lesson.getTiming().getDay().getValue())
+                .thenComparing(lesson -> lesson.getTiming().getStartTime())
+                .thenComparing(lesson -> lesson.getTiming().getEndTime())
+                .thenComparing(lesson -> lesson.getSubject().toString(), String.CASE_INSENSITIVE_ORDER);
+
+        return getAddressBook().getPersonList().stream()
+                .flatMap(person -> person.getLessons().stream())
+                .filter(existing -> !existing.isSameClass(candidate))
+                .filter(existing -> existing.getTiming().overlapsWith(candidate.getTiming()))
+                .distinct()
+                .sorted(classOrder)
+                .toList();
     }
 
 }
