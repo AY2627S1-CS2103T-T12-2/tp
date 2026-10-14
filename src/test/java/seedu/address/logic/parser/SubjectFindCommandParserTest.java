@@ -40,9 +40,16 @@ public class SubjectFindCommandParserTest {
 
     @Test
     public void parse_duplicateOrInvalidSubject_failure() {
-        assertThrows(ParseException.class, () -> parser.parse("sub/Math sub/Physics"));
-        assertThrows(ParseException.class, () -> parser.parse("sub/Math!"));
+        assertParseFailure(parser, "sub/Math sub/Physics",
+                seedu.address.logic.Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_SUBJECT));
+        assertParseFailure(parser, "sub/Math!", seedu.address.model.lesson.Subject.MESSAGE_CONSTRAINTS);
         assertThrows(ParseException.class, () -> parser.parse("sub/Math cost/30"));
+    }
+
+    @Test
+    public void parse_numericLevelsAndRepeatedKeywords_success() {
+        assertParseSuccess(parser, "sub/H2 Math Math",
+                new FindCommand(new SubjectContainsKeywordsPredicate(List.of("H2", "Math", "Math"))));
     }
 
     @Test

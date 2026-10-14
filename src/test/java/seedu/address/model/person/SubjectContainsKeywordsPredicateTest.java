@@ -39,6 +39,15 @@ public class SubjectContainsKeywordsPredicateTest {
     }
 
     @Test
+    public void test_matchesNumericLevelsAndAnyWordOfMultiWordSubjects() {
+        Person student = new PersonBuilder().withLessons(lesson("H2 Mathematics"), lesson("Computer Science")).build();
+        assertTrue(predicate("h2").test(student));
+        assertTrue(predicate("2").test(student));
+        assertTrue(predicate("SCIENCE", "Economics").test(student));
+        assertFalse(predicate("H1").test(student));
+    }
+
+    @Test
     public void test_supportsLegacySubjectOnlyAndMigratedRecords() {
         Person base = new PersonBuilder().build();
         Set<seedu.address.model.person.Subject> subjects = Set.of(new seedu.address.model.person.Subject("Math"));

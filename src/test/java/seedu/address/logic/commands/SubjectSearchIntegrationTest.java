@@ -38,6 +38,9 @@ public class SubjectSearchIntegrationTest {
         assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 2), result.getFeedbackToUser());
         assertEquals(originalStudents, model.getAddressBook().getPersonList());
 
+        parser.parseCommand("find sub/math Math mathematics").execute(model);
+        assertEquals(List.of(alice), model.getFilteredPersonList());
+
         result = parser.parseCommand("find sub/Chemistry").execute(model);
         assertEquals(List.of(), model.getFilteredPersonList());
         assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 0), result.getFeedbackToUser());
