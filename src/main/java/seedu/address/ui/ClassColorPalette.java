@@ -55,13 +55,12 @@ final class ClassColorPalette {
 
         int preferredColor = Math.floorMod(identity.hashCode(), COLOR_COUNT);
         if (colorByClass.size() < COLOR_COUNT) {
-            for (int offset = 0; offset < COLOR_COUNT; offset++) {
-                int candidateColor = (preferredColor + offset) % COLOR_COUNT;
-                if (!colorByClass.containsValue(candidateColor)) {
-                    colorByClass.put(identity, candidateColor);
-                    return candidateColor;
-                }
+            int candidateColor = preferredColor;
+            while (colorByClass.containsValue(candidateColor)) {
+                candidateColor = (candidateColor + 1) % COLOR_COUNT;
             }
+            colorByClass.put(identity, candidateColor);
+            return candidateColor;
         }
 
         colorByClass.put(identity, preferredColor);
