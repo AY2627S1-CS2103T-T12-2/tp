@@ -43,6 +43,12 @@ public class Lesson {
                 && timing.equals(otherLesson.timing);
     }
 
+    /** Returns true if this lesson has the supplied class identity. */
+    public boolean isSameClass(Subject expectedSubject, LessonTiming expectedTiming) {
+        requireAllNonNull(expectedSubject, expectedTiming);
+        return subject.equals(expectedSubject) && timing.equals(expectedTiming);
+    }
+
     @Override
     public boolean equals(Object other) {
         if (other == this) {

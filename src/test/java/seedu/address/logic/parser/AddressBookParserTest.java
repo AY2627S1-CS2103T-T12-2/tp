@@ -14,6 +14,9 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.AddCommand;
+import seedu.address.logic.commands.ClassDeleteCommand;
+import seedu.address.logic.commands.ClassEnrolCommand;
+import seedu.address.logic.commands.ClassUnenrolCommand;
 import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.DeleteCommand;
 import seedu.address.logic.commands.EditCommand;
@@ -26,6 +29,10 @@ import seedu.address.logic.commands.TagCommand;
 import seedu.address.logic.commands.TimetableCommand;
 import seedu.address.logic.commands.UntagCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.lesson.Cost;
+import seedu.address.model.lesson.Lesson;
+import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.Subject;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
 import seedu.address.model.tag.Tag;
@@ -48,6 +55,30 @@ public class AddressBookParserTest {
     public void parseCommand_clear() throws Exception {
         assertTrue(parser.parseCommand(ClearCommand.COMMAND_WORD) instanceof ClearCommand);
         assertTrue(parser.parseCommand(ClearCommand.COMMAND_WORD + " 3") instanceof ClearCommand);
+    }
+
+    @Test
+    public void parseCommand_classEnrol() throws Exception {
+        Lesson lesson = new Lesson(new Subject("Math"), new Cost("30"),
+                new LessonTiming("Monday1800-1930"));
+        assertEquals(new ClassEnrolCommand(INDEX_FIRST_PERSON, lesson), parser.parseCommand(
+                "class enrol 1 sub/Math cost/30 c/Monday1800-1930"));
+    }
+
+    @Test
+    public void parseCommand_classUnenrol() throws Exception {
+        Subject subject = new Subject("Math");
+        LessonTiming timing = new LessonTiming("Monday1800-1930");
+        assertEquals(new ClassUnenrolCommand(INDEX_FIRST_PERSON, subject, timing), parser.parseCommand(
+                "class unenrol 1 sub/Math c/Monday1800-1930"));
+    }
+
+    @Test
+    public void parseCommand_classDelete() throws Exception {
+        Subject subject = new Subject("Math");
+        LessonTiming timing = new LessonTiming("Monday1800-1930");
+        assertEquals(new ClassDeleteCommand(subject, timing), parser.parseCommand(
+                "class delete sub/Math c/Monday1800-1930"));
     }
 
     @Test
@@ -119,5 +150,7 @@ public class AddressBookParserTest {
     @Test
     public void parseCommand_unknownCommand_throwsParseException() {
         assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND, () -> parser.parseCommand("unknownCommand"));
+        String retiredAddClassCommand = "addclass 1 sub/Math cost/30 c/Monday1800-1930";
+        assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND, () -> parser.parseCommand(retiredAddClassCommand));
     }
 }
