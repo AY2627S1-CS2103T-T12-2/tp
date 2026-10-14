@@ -14,6 +14,7 @@ import seedu.address.model.tag.Tag;
 class JsonAdaptedTag {
 
     private static final String LEGACY_VALIDATION_REGEX = "\\p{Alnum}+";
+    private static final String CAMEL_CASE_BOUNDARY_REGEX = "(?<=[a-z0-9])(?=[A-Z])";
 
     private final String tagName;
 
@@ -47,15 +48,19 @@ class JsonAdaptedTag {
             throw new IllegalValueException(Tag.MESSAGE_CONSTRAINTS);
         }
 
-        String normalizedTagName = tagName;
-        if (!Tag.isValidTagName(normalizedTagName) && tagName.matches(LEGACY_VALIDATION_REGEX)) {
-            normalizedTagName = tagName.replaceAll("(?<=[a-z0-9])(?=[A-Z])", "-")
-                    .toLowerCase(Locale.ROOT);
-        }
+        String normalizedTagName = normalizeLegacyTagName(tagName);
         if (!Tag.isValidTagName(normalizedTagName)) {
             throw new IllegalValueException(Tag.MESSAGE_CONSTRAINTS);
         }
         return new Tag(normalizedTagName);
+    }
+
+    /** Converts a valid tag from the previous alphanumeric format to the current lowercase format. */
+    private static String normalizeLegacyTagName(String tagName) {
+        if (Tag.isValidTagName(tagName) || !tagName.matches(LEGACY_VALIDATION_REGEX)) {
+            return tagName;
+        }
+        return tagName.replaceAll(CAMEL_CASE_BOUNDARY_REGEX, "-").toLowerCase(Locale.ROOT);
     }
 
 }

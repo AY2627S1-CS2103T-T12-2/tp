@@ -1,6 +1,5 @@
 package seedu.address.model.person;
 
-import static seedu.address.commons.util.AppUtil.checkArgument;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.time.LocalTime;
@@ -61,7 +60,6 @@ public class Person {
         this.phone = phone;
         this.email = email;
         this.address = address;
-        checkArgument(tags.size() <= Tag.MAX_TAGS_PER_PERSON, Tag.MESSAGE_TAG_LIMIT);
         this.tags.addAll(tags);
         this.lessons.addAll(lessons);
         this.legacySubjects = Set.copyOf(legacySubjects);
@@ -129,6 +127,15 @@ public class Person {
      */
     public Set<Tag> getTags() {
         return Collections.unmodifiableSet(tags);
+    }
+
+    /**
+     * Returns a copy of this person with {@code updatedTags}, retaining every non-tag field.
+     */
+    public Person withTags(Set<Tag> updatedTags) {
+        requireAllNonNull(updatedTags);
+        return new Person(name, phone, email, address, updatedTags, lessons,
+                legacySubjects, legacyCost, legacyLesson);
     }
 
     /** Returns the immutable set of lessons in which this person is enrolled. */

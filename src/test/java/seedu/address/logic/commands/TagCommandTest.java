@@ -12,6 +12,7 @@ import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
@@ -22,6 +23,10 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.lesson.Cost;
+import seedu.address.model.lesson.Lesson;
+import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.Subject;
 import seedu.address.model.person.Person;
 import seedu.address.model.tag.Tag;
 import seedu.address.testutil.AddressBookBuilder;
@@ -84,6 +89,33 @@ public class TagCommandTest {
     }
 
     @Test
+    public void execute_existingPersonAboveTagLimit_failure() {
+        Person legacyPerson = new PersonBuilder()
+                .withTags("one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
+                        "eleven")
+                .build();
+        model = new ModelManager(new AddressBookBuilder().withPerson(legacyPerson).build(), new UserPrefs());
+        TagCommand tagCommand = new TagCommand(INDEX_FIRST_PERSON, getTagSet("twelve"));
+
+        assertCommandFailure(tagCommand, model, Tag.MESSAGE_TAG_LIMIT);
+    }
+
+    @Test
+    public void execute_addTag_preservesStudentDetails() {
+        Person personToTag = createStudentWithDetails(getTagSet("friends"));
+        model = new ModelManager(new AddressBookBuilder().withPerson(personToTag).build(), new UserPrefs());
+        TagCommand tagCommand = new TagCommand(INDEX_FIRST_PERSON, getTagSet("exam-prep"));
+        Person taggedPerson = createStudentWithDetails(getTagSet("friends", "exam-prep"));
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(personToTag, taggedPerson);
+        String expectedMessage = String.format(TagCommand.MESSAGE_TAG_PERSON_SUCCESS,
+                personToTag.getName(), "exam-prep");
+
+        assertCommandSuccess(tagCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
     public void execute_invalidPersonIndex_failure() {
         Index outOfBoundsIndex = Index.fromOneBased(model.getFilteredPersonList().size() + 1);
         TagCommand tagCommand = new TagCommand(outOfBoundsIndex, getTagSet("exam-prep"));
@@ -117,5 +149,16 @@ public class TagCommandTest {
         Set<Tag> tags = new LinkedHashSet<>();
         List.of(tagNames).stream().map(Tag::new).forEach(tags::add);
         return tags;
+    }
+
+    private static Person createStudentWithDetails(Set<Tag> tags) {
+        Person basePerson = new PersonBuilder().build();
+        Lesson lesson = new Lesson(new Subject("Mathematics"), new Cost("40"),
+                new LessonTiming("Monday1800-1900"));
+        return new Person(basePerson.getName(), basePerson.getPhone(), basePerson.getEmail(),
+                basePerson.getAddress(), tags, Set.of(lesson),
+                Set.of(new seedu.address.model.person.Subject("Mathematics")),
+                Optional.of(new seedu.address.model.person.Cost("40")),
+                Optional.of(new seedu.address.model.person.Lesson("Monday1800")));
     }
 }
