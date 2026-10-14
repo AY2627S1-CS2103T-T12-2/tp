@@ -85,6 +85,11 @@ The `UI` component,
 * keeps a reference to the `Logic` component, because the `UI` relies on the `Logic` to execute commands.
 * depends on some classes in the `Model` component because it displays `Person` objects from the model.
 
+`PersonCard` renders each student's enrolled classes as text-labelled badges beside the student's name. A single
+`ClassColorPalette` is owned by `PersonListPanel` and shared by every card, ensuring that the same logical class uses the
+same colour across students. The palette identifies a class using its case-insensitive subject and complete lesson
+timing, matching `Lesson#isSameClass`; cost is not part of the colour identity.
+
 ### Logic component
 
 **API** : [`Logic.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/logic/Logic.java)

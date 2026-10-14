@@ -110,6 +110,9 @@ Example: `class enrol 1 sub/Physics cost/35 c/Wednesday1700-1830`
 The same class can be assigned to multiple students, but its cost must be consistent. A student cannot be enrolled in
 the same class more than once.
 
+Enrolled classes appear as coloured badges beside each student's name. The badge includes the subject and lesson timing;
+students enrolled in the same class receive a badge with the same colour.
+
 ### Unenrolling a student from a class: `class unenrol`
 
 Removes one class from one student without affecting other students enrolled in that class.
