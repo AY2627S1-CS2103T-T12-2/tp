@@ -183,6 +183,27 @@ The UI renders the projection in three levels: `TimetablePanel` provides the scr
 a day heading and empty state, and `TimetableEntryCard` displays a class's time, subject, and students. Entering `list`
 restores the existing person panel and normal command availability.
 
+### Subject search
+
+`AddressBookParser` routes `find` to `SubjectFindCommandParser`. The parser handles the `sub/` mode and delegates
+name, tag, and class searches to `FindCommandParser`, preserving their existing parsing and error messages.
+Subject mode requires a single `sub/` prefix, non-empty alphanumeric keywords, and no other search category or
+name preamble. Whitespace between keywords is normalized before parsing. Invalid input throws `ParseException`
+before the model or storage is changed.
+
+`SubjectContainsKeywordsPredicate` matches any keyword as a case-insensitive substring of a current class subject.
+It reads `Person#getLessons()`. For older subject-only records that could not be migrated because a cost or lesson
+start is missing, it reads `Person#getSubjects()` instead. Complete legacy records already have migrated lessons;
+their retained legacy metadata is not used to restore matches after a class is removed from the in-memory model.
+
+The existing `FindCommand` applies this predicate to the complete address book. Each student appears at most once,
+and subject results retain address-book order. Subject search does not implement relevance scoring. `list` clears
+the filter. `LogicManager` applies the usual timetable restriction and saves the complete address book after a
+successful command, so searching does not remove students or enrolments from storage. Filters are not persisted.
+
+The [subject search guide](SubjectSearch.md) documents examples and input constraints.
+The [testing guide](Testing.md#subject-search-tests) lists automated coverage and commands for this feature.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
@@ -663,6 +684,28 @@ testers are expected to do more *exploratory* testing.
       Expected: Similar to previous.
 
 1. _{ more test cases … }_
+
+### Searching by subject
+
+Use a disposable data file with three students: Alice taking Mathematics and Physics, Bob taking Computer Science,
+and Carol taking no subjects. These tests assume the student view; use `list` first if the timetable is open.
+
+| Test input | Expected result |
+| --- | --- |
+| `find sub/mAtH` | Alice appears once; feedback reports one result. |
+| `find sub/phys computer` | Alice and Bob appear in address-book order. |
+| `find sub/math Math physics` | Alice appears once despite multiple matching keywords and classes. |
+| `find Carol`, then `find sub/computer` | Bob appears; the subject search includes students outside the old results. |
+| `find sub/Chemistry` | Empty results and a zero-result message. |
+| `list` | All three students reappear. |
+| `find sub/` or `find sub/Math!` | Error message; previous results and student records remain unchanged. |
+| `find sub/Math sub/Physics` | Duplicate-prefix error; previous results remain unchanged. |
+| `find sub/Math t/priority` or `find Alice sub/Math` | Mixed-mode error; previous results remain unchanged. |
+| `timetable`, then `find sub/Math` | Timetable read-only error; use `list` before searching. |
+| `find sub/computer`, then `delete 1` | Bob is deleted, even if he was not first in the complete list. |
+
+After a subject search, exit and relaunch the app. All remaining students and their enrolments should be present;
+the full student list should be displayed. Repeat `find sub/math` to check that saved class subjects remain searchable.
 
 ### Saving data
 
