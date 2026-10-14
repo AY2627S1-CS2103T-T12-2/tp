@@ -107,7 +107,7 @@ public class LogicManagerTest {
         assertCommandException("clear", LogicManager.MESSAGE_TIMETABLE_READ_ONLY);
         assertCommandException("find Alice", LogicManager.MESSAGE_TIMETABLE_READ_ONLY);
         assertCommandException("timetable", LogicManager.MESSAGE_TIMETABLE_READ_ONLY);
-        assertCommandException("addclass 1 sub/Math cost/30 c/Monday1800-1930",
+        assertCommandException("class enrol 1 sub/Math cost/30 c/Monday1800-1930",
                 LogicManager.MESSAGE_TIMETABLE_READ_ONLY);
         assertCommandException("delete 1", LogicManager.MESSAGE_TIMETABLE_READ_ONLY);
         assertCommandException("edit 1 n/Edited", LogicManager.MESSAGE_TIMETABLE_READ_ONLY);
