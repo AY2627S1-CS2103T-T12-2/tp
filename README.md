@@ -2,9 +2,9 @@
 
 ![Ui](docs/images/Ui.png)
 
-# Easy Tutor
+# TutEasy
 
-Easy Tutor is a desktop application that helps private tutors manage their students and lesson schedules in one place. It is optimized for users who prefer a fast, keyboard-driven workflow while still providing a clear visual overview of upcoming lessons.
+TutEasy is a desktop application that helps private tutors manage their students and lesson schedules in one place. It is optimized for users who prefer a fast, keyboard-driven workflow while still providing a clear visual overview of upcoming lessons.
 
 ## Features
 
@@ -13,9 +13,9 @@ Easy Tutor is a desktop application that helps private tutors manage their stude
 * Find student information quickly using text commands.
 * View upcoming lessons at a glance.
 
-For detailed instructions on using Easy Tutor, see the [User Guide](docs/UserGuide.md).
+For detailed instructions on using TutEasy, see the [User Guide](docs/UserGuide.md).
 
-For information about the design and implementation of Easy Tutor, see the [Developer Guide](docs/DeveloperGuide.md).
+For information about the design and implementation of TutEasy, see the [Developer Guide](docs/DeveloperGuide.md).
 
 ## Acknowledgements
 
