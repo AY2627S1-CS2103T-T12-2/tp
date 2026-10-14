@@ -48,7 +48,7 @@ public class FindCommand extends Command {
     public static final String MESSAGE_EMPTY_LESSON =
             "Enter a day, time, or both after c/. Example: find c/Monday 1800.";
     public static final String MESSAGE_INVALID_LESSON =
-            "Lesson search should use a weekday (e.g. Mon), time 0000-2400, or both.";
+            "Lesson search should use a weekday (e.g. Mon), time 0000-2359, or both.";
 
     private final Predicate<Person> predicate;
 

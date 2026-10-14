@@ -21,7 +21,7 @@ import seedu.address.model.person.TagContainsKeywordsPredicate;
 public class FindCommandParser implements Parser<FindCommand> {
     private static final Set<String> VALID_DAY_NAMES = Set.of("monday", "tuesday", "wednesday", "thursday",
             "friday", "saturday", "sunday");
-    private static final int LAST_HOUR = 24;
+    private static final int LAST_HOUR = 23;
     private static final int LAST_MINUTE = 59;
 
     /**
@@ -167,8 +167,7 @@ public class FindCommandParser implements Parser<FindCommand> {
         }
 
         for (int hour = 0; hour <= LAST_HOUR; hour++) {
-            int lastMinuteForHour = hour == LAST_HOUR ? 0 : LAST_MINUTE;
-            for (int minute = 0; minute <= lastMinuteForHour; minute++) {
+            for (int minute = 0; minute <= LAST_MINUTE; minute++) {
                 String validTime = String.format("%02d%02d", hour, minute);
                 if (validTime.contains(timeKeyword)) {
                     return true;

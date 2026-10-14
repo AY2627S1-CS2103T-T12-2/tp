@@ -46,12 +46,12 @@ public class FindCommandParserTest {
                 new FindCommand(new LessonContainsKeywordsPredicate(List.of("Monday"))));
         assertParseSuccess(parser, " c/1800",
                 new FindCommand(new LessonContainsKeywordsPredicate(List.of("1800"))));
-        assertParseSuccess(parser, " c/2400",
-                new FindCommand(new LessonContainsKeywordsPredicate(List.of("2400"))));
+        assertParseSuccess(parser, " c/2359",
+                new FindCommand(new LessonContainsKeywordsPredicate(List.of("2359"))));
         assertParseSuccess(parser, " c/Mon 18",
                 new FindCommand(new LessonContainsKeywordsPredicate(List.of("Mon", "18"))));
-        assertParseSuccess(parser, " c/Mon 2400",
-                new FindCommand(new LessonContainsKeywordsPredicate(List.of("Mon", "2400"))));
+        assertParseSuccess(parser, " c/Mon 2359",
+                new FindCommand(new LessonContainsKeywordsPredicate(List.of("Mon", "2359"))));
     }
 
     @Test
@@ -102,8 +102,8 @@ public class FindCommandParserTest {
                 "Invalid lesson time keyword '18pm'. " + FindCommand.MESSAGE_INVALID_LESSON);
         assertParseFailure(parser, "c/Monday 24000",
                 "Invalid lesson time keyword '24000'. " + FindCommand.MESSAGE_INVALID_LESSON);
-        assertParseFailure(parser, "c/Monday 2401",
-                "Invalid lesson time keyword '2401'. " + FindCommand.MESSAGE_INVALID_LESSON);
+        assertParseFailure(parser, "c/Monday 2400",
+                "Invalid lesson time keyword '2400'. " + FindCommand.MESSAGE_INVALID_LESSON);
     }
 
 }

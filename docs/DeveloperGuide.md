@@ -180,7 +180,7 @@ Supported modes are mutually exclusive:
 
 `FindCommandParser` selects the mode from the prefix immediately after `find`. It rejects mixed modes, duplicate search
 prefixes, empty prefixed values, and invalid tag or lesson keywords before constructing the corresponding predicate.
-Lesson keywords accept a weekday/prefix such as `Mon`, an HHmm-style time within `0000`-`2400`, or both; shorter
+Lesson keywords accept a weekday/prefix such as `Mon`, an HHmm-style time within `0000`-`2359`, or both; shorter
 numeric fragments such as `18` are accepted for partial matching.
 
 `FindCommand` applies the predicate through `Model#updateFilteredPersonList`. Predicates that implement
