@@ -1,7 +1,7 @@
 {
   "baseUrl": "",
-  "titlePrefix": "Happy Tutor",
-  "titleSuffix": "AddressBook Level-3",
+  "titlePrefix": "TutEasy",
+  "titleSuffix": "",
   "faviconPath": "images/SeEduLogo.png",
   "style": {
     "codeTheme": "light"
