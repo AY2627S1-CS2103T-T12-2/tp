@@ -96,13 +96,34 @@ Examples:
 * `add n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
 * `add n/John Davis p/91234567 e/johndavis@gmail.com a/Clementi t/exam-prep sub/Math cost/30 c/Monday1800-1930`
 
-### Adding a class to a student: `addclass`
+### Enrolling a student in a class: `class enrol`
 
-Adds a recurring weekly class to an existing student.
+Enrols an existing student in a recurring weekly class. The student is identified by the index shown in the current
+student list.
 
-Format: `addclass INDEX sub/SUBJECT cost/COST c/DAYHHmm-HHmm`
+Format: `class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/DAYHHmm-HHmm`
 
-Example: `addclass 1 sub/Physics cost/35 c/Wednesday1700-1830`
+Example: `class enrol 1 sub/Physics cost/35 c/Wednesday1700-1830`
+
+The same class can be assigned to multiple students, but its cost must be consistent. A student cannot be enrolled in
+the same class more than once.
+
+### Unenrolling a student from a class: `class unenrol`
+
+Removes one class from one student without affecting other students enrolled in that class.
+
+Format: `class unenrol STUDENT_INDEX sub/SUBJECT c/DAYHHmm-HHmm`
+
+Example: `class unenrol 1 sub/Physics c/Wednesday1700-1830`
+
+### Deleting a class: `class delete`
+
+Deletes a class globally by removing it from every enrolled student. Students and their other information are not
+deleted. The command searches the complete address book even when the displayed student list is filtered.
+
+Format: `class delete sub/SUBJECT c/DAYHHmm-HHmm`
+
+Example: `class delete sub/Physics c/Wednesday1700-1830`
 
 ### Viewing the weekly timetable: `timetable`
 
@@ -256,7 +277,9 @@ _Details coming soon ..._
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 **Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [sub/SUBJECT cost/COST c/DAYHHmm-HHmm]` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/Clementi t/friend sub/Math cost/30 c/Monday1800-1930`
-**Add class** | `addclass INDEX sub/SUBJECT cost/COST c/DAYHHmm-HHmm`<br> e.g., `addclass 1 sub/Physics cost/35 c/Wednesday1700-1830`
+**Enrol in class** | `class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/DAYHHmm-HHmm`<br> e.g., `class enrol 1 sub/Physics cost/35 c/Wednesday1700-1830`
+**Unenrol from class** | `class unenrol STUDENT_INDEX sub/SUBJECT c/DAYHHmm-HHmm`<br> e.g., `class unenrol 1 sub/Physics c/Wednesday1700-1830`
+**Delete class** | `class delete sub/SUBJECT c/DAYHHmm-HHmm`<br> e.g., `class delete sub/Physics c/Wednesday1700-1830`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
