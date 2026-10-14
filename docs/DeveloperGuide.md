@@ -168,6 +168,31 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Find feature
+
+The `find` feature is implemented across `FindCommandParser`, `FindCommand`, the search predicates, and `CommandBox`.
+
+Supported modes are mutually exclusive:
+
+* `find KEYWORD [MORE_KEYWORDS]` -> `NameContainsKeywordsPredicate`
+* `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]` -> `TagContainsKeywordsPredicate`
+* `find c/DAY [TIME_HHmm]` or `find c/TIME_HHmm` -> `LessonContainsKeywordsPredicate`
+
+`FindCommandParser` selects the mode from the prefix immediately after `find`. It rejects mixed modes, duplicate search
+prefixes, empty prefixed values, and invalid tag or lesson keywords before constructing the corresponding predicate.
+For tag search, it normalizes keywords to lowercase before tag-format validation. This keeps stored tags lowercase-only
+while allowing case-insensitive search input for user convenience.
+Lesson keywords accept a weekday/prefix such as `Mon`, an HHmm-style time within `0000`-`2359`, or both; shorter
+numeric fragments such as `18` are accepted for partial matching.
+
+`FindCommand` applies the predicate through `Model#updateFilteredPersonList`. Predicates that implement
+`ScoredPersonPredicate` also provide a relevance score, so `FindCommand` requests a sorted filtered list with stronger
+matches first and preserves original address-book order for ties.
+
+`CommandBox` provides light-grey input-bar hints for common `find` inputs. After a successful `find`, it keeps the
+suggestion overlay visible with `Type 'list' to return to the home page.`; the hint clears when the user starts typing
+or when a non-`find` command succeeds.
+
 ### Timetable view
 
 `TimetableCommand` does not modify model data. It returns a `CommandResult` requesting the `TIMETABLE` view.
@@ -543,28 +568,38 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 
 **MSS**
 
-1. Tutor requests to find students by one or more keywords or by a tag.
+1. Tutor requests to find students by partial name keywords, tag keywords, or lesson timing keywords.
 
-2. TutEasy searches the student list.
+2. TutEasy validates the chosen search mode and search input.
 
-3. TutEasy displays the matching students.
+3. TutEasy searches the student list.
+
+4. TutEasy ranks matching students by relevance.
+
+5. TutEasy displays the matching students and shows the light-grey input-bar hint for returning to the home page.
 
    Use case ends.
 
 **Extensions**
 
-* 2a. No student matches the keyword or tag.
+* 2a. The search input is empty or invalid for the chosen mode.
 
-    * 2a1. TutEasy displays a message to show that there are no people matched.
+    * 2a1. TutEasy shows a search-mode-specific error message.
 
       Use case resumes at step 1.
 
-* 2b. Multiple search results refer to the same student.
+* 3a. No student matches the search input.
 
-    * 2b1. TutEasy removes the duplicate results.
-    * 2b2. TutEasy displays only the unique matching students.
+    * 3a1. TutEasy displays a message to show that there are no people matched.
 
-      Use case resumes at step 3.
+      Use case resumes at step 1.
+
+* 3b. Multiple search results refer to the same student.
+
+    * 3b1. TutEasy removes the duplicate results.
+    * 3b2. TutEasy displays only the unique matching students.
+
+      Use case resumes at step 5.
 
 * 1a. There is no whitespace between `find` and the keyword.
 

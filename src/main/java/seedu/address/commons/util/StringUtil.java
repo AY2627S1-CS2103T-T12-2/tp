@@ -6,6 +6,7 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Arrays;
+import java.util.Locale;
 
 /**
  * Helper functions for handling strings.
@@ -36,6 +37,20 @@ public class StringUtil {
 
         return Arrays.stream(wordsInPreppedSentence)
                 .anyMatch(preppedWord::equalsIgnoreCase);
+    }
+
+    /**
+     * Returns true if {@code sentence} contains {@code query}, ignoring case.
+     * Both inputs cannot be null, and {@code query} cannot be blank.
+     */
+    public static boolean containsIgnoreCase(String sentence, String query) {
+        requireNonNull(sentence);
+        requireNonNull(query);
+
+        String preppedQuery = query.trim();
+        checkArgument(!preppedQuery.isEmpty(), "Query parameter cannot be empty");
+
+        return sentence.toLowerCase(Locale.ROOT).contains(preppedQuery.toLowerCase(Locale.ROOT));
     }
 
     /**

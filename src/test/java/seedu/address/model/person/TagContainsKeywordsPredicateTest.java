@@ -54,6 +54,15 @@ public class TagContainsKeywordsPredicateTest {
         // Mixed-case keywords
         predicate = new TagContainsKeywordsPredicate(List.of("FrIeNdS"));
         assertTrue(predicate.test(new PersonBuilder().withTags("friends").build()));
+
+        // Partial keyword
+        predicate = new TagContainsKeywordsPredicate(List.of("iend"));
+        assertTrue(predicate.test(new PersonBuilder().withTags("friends").build()));
+
+        // Blank keywords are ignored
+        predicate = new TagContainsKeywordsPredicate(List.of("", " ", "iend"));
+        assertTrue(predicate.test(new PersonBuilder().withTags("friends").build()));
+        assertEquals(1, predicate.score(new PersonBuilder().withTags("friends").build()));
     }
 
     @Test
