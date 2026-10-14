@@ -136,6 +136,12 @@ public class Person {
         return Collections.unmodifiableSet(lessons);
     }
 
+    /** Returns a copy of this person with {@code updatedLessons} replacing the current lessons. */
+    public Person withLessons(Set<Lesson> updatedLessons) {
+        return new Person(name, phone, email, address, tags, updatedLessons,
+                legacySubjects, legacyCost, legacyLesson);
+    }
+
     /** Returns subjects retained from the previous student model. */
     public Set<Subject> getSubjects() {
         return Collections.unmodifiableSet(new LinkedHashSet<>(legacySubjects));
