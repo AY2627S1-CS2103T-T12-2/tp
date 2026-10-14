@@ -185,6 +185,8 @@ public class ClassCommandsIntegrationTest {
                 Index.fromOneBased(2), LESSON.getSubject(), LESSON.getTiming()));
         assertNotEquals(command, new ClassUnenrolCommand(
                 Index.fromOneBased(1), OTHER_LESSON.getSubject(), LESSON.getTiming()));
+        assertNotEquals(command, new ClassUnenrolCommand(
+                Index.fromOneBased(1), LESSON.getSubject(), OTHER_LESSON.getTiming()));
         assertNotEquals(command, null);
     }
 
