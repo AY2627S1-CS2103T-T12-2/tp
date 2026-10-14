@@ -45,6 +45,8 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
 ## Features
 
+Subject searches are described in the [subject search guide](SubjectSearch.md).
+
 <box type="info" seamless>
 
 **Notes about the command format:**<br>
