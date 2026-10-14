@@ -177,7 +177,8 @@ Formats:
 
 * The search is case-insensitive; for example, `hans` matches `Hans`.
 * Without `t/`, the search considers only names.
-* With `t/`, the search considers only tags.
+* With `t/`, the search considers only tags. Stored tags use lowercase, but tag search keywords are case-insensitive
+  for input convenience, e.g. `find t/PRI` matches `priority`.
 * Name and tag searches use partial matching, e.g. `ali` matches `Alice`, and `pri` matches `priority`.
 * With `c/`, search by lesson day, time, or both. Days accept full names or prefixes, e.g. `Monday` or `Mon`. Times use HHmm style from `0000` to `2359`, e.g. `1800`; shorter fragments such as `18` are accepted for partial matching.
 * Name and tag searches return students matching at least one keyword. Students with more matching keywords are shown first; ties keep the current list order.

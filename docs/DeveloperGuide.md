@@ -180,6 +180,8 @@ Supported modes are mutually exclusive:
 
 `FindCommandParser` selects the mode from the prefix immediately after `find`. It rejects mixed modes, duplicate search
 prefixes, empty prefixed values, and invalid tag or lesson keywords before constructing the corresponding predicate.
+For tag search, it normalizes keywords to lowercase before tag-format validation. This keeps stored tags lowercase-only
+while allowing case-insensitive search input for user convenience.
 Lesson keywords accept a weekday/prefix such as `Mon`, an HHmm-style time within `0000`-`2359`, or both; shorter
 numeric fragments such as `18` are accepted for partial matching.
 

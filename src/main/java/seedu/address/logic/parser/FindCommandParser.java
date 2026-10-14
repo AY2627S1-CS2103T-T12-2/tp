@@ -79,12 +79,15 @@ public class FindCommandParser implements Parser<FindCommand> {
             throw new ParseException(FindCommand.MESSAGE_EMPTY_TAG);
         }
 
-        List<String> tagKeywords = List.of(trimmedTagArguments.split("\\s+"));
-        for (String keyword : tagKeywords) {
+        List<String> rawTagKeywords = List.of(trimmedTagArguments.split("\\s+"));
+        List<String> tagKeywords = rawTagKeywords.stream()
+                .map(keyword -> keyword.toLowerCase(Locale.ROOT))
+                .toList();
+        for (int index = 0; index < tagKeywords.size(); index++) {
             try {
-                ParserUtil.parseTag(keyword);
+                ParserUtil.parseTag(tagKeywords.get(index));
             } catch (ParseException parseException) {
-                throw new ParseException("Invalid tag keyword '" + keyword + "'. "
+                throw new ParseException("Invalid tag keyword '" + rawTagKeywords.get(index) + "'. "
                         + parseException.getMessage());
             }
         }

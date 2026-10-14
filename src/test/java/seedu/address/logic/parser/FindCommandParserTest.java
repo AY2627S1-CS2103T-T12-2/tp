@@ -36,6 +36,8 @@ public class FindCommandParserTest {
     public void parse_tag_success() {
         assertParseSuccess(parser, " t/priority",
                 new FindCommand(new TagContainsKeywordsPredicate(List.of("priority"))));
+        assertParseSuccess(parser, " t/PRI Exam-Prep",
+                new FindCommand(new TagContainsKeywordsPredicate(List.of("pri", "exam-prep"))));
     }
 
     @Test
