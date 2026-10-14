@@ -92,7 +92,7 @@ public class ClassCommandsIntegrationTest {
     }
 
     @Test
-    public void addClass_overlappingClass_failure() throws CommandException {
+    public void enrol_overlappingClass_failure() throws CommandException {
         new ClassEnrolCommand(Index.fromOneBased(1), LESSON).execute(model);
         Lesson overlappingLesson = new Lesson(new Subject("Physics"), new Cost("40"),
                 new LessonTiming("Monday1900-2000"));
