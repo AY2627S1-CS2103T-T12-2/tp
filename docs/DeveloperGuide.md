@@ -318,30 +318,30 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *`  | tutor                                       | add a student's contact details                                    | store all their information in one place                                  |
 | `* * *`  | tutor                                       | edit or remove student records                                     | keep my student list accurate                                             |
 | `* * *`  | tutor                                       | search for students by name, subject, or class                     | find their information quickly                                            |
-| `* * *`  | tutor                                       | record a student's subject and academic level                      | prepare suitable lesson materials                                         |
-| `* * *`  | tutor                                       | create a class with its subject, level, times, mode, and location  | represent a complete teaching arrangement                                 |
-| `* * *`  | tutor                                       | give each class a recognizable name or identifier                  | distinguish classes with similar subjects and times                       |
+| `* * *`  | tutor                                       | record a student's subject                                         | prepare suitable lesson materials                                         |
+| `* * *`  | tutor                                       | create a class with its subject and weekly timeslot                | represent a teaching arrangement in my schedule                           |
 | `* * *`  | tutor                                       | edit or remove a class independently of its students               | change my timetable without incorrectly altering student records          |
 | `* * *`  | tutor                                       | add students to or remove students from a class                    | maintain individual and group class rosters                               |
 | `* * *`  | tutor teaching a student multiple subjects  | enroll the same student in multiple classes                        | represent their different teaching arrangements accurately               |
 | `* * *`  | tutor                                       | record each class's day, start time, and end time                  | know when I am teaching and identify scheduling overlaps                  |
-| `* * *`  | tutor                                       | create either a one-off or recurring class with a recurrence period | schedule both ad-hoc and regular lessons                                  |
-| `* * *`  | tutor with recurring classes                | have recurring lessons appear automatically                        | avoid creating the same lesson every week                                 |
+| `* * *`  | tutor with weekly classes                   | have each weekly class recur automatically                         | avoid entering the same class every week                                  |
 | `* * *`  | tutor                                       | view my tutoring classes in a weekly timetable                     | understand my schedule at a glance                                        |
-| `* * *`  | tutor                                       | navigate between timetable weeks and return to the current week   | inspect past and future schedules easily                                  |
-| `* * *`  | tutor                                       | see the subject, students, time, and teaching mode for each class  | view important lesson details immediately                                 |
-| `* * *`  | tutor                                       | view all classes for a selected day                                | prepare for upcoming lessons                                               |
-| `* * *`  | tutor teaching online and in-person lessons | record whether a lesson is online or in person                     | know how to attend it                                                      |
-| `* * *`  | tutor                                       | store the meeting link or lesson address                           | access the class location quickly                                          |
-| `* * *`  | tutor                                       | reschedule or cancel an individual lesson                          | keep timetable changes accurate                                            |
-| `* * *`  | tutor changing a recurring class            | apply a change to one lesson, future lessons, or the entire series | avoid changing unrelated lessons accidentally                             |
-| `* * *`  | tutor                                       | mark a lesson as scheduled, completed, or cancelled                | keep my timetable and lesson history accurate                             |
+| `* * *`  | tutor                                       | see the subject, students, start time, and end time for each class | view important class details immediately                                  |
 | `* * *`  | tutor with a busy schedule                  | be warned when two classes overlap                                 | avoid scheduling conflicts                                                 |
-| `* * *`  | tutor                                       | view a class's roster and each student's enrolled classes         | understand class membership from either direction                         |
+| `* * *`  | tutor                                       | see the students in each class and the classes assigned to each student | understand class membership from either direction                    |
 | `* * *`  | tutor                                       | clear an active search, filter, or grouping                        | return to the complete student list easily                                |
 | `* * *`  | keyboard-driven user                        | receive clear success messages and actionable error messages      | know whether a command worked and how to correct invalid input            |
 | `* * *`  | tutor                                       | have my student and class information saved and restored automatically | avoid losing my records when the application restarts                 |
-| `* * *`  | tutor                                       | have invalid dates, times, contact details, and recurrence rules rejected | prevent incorrect data from entering my records or timetable       |
+| `* * *`  | tutor                                       | have invalid contact details, costs, and class times rejected     | prevent incorrect data from entering my records or timetable              |
+| `* *`    | tutor                                       | give each class a recognizable name or identifier                  | distinguish classes with similar subjects and times                       |
+| `* *`    | tutor                                       | create either a one-off or recurring class with a recurrence period | schedule both ad-hoc and regular lessons                                  |
+| `* *`    | tutor                                       | navigate between timetable weeks and return to the current week   | inspect past and future schedules easily                                  |
+| `* *`    | tutor                                       | view all classes for a selected day                                | prepare for upcoming lessons                                               |
+| `* *`    | tutor teaching online and in-person lessons | record whether a lesson is online or in person                     | know how to attend it                                                      |
+| `* *`    | tutor                                       | store the meeting link or lesson address                           | access the class location quickly                                          |
+| `* *`    | tutor                                       | reschedule or cancel an individual lesson                          | keep timetable changes accurate                                            |
+| `* *`    | tutor changing a recurring class            | apply a change to one lesson, future lessons, or the entire series | avoid changing unrelated lessons accidentally                             |
+| `* *`    | tutor                                       | mark a lesson as scheduled, completed, or cancelled                | keep my timetable and lesson history accurate                             |
 | `* *`    | tutor                                       | undo an accidental add, edit, deletion, cancellation, or rescheduling | recover from mistakes quickly                                          |
 | `* *`    | tutor                                       | archive inactive students and discontinued classes                | hide old records without permanently deleting their history               |
 | `* *`    | tutor                                       | be warned about possible duplicate students or classes            | avoid creating redundant records accidentally                             |
@@ -412,11 +412,11 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 
 **MSS**
 
-1. Tutor requests to delete a specific student by name.
+1. Tutor requests to delete the student at a specified index in the displayed student list.
 
-2. TutEasy searches for students matching the given name.
+2. TutEasy checks that the given index is valid.
 
-3. TutEasy finds exactly one matching student.
+3. TutEasy identifies the student at the specified index.
 
 4. TutEasy deletes the student from the address book.
 
@@ -428,19 +428,12 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 
 **Extensions**
 
-* 2a. No student with the given name is found.
+* 2a. The given index is outside the displayed student list.
 
     * 2a1. TutEasy does not delete any student.
     * 2a2. TutEasy shows an error message.
 
       Use case resumes at step 1.
-
-* 3a. More than one student with the same name is found.
-
-    * 3a1. TutEasy does not delete any student.
-    * 3a2. TutEasy shows a message asking the tutor to select the correct student from the displayed matches.
-
-      Use case resumes at step 4.
 
 * 4a. The deletion cannot be saved due to a storage failure.
 
@@ -533,10 +526,10 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 
       Use case ends.
 
-* 2a. Tutor is already in the requested view mode.
+* 2a. Tutor enters `timetable` while already in timetable mode.
 
-    * 2a1. TutEasy does not switch the view.
-    * 2a2. TutEasy shows a message informing the tutor that the current view mode is already active.
+    * 2a1. TutEasy rejects the command and keeps the current view.
+    * 2a2. TutEasy shows the timetable read-only message.
 
       Use case ends.
 
