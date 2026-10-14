@@ -52,7 +52,6 @@
         "common-classes": "Common classes",
         "implementation": "Implementation",
         "timetable-view": "Timetable view",
-        "subject-search": "Subject search",
         "proposed-undo-redo-feature": "[Proposed] Undo/redo feature",
         "proposed-data-archiving": "[Proposed] Data archiving",
         "documentation-logging-testing-dev-ops": "Documentation, logging, testing, dev-ops",
@@ -65,7 +64,6 @@
         "appendix-instructions-for-manual-testing": "Appendix: Instructions for manual testing",
         "launch-and-shutdown": "Launch and shutdown",
         "deleting-a-person": "Deleting a person",
-        "searching-by-subject": "Searching by subject",
         "saving-data": "Saving data"
       },
       "headingKeywords": {}
@@ -97,21 +95,12 @@
       "headingKeywords": {}
     },
     {
-      "src": "SubjectSearch.md",
-      "title": "Subject search",
-      "headings": {
-        "searching-students-by-subject": "Searching students by subject"
-      },
-      "headingKeywords": {}
-    },
-    {
       "src": "Testing.md",
       "title": "Testing guide",
       "headings": {
         "testing-guide": "Testing guide",
         "running-tests": "Running tests",
-        "types-of-tests": "Types of tests",
-        "subject-search-tests": "Subject search tests"
+        "types-of-tests": "Types of tests"
       },
       "headingKeywords": {}
     },
