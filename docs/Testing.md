@@ -39,29 +39,3 @@ This project has three types of tests:
    For example: `seedu.address.storage.StorageManagerTest`
 1. *Hybrid tests* combine unit and integration testing. These tests check both the individual units and how they work together.<br>
    For example: `seedu.address.logic.LogicManagerTest`
-
-## Subject search tests
-
-| Test class | Coverage |
-| --- | --- |
-| `SubjectFindCommandParserTest` | Subject syntax, whitespace, numeric levels, duplicate prefixes, invalid keywords, mixed modes, and unchanged delegation of existing search modes. |
-| `SubjectContainsKeywordsPredicateTest` | Partial and case-insensitive OR matching, multiple classes, numeric levels, unrelated fields, legacy subject-only data, and stale metadata after in-memory unenrolment. |
-| `SubjectSearchIntegrationTest` | Complete-list searching, unique results, feedback counts, stable ordering, and returning to the full list. |
-| `SubjectSearchLogicIntegrationTest` | Real JSON save/reload, preserved enrolments, unchanged data and results after invalid input, timetable restrictions, and deletion using displayed indices. |
-
-Run the subject-search tests and style checks with:
-
-```sh
-./gradlew test --tests '*Subject*Test' checkstyleMain checkstyleTest
-```
-
-For the full regression suite, run:
-
-```sh
-./gradlew test checkstyleMain checkstyleTest
-```
-
-If tests pass but the separate `jacocoTestReport` task fails, inspect the coverage-report error independently.
-To run tests and style checks without generating that report, append `-x jacocoTestReport` to either command.
-
-The [Developer Guide](DeveloperGuide.md#searching-by-subject) provides manual subject-search test scenarios.

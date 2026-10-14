@@ -45,8 +45,6 @@ TutEasy is a **desktop application for managing contacts, optimized for use thro
 
 ## Features
 
-Subject searches are described in the [subject search guide](SubjectSearch.md).
-
 <box type="info" seamless>
 
 **Notes about the command format:**<br>
