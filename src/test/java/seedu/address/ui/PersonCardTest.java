@@ -64,6 +64,7 @@ public class PersonCardTest {
             assertEquals(person, card.person);
             assertLabel(card, "id", "2. ", true);
             assertLabel(card, "name", person.getName().fullName, true);
+            assertLabel(card, "balance", "Balance: 30", true);
             assertLabel(card, "phone", person.getPhone().value, true);
             assertLabel(card, "email", person.getEmail().value, true);
             assertLabel(card, "address", person.getAddress().value, true);
@@ -124,6 +125,7 @@ public class PersonCardTest {
             assertTrue(getClassGroups(card).isEmpty());
             assertFalse(getClassPane(card).isVisible());
             assertFalse(getClassPane(card).isManaged());
+            assertLabel(card, "balance", "Balance: 0", true);
             assertLabel(card, "subjects", "Subjects: ", false);
             assertLabel(card, "cost", "", false);
             assertLabel(card, "lesson", "", false);
