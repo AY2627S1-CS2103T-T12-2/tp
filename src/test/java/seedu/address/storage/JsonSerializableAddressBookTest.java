@@ -14,6 +14,7 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.lesson.Subject;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.PersonBuilder;
@@ -54,7 +55,7 @@ public class JsonSerializableAddressBookTest {
     public void jsonRoundTrip_lessonAndEnrolments_success() throws Exception {
         AddressBook original = TypicalPersons.getTypicalAddressBook();
         Lesson lesson = new Lesson(new Subject("Math"), new Cost("30"),
-                new LessonTiming("Monday1800-1930"));
+                new LessonTiming("Monday1800-1930"), PaymentStatus.PAID);
         Person firstPerson = original.getPersonList().get(0);
         original.setPerson(firstPerson, new PersonBuilder(firstPerson).withLessons(lesson).build());
 
@@ -94,6 +95,21 @@ public class JsonSerializableAddressBookTest {
 
         JsonSerializableAddressBook data = new JsonSerializableAddressBook(addressBook);
         assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_CLASS_COST_CONFLICT,
+                data::toModelType);
+    }
+
+    @Test
+    public void toModelType_onePersonHasDuplicateClassWithDifferentStatuses_throwsIllegalValueException() {
+        AddressBook addressBook = TypicalPersons.getTypicalAddressBook();
+        Lesson unpaid = new Lesson(new Subject("Math"), new Cost("30"),
+                new LessonTiming("Monday1800-1930"));
+        Lesson paid = unpaid.withPaymentStatus(PaymentStatus.PAID);
+        Person firstPerson = addressBook.getPersonList().get(0);
+        addressBook.setPerson(firstPerson,
+                new PersonBuilder(firstPerson).withLessons(unpaid, paid).build());
+
+        JsonSerializableAddressBook data = new JsonSerializableAddressBook(addressBook);
+        assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_DUPLICATE_ENROLMENT,
                 data::toModelType);
     }
 

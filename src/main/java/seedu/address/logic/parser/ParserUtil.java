@@ -11,6 +11,7 @@ import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.lesson.LessonStart;
 import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Cost;
 import seedu.address.model.person.Email;
@@ -200,6 +201,16 @@ public class ParserUtil {
             throw new ParseException(LessonTiming.MESSAGE_CONSTRAINTS);
         }
         return new LessonTiming(trimmedTiming);
+    }
+
+    /** Parses a payment status. */
+    public static PaymentStatus parsePaymentStatus(String status) throws ParseException {
+        requireNonNull(status);
+        String trimmedStatus = status.trim();
+        if (!PaymentStatus.isValidPaymentStatus(trimmedStatus)) {
+            throw new ParseException(PaymentStatus.MESSAGE_CONSTRAINTS);
+        }
+        return PaymentStatus.fromString(trimmedStatus);
     }
 
     /** Parses the day and start time used for class searching. */

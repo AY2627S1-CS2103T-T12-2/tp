@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.Set;
 
 import seedu.address.model.lesson.Lesson;
+import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.Subject;
 import seedu.address.model.person.Person;
 
 /** Builds a read-only timetable projection from the lessons owned by students. */
@@ -29,13 +31,14 @@ public final class TimetableBuilder {
         requireNonNull(today);
 
         List<DayOfWeek> visibleDays = getVisibleDays(today.getDayOfWeek());
-        Map<Lesson, Set<Person>> studentsByLesson = new LinkedHashMap<>();
+        Map<ClassIdentity, ClassGroup> groupsByClass = new LinkedHashMap<>();
 
         for (Person person : persons) {
             requireNonNull(person);
             for (Lesson lesson : person.getLessons()) {
                 if (visibleDays.contains(lesson.getTiming().getDay())) {
-                    studentsByLesson.computeIfAbsent(lesson, unused -> new LinkedHashSet<>()).add(person);
+                    ClassIdentity identity = new ClassIdentity(lesson.getSubject(), lesson.getTiming());
+                    groupsByClass.computeIfAbsent(identity, unused -> new ClassGroup(lesson)).students.add(person);
                 }
             }
         }
@@ -48,9 +51,9 @@ public final class TimetableBuilder {
 
         List<TimetableDay> timetable = new ArrayList<>();
         for (DayOfWeek day : visibleDays) {
-            List<TimetableEntry> entries = studentsByLesson.entrySet().stream()
-                    .filter(entry -> entry.getKey().getTiming().getDay() == day)
-                    .map(entry -> new TimetableEntry(entry.getKey(), List.copyOf(entry.getValue())))
+            List<TimetableEntry> entries = groupsByClass.values().stream()
+                    .filter(group -> group.lesson.getTiming().getDay() == day)
+                    .map(group -> new TimetableEntry(group.lesson, List.copyOf(group.students)))
                     .sorted(entryComparator)
                     .toList();
             timetable.add(new TimetableDay(day, entries));
@@ -67,6 +70,20 @@ public final class TimetableBuilder {
                 return List.copyOf(visibleDays);
             }
             day = day.plus(1);
+        }
+    }
+
+    /** Fields that identify a logical class regardless of an enrolment's payment status. */
+    private record ClassIdentity(Subject subject, LessonTiming timing) {
+    }
+
+    /** Accumulates the students belonging to one logical class. */
+    private static class ClassGroup {
+        private final Lesson lesson;
+        private final Set<Person> students = new LinkedHashSet<>();
+
+        ClassGroup(Lesson enrolment) {
+            lesson = new Lesson(enrolment.getSubject(), enrolment.getCost(), enrolment.getTiming());
         }
     }
 }

@@ -110,8 +110,8 @@ Example: `class enrol 1 sub/Physics cost/35 c/Wednesday1700-1830`
 The same class can be assigned to multiple students, but its cost must be consistent. A student cannot be enrolled in
 the same class more than once.
 
-Enrolled classes appear as coloured badges beside each student's name. The badge includes the subject and lesson timing;
-students enrolled in the same class receive a badge with the same colour.
+Each enrolled class appears as a normal information line below the student's email. The line shows the subject and
+lesson timing, followed immediately by a compact payment-status label.
 
 ### Unenrolling a student from a class: `class unenrol`
 
@@ -120,6 +120,26 @@ Removes one class from one student without affecting other students enrolled in 
 Format: `class unenrol STUDENT_INDEX sub/SUBJECT c/DAYHHmm-HHmm`
 
 Example: `class unenrol 1 sub/Physics c/Wednesday1700-1830`
+
+### Updating an enrolment's payment status: `class payment`
+
+Marks one student's enrolment in a recurring weekly class as paid or unpaid. The student is identified by the index
+shown in the current student list, while the subject and complete lesson timing identify the enrolment.
+
+Format: `class payment STUDENT_INDEX sub/SUBJECT c/DAYHHmm-HHmm status/paid|unpaid`
+
+Examples:
+
+* `class payment 1 sub/Physics c/Wednesday1700-1830 status/paid`
+* `class payment 1 sub/Physics c/Wednesday1700-1830 status/unpaid`
+
+New and previously saved enrolments default to unpaid. The current status appears immediately after the corresponding
+class information below the student's email. Its subdued label distinguishes the status without making it more
+prominent than the student's tags. Updating one student's payment status does not affect other students enrolled in
+the same class. If the specified student is not enrolled in that class, no data is changed.
+
+Payment status describes the current recurring enrolment as a whole; it is not a payment history for individual weekly
+sessions or billing months.
 
 ### Deleting a class: `class delete`
 
@@ -290,6 +310,7 @@ Action     | Format, Examples
 **Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [sub/SUBJECT cost/COST c/DAYHHmm-HHmm]` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/Clementi t/friend sub/Math cost/30 c/Monday1800-1930`
 **Enrol in class** | `class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/DAYHHmm-HHmm`<br> e.g., `class enrol 1 sub/Physics cost/35 c/Wednesday1700-1830`
 **Unenrol from class** | `class unenrol STUDENT_INDEX sub/SUBJECT c/DAYHHmm-HHmm`<br> e.g., `class unenrol 1 sub/Physics c/Wednesday1700-1830`
+**Update payment status** | `class payment STUDENT_INDEX sub/SUBJECT c/DAYHHmm-HHmm status/paid|unpaid`<br> e.g., `class payment 1 sub/Physics c/Wednesday1700-1830 status/paid`
 **Delete class** | `class delete sub/SUBJECT c/DAYHHmm-HHmm`<br> e.g., `class delete sub/Physics c/Wednesday1700-1830`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`

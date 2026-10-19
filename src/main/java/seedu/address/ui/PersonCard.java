@@ -9,10 +9,12 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Subject;
@@ -23,7 +25,9 @@ import seedu.address.model.person.Subject;
 public class PersonCard extends UiPart<Region> {
 
     private static final String FXML = "PersonListCard.fxml";
-    private static final String ENROLLED_CLASS_BADGE_STYLE_CLASS = "enrolled-class-badge";
+    private static final String ENROLLED_CLASS_ROW_STYLE_CLASS = "enrolled-class-row";
+    private static final String ENROLLED_CLASS_DETAILS_STYLE_CLASS = "enrolled-class-details";
+    private static final String PAYMENT_STATUS_STYLE_CLASS = "payment-status";
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
     private static final Comparator<Lesson> LESSON_COMPARATOR = Comparator
             .comparingInt((Lesson enrolledClass) -> enrolledClass.getTiming().getDay().getValue())
@@ -49,7 +53,7 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private FlowPane tags;
     @FXML
-    private FlowPane classes;
+    private VBox classes;
     @FXML
     private Label subjects;
     @FXML
@@ -61,16 +65,8 @@ public class PersonCard extends UiPart<Region> {
      * Creates a PersonCard displaying the given person and index.
      */
     public PersonCard(Person person, int displayedIndex) {
-        this(person, displayedIndex, new ClassColorPalette());
-    }
-
-    /**
-     * Creates a PersonCard using {@code classColorPalette} for its enrolled-class badges.
-     */
-    PersonCard(Person person, int displayedIndex, ClassColorPalette classColorPalette) {
         super(FXML);
         this.person = requireNonNull(person);
-        requireNonNull(classColorPalette);
 
         id.setText(displayedIndex + ". ");
         name.setText(person.getName().fullName);
@@ -84,7 +80,7 @@ public class PersonCard extends UiPart<Region> {
 
         person.getLessons().stream()
                 .sorted(LESSON_COMPARATOR)
-                .map(enrolledClass -> createClassBadge(enrolledClass, classColorPalette))
+                .map(PersonCard::createClassRow)
                 .forEach(classes.getChildren()::add);
         boolean hasEnrolledClasses = !classes.getChildren().isEmpty();
         classes.setVisible(hasEnrolledClasses);
@@ -112,11 +108,17 @@ public class PersonCard extends UiPart<Region> {
         lesson.setManaged(lesson.isVisible());
     }
 
-    private static Label createClassBadge(Lesson enrolledClass, ClassColorPalette classColorPalette) {
-        Label badge = new Label(formatClassBadge(enrolledClass));
-        badge.getStyleClass().addAll(ENROLLED_CLASS_BADGE_STYLE_CLASS,
-                classColorPalette.getStyleClass(enrolledClass));
-        return badge;
+    private static HBox createClassRow(Lesson enrolledClass) {
+        HBox classRow = new HBox(8);
+        classRow.setAlignment(Pos.CENTER_LEFT);
+        classRow.getStyleClass().add(ENROLLED_CLASS_ROW_STYLE_CLASS);
+        Label classDetails = new Label(formatClassBadge(enrolledClass));
+        classDetails.getStyleClass().addAll("cell_small_label", ENROLLED_CLASS_DETAILS_STYLE_CLASS);
+        Label paymentStatus = new Label(enrolledClass.getPaymentStatus().toDisplayString());
+        paymentStatus.getStyleClass().addAll(PAYMENT_STATUS_STYLE_CLASS,
+                PAYMENT_STATUS_STYLE_CLASS + "-" + enrolledClass.getPaymentStatus().toString());
+        classRow.getChildren().addAll(classDetails, paymentStatus);
+        return classRow;
     }
 
     static String formatClassBadge(Lesson enrolledClass) {

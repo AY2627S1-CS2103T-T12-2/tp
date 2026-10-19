@@ -9,5 +9,6 @@ public abstract class ClassCommand extends Command {
             + "Subcommands:\n"
             + "  class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/DAYHHmm-HHmm\n"
             + "  class unenrol STUDENT_INDEX sub/SUBJECT c/DAYHHmm-HHmm\n"
-            + "  class delete sub/SUBJECT c/DAYHHmm-HHmm";
+            + "  class delete sub/SUBJECT c/DAYHHmm-HHmm\n"
+            + "  class payment STUDENT_INDEX sub/SUBJECT c/DAYHHmm-HHmm status/paid|unpaid";
 }

@@ -116,7 +116,9 @@ public class ModelManagerTest {
                 new LessonTiming("Tuesday1800-1900"));
         Person aliceWithConflicts = new PersonBuilder(ALICE)
                 .withLessons(laterConflict, earlierConflict, sameClass).build();
-        Person bensonWithDuplicate = new PersonBuilder(BENSON).withLessons(laterConflict).build();
+        Person bensonWithDuplicate = new PersonBuilder(BENSON)
+                .withLessons(laterConflict.withPaymentStatus(
+                        seedu.address.model.lesson.PaymentStatus.PAID)).build();
         Person otherLessons = new PersonBuilder().withName("Other Student").withPhone("81234567")
                 .withEmail("other@example.com").withLessons(backToBack, differentDay).build();
         AddressBook addressBook = new AddressBookBuilder()

@@ -12,13 +12,20 @@ public class Lesson {
     private final Subject subject;
     private final Cost cost;
     private final LessonTiming timing;
+    private final PaymentStatus paymentStatus;
 
-    /** Creates a lesson with one subject and one weekly timeslot. */
+    /** Creates an unpaid lesson enrolment with one subject and one weekly timeslot. */
     public Lesson(Subject subject, Cost cost, LessonTiming timing) {
-        requireAllNonNull(subject, cost, timing);
+        this(subject, cost, timing, PaymentStatus.UNPAID);
+    }
+
+    /** Creates a lesson enrolment with the supplied payment status. */
+    public Lesson(Subject subject, Cost cost, LessonTiming timing, PaymentStatus paymentStatus) {
+        requireAllNonNull(subject, cost, timing, paymentStatus);
         this.subject = subject;
         this.cost = cost;
         this.timing = timing;
+        this.paymentStatus = paymentStatus;
     }
 
     public Subject getSubject() {
@@ -31,6 +38,16 @@ public class Lesson {
 
     public LessonTiming getTiming() {
         return timing;
+    }
+
+    public PaymentStatus getPaymentStatus() {
+        return paymentStatus;
+    }
+
+    /** Returns a copy of this lesson enrolment with {@code updatedPaymentStatus}. */
+    public Lesson withPaymentStatus(PaymentStatus updatedPaymentStatus) {
+        requireAllNonNull(updatedPaymentStatus);
+        return new Lesson(subject, cost, timing, updatedPaymentStatus);
     }
 
     /**
@@ -58,17 +75,17 @@ public class Lesson {
             return false;
         }
         return subject.equals(otherLesson.subject) && cost.equals(otherLesson.cost)
-                && timing.equals(otherLesson.timing);
+                && timing.equals(otherLesson.timing) && paymentStatus == otherLesson.paymentStatus;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(subject, cost, timing);
+        return Objects.hash(subject, cost, timing, paymentStatus);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this).add("subject", subject).add("cost", cost)
-                .add("timing", timing).toString();
+                .add("timing", timing).add("paymentStatus", paymentStatus).toString();
     }
 }

@@ -85,10 +85,10 @@ The `UI` component,
 * keeps a reference to the `Logic` component, because the `UI` relies on the `Logic` to execute commands.
 * depends on some classes in the `Model` component because it displays `Person` objects from the model.
 
-`PersonCard` renders each student's enrolled classes as text-labelled badges beside the student's name. A single
-`ClassColorPalette` is owned by `PersonListPanel` and shared by every card, ensuring that the same logical class uses the
-same colour across students. The palette identifies a class using its case-insensitive subject and complete lesson
-timing, matching `Lesson#isSameClass`; cost is not part of the colour identity.
+`PersonCard` renders each enrolled class as a normal information row below the student's email. The subject and lesson
+timing use the same typography as the other contact information. A smaller, muted paid or unpaid label follows the
+class text in the same row, keeping the status associated with its enrolment while leaving student tags visually more
+prominent. Lessons are sorted chronologically before the rows are created.
 
 ### Logic component
 
@@ -212,6 +212,24 @@ days. Entries within a day are ordered by start time, subject, and end time.
 The UI renders the projection in three levels: `TimetablePanel` provides the scrolling list, `TimetableDayCard` displays
 a day heading and empty state, and `TimetableEntryCard` displays a class's time, subject, and students. Entering `list`
 restores the existing person panel and normal command availability.
+
+### Payment status
+
+Every `Lesson` value stored by a `Person` represents that student's individual enrolment and contains an immutable
+`PaymentStatus` of `PAID` or `UNPAID`. Constructors that do not specify a status default to `UNPAID`, which also provides
+backwards compatibility for saved enrolments created before payment tracking was introduced.
+
+`class payment` parses a displayed student index, subject, complete class timing, and payment status. During execution,
+`ClassPaymentCommand` resolves the student from the filtered list and locates the enrolment using
+`Lesson#isSameClass`. It replaces only that immutable enrolment and then replaces only the selected `Person`; other
+classes and students are not modified. A missing enrolment causes the command to fail before any model mutation.
+
+Full `Lesson#equals` includes payment status so model and UI updates are observable. Logical class operations use
+`Lesson#isSameClass`, which excludes cost and payment status. `TimetableBuilder` and overlap detection therefore group
+by logical class identity explicitly, ensuring students with different payment statuses still appear in one class.
+
+`JsonAdaptedLesson` stores the status as `paymentStatus`. A missing property is interpreted as `UNPAID`, while an
+unrecognised value is rejected as invalid data.
 
 ### Subject search
 
@@ -380,6 +398,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *`  | tutor                                       | see the subject, students, start time, and end time for each class | view important class details immediately                                  |
 | `* * *`  | tutor with a busy schedule                  | be warned when two classes overlap                                 | avoid scheduling conflicts                                                 |
 | `* * *`  | tutor                                       | see the students in each class and the classes assigned to each student | understand class membership from either direction                    |
+| `* * *`  | tutor collecting lesson fees                | mark each student's class enrolment as paid or unpaid               | track outstanding payments without affecting classmates                  |
 | `* * *`  | tutor                                       | clear an active search, filter, or grouping                        | return to the complete student list easily                                |
 | `* * *`  | keyboard-driven user                        | receive clear success messages and actionable error messages      | know whether a command worked and how to correct invalid input            |
 | `* * *`  | tutor                                       | have my student and class information saved and restored automatically | avoid losing my records when the application restarts                 |
@@ -746,6 +765,23 @@ and Carol taking no subjects. These tests assume the student view; use `list` fi
 
 After a subject search, exit and relaunch the app. All remaining students and their enrolments should be present;
 the full student list should be displayed. Repeat `find sub/math` to check that saved class subjects remain searchable.
+
+### Updating payment status
+
+Use two students enrolled in `Math` at `Monday1800-1930`. Each student's Math information row should initially show
+the muted `Unpaid` label immediately after the lesson timing.
+
+| Test input | Expected result |
+| --- | --- |
+| `class payment 1 sub/Math c/Monday1800-1930 status/paid` | The first student's Math row shows `Paid`; the second student's row remains `Unpaid`. |
+| Repeat the previous command | Feedback says the payment is already paid; no other data changes. |
+| `class payment 1 sub/Math c/Monday1800-1930 status/unpaid` | Only the first student's Math row returns to `Unpaid`. |
+| `class payment 1 sub/Physics c/Monday1800-1930 status/paid` | Error says the student is not enrolled in the specified class; no data changes. |
+| `class payment 0 sub/Math c/Monday1800-1930 status/paid` | Invalid-index error; no data changes. |
+| `class payment 1 sub/Math c/Monday1800-1930 status/pending` | Invalid-status error; no data changes. |
+
+Mark one student as paid, exit the app, and relaunch it. The paid status should still appear, while the other student's
+status remains unpaid. Open the timetable and verify that both students still appear together in one Math class.
 
 ### Saving data
 

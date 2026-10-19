@@ -5,6 +5,7 @@ import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import seedu.address.logic.commands.ClassCommand;
 import seedu.address.logic.commands.ClassDeleteCommand;
 import seedu.address.logic.commands.ClassEnrolCommand;
+import seedu.address.logic.commands.ClassPaymentCommand;
 import seedu.address.logic.commands.ClassUnenrolCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 
@@ -26,6 +27,7 @@ public class ClassCommandParser implements Parser<ClassCommand> {
             case ClassEnrolCommand.SUBCOMMAND_WORD -> new ClassEnrolCommandParser().parse(subcommandArgs);
             case ClassUnenrolCommand.SUBCOMMAND_WORD -> new ClassUnenrolCommandParser().parse(subcommandArgs);
             case ClassDeleteCommand.SUBCOMMAND_WORD -> new ClassDeleteCommandParser().parse(subcommandArgs);
+            case ClassPaymentCommand.SUBCOMMAND_WORD -> new ClassPaymentCommandParser().parse(subcommandArgs);
             default -> throw new ParseException(
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT, ClassCommand.MESSAGE_USAGE));
         };

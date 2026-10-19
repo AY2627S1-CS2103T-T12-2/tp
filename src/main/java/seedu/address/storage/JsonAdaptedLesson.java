@@ -7,6 +7,7 @@ import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.lesson.Subject;
 
 /** Jackson-friendly version of {@link Lesson}. */
@@ -17,19 +18,28 @@ class JsonAdaptedLesson {
     private final String subject;
     private final String cost;
     private final String timing;
+    private final String paymentStatus;
 
     @JsonCreator
     public JsonAdaptedLesson(@JsonProperty("subject") String subject,
-            @JsonProperty("cost") String cost, @JsonProperty("timing") String timing) {
+            @JsonProperty("cost") String cost, @JsonProperty("timing") String timing,
+            @JsonProperty("paymentStatus") String paymentStatus) {
         this.subject = subject;
         this.cost = cost;
         this.timing = timing;
+        this.paymentStatus = paymentStatus;
+    }
+
+    /** Backwards-compatible constructor for enrolments without payment status. */
+    public JsonAdaptedLesson(String subject, String cost, String timing) {
+        this(subject, cost, timing, null);
     }
 
     public JsonAdaptedLesson(Lesson source) {
         subject = source.getSubject().value;
         cost = source.getCost().toString();
         timing = source.getTiming().toStorageString();
+        paymentStatus = source.getPaymentStatus().name();
     }
 
     public Lesson toModelType() throws IllegalValueException {
@@ -45,7 +55,14 @@ class JsonAdaptedLesson {
         if (!LessonTiming.isValidLessonTiming(timing)) {
             throw new IllegalValueException(LessonTiming.MESSAGE_CONSTRAINTS);
         }
-        return new Lesson(new Subject(subject), new Cost(cost), new LessonTiming(timing));
+        PaymentStatus modelPaymentStatus = PaymentStatus.UNPAID;
+        if (paymentStatus != null) {
+            if (!PaymentStatus.isValidPaymentStatus(paymentStatus)) {
+                throw new IllegalValueException(PaymentStatus.MESSAGE_CONSTRAINTS);
+            }
+            modelPaymentStatus = PaymentStatus.fromString(paymentStatus);
+        }
+        return new Lesson(new Subject(subject), new Cost(cost), new LessonTiming(timing), modelPaymentStatus);
     }
 
     private static void requireField(String value, Class<?> fieldClass) throws IllegalValueException {
