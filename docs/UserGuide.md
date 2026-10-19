@@ -110,8 +110,9 @@ Example: `class enrol 1 sub/Physics cost/35 c/Wednesday1700-1830`
 The same class can be assigned to multiple students, but its cost must be consistent. A student cannot be enrolled in
 the same class more than once.
 
-Each enrolled class appears as a normal information line below the student's email. The line shows the subject and
-lesson timing, followed immediately by a compact payment-status label.
+Enrolled classes appear as coloured badges beside each student's name. Each badge includes the subject and lesson
+timing, and students enrolled in the same class receive a badge with the same colour. When a student has multiple
+classes, the badge groups wrap onto another line when the card is too narrow.
 
 ### Unenrolling a student from a class: `class unenrol`
 
@@ -133,10 +134,11 @@ Examples:
 * `class payment 1 sub/Physics c/Wednesday1700-1830 status/paid`
 * `class payment 1 sub/Physics c/Wednesday1700-1830 status/unpaid`
 
-New and previously saved enrolments default to unpaid. The current status appears immediately after the corresponding
-class information below the student's email. Its subdued label distinguishes the status without making it more
-prominent than the student's tags. Updating one student's payment status does not affect other students enrolled in
-the same class. If the specified student is not enrolled in that class, no data is changed.
+New and previously saved enrolments default to unpaid. A subdued status label appears immediately after the
+corresponding coloured class badge, without sharing the badge's background colour. Each class badge and status label
+wrap as one group, keeping the status associated with the correct class. Updating one student's payment status does
+not affect other students enrolled in the same class. If the specified student is not enrolled in that class, no data
+is changed.
 
 Payment status describes the current recurring enrolment as a whole; it is not a payment history for individual weekly
 sessions or billing months.

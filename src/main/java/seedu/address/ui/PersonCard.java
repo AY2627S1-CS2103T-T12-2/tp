@@ -14,7 +14,6 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Subject;
@@ -25,8 +24,8 @@ import seedu.address.model.person.Subject;
 public class PersonCard extends UiPart<Region> {
 
     private static final String FXML = "PersonListCard.fxml";
-    private static final String ENROLLED_CLASS_ROW_STYLE_CLASS = "enrolled-class-row";
-    private static final String ENROLLED_CLASS_DETAILS_STYLE_CLASS = "enrolled-class-details";
+    private static final String ENROLLED_CLASS_GROUP_STYLE_CLASS = "enrolled-class-group";
+    private static final String ENROLLED_CLASS_BADGE_STYLE_CLASS = "enrolled-class-badge";
     private static final String PAYMENT_STATUS_STYLE_CLASS = "payment-status";
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
     private static final Comparator<Lesson> LESSON_COMPARATOR = Comparator
@@ -53,7 +52,7 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private FlowPane tags;
     @FXML
-    private VBox classes;
+    private FlowPane classes;
     @FXML
     private Label subjects;
     @FXML
@@ -65,8 +64,16 @@ public class PersonCard extends UiPart<Region> {
      * Creates a PersonCard displaying the given person and index.
      */
     public PersonCard(Person person, int displayedIndex) {
+        this(person, displayedIndex, new ClassColorPalette());
+    }
+
+    /**
+     * Creates a PersonCard using {@code classColorPalette} for its enrolled-class badges.
+     */
+    PersonCard(Person person, int displayedIndex, ClassColorPalette classColorPalette) {
         super(FXML);
         this.person = requireNonNull(person);
+        requireNonNull(classColorPalette);
 
         id.setText(displayedIndex + ". ");
         name.setText(person.getName().fullName);
@@ -80,7 +87,7 @@ public class PersonCard extends UiPart<Region> {
 
         person.getLessons().stream()
                 .sorted(LESSON_COMPARATOR)
-                .map(PersonCard::createClassRow)
+                .map(enrolledClass -> createClassGroup(enrolledClass, classColorPalette))
                 .forEach(classes.getChildren()::add);
         boolean hasEnrolledClasses = !classes.getChildren().isEmpty();
         classes.setVisible(hasEnrolledClasses);
@@ -108,17 +115,18 @@ public class PersonCard extends UiPart<Region> {
         lesson.setManaged(lesson.isVisible());
     }
 
-    private static HBox createClassRow(Lesson enrolledClass) {
-        HBox classRow = new HBox(8);
-        classRow.setAlignment(Pos.CENTER_LEFT);
-        classRow.getStyleClass().add(ENROLLED_CLASS_ROW_STYLE_CLASS);
-        Label classDetails = new Label(formatClassBadge(enrolledClass));
-        classDetails.getStyleClass().addAll("cell_small_label", ENROLLED_CLASS_DETAILS_STYLE_CLASS);
+    private static HBox createClassGroup(Lesson enrolledClass, ClassColorPalette classColorPalette) {
+        HBox classGroup = new HBox(5);
+        classGroup.setAlignment(Pos.CENTER_LEFT);
+        classGroup.getStyleClass().add(ENROLLED_CLASS_GROUP_STYLE_CLASS);
+        Label classBadge = new Label(formatClassBadge(enrolledClass));
+        classBadge.getStyleClass().addAll(ENROLLED_CLASS_BADGE_STYLE_CLASS,
+                classColorPalette.getStyleClass(enrolledClass));
         Label paymentStatus = new Label(enrolledClass.getPaymentStatus().toDisplayString());
         paymentStatus.getStyleClass().addAll(PAYMENT_STATUS_STYLE_CLASS,
                 PAYMENT_STATUS_STYLE_CLASS + "-" + enrolledClass.getPaymentStatus().toString());
-        classRow.getChildren().addAll(classDetails, paymentStatus);
-        return classRow;
+        classGroup.getChildren().addAll(classBadge, paymentStatus);
+        return classGroup;
     }
 
     static String formatClassBadge(Lesson enrolledClass) {

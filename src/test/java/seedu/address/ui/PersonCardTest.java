@@ -19,7 +19,6 @@ import javafx.application.Platform;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
@@ -51,14 +50,15 @@ public class PersonCardTest {
     }
 
     @Test
-    public void constructor_enrolledClasses_displaysSortedRowsBelowContactDetails() throws Exception {
+    public void constructor_enrolledClasses_displaysSortedGroupedBadgesBesideName() throws Exception {
         runOnFxThread(() -> {
             Lesson physics = lesson("Physics", "35", "Wednesday1700-1830")
                     .withPaymentStatus(PaymentStatus.PAID);
             Lesson math = lesson("Math", "30", "Monday1800-1930");
             Person person = new PersonBuilder().withTags("zeta", "alpha")
                     .withLessons(physics, math).build();
-            PersonCard card = new PersonCard(person, 2);
+            ClassColorPalette palette = new ClassColorPalette(List.of(person));
+            PersonCard card = new PersonCard(person, 2, palette);
 
             assertEquals(person, card.person);
             assertLabel(card, "id", "2. ", true);
@@ -67,23 +67,22 @@ public class PersonCardTest {
             assertLabel(card, "email", person.getEmail().value, true);
             assertLabel(card, "address", person.getAddress().value, true);
             assertEquals(List.of("Math · Mon 18:00–19:30", "Physics · Wed 17:00–18:30"),
-                    getClassRows(card).stream().map(PersonCardTest::getClassDetails).toList());
+                    getClassGroups(card).stream().map(PersonCardTest::getClassDetails).toList());
             assertEquals(List.of("Unpaid", "Paid"),
-                    getClassRows(card).stream().map(PersonCardTest::getPaymentStatus).toList());
+                    getClassGroups(card).stream().map(PersonCardTest::getPaymentStatus).toList());
             assertTrue(getClassPane(card).isVisible());
             assertTrue(getClassPane(card).isManaged());
-            assertTrue(getClassPane(card).getParent() instanceof VBox);
-            VBox details = (VBox) getClassPane(card).getParent();
-            assertTrue(details.getChildren().indexOf(card.getRoot().lookup("#email"))
-                    < details.getChildren().indexOf(getClassPane(card)));
-            getClassRows(card).forEach(row -> {
-                assertTrue(row.getStyleClass().contains("enrolled-class-row"));
-                assertEquals(8, row.getSpacing());
-                assertTrue(getClassDetailsLabel(row).getStyleClass().contains("cell_small_label"));
+            assertTrue(getClassPane(card).getParent() instanceof HBox);
+            assertEquals(8, getClassPane(card).getHgap());
+            getClassGroups(card).forEach(group -> {
+                assertTrue(group.getStyleClass().contains("enrolled-class-group"));
+                assertEquals(5, group.getSpacing());
+                assertTrue(getClassBadge(group).getStyleClass().contains("enrolled-class-badge"));
+                assertTrue(getColorStyleClass(group).startsWith(ClassColorPalette.STYLE_CLASS_PREFIX));
             });
-            assertTrue(getPaymentLabel(getClassRows(card).get(0)).getStyleClass()
+            assertTrue(getPaymentLabel(getClassGroups(card).get(0)).getStyleClass()
                     .contains("payment-status-unpaid"));
-            assertTrue(getPaymentLabel(getClassRows(card).get(1)).getStyleClass()
+            assertTrue(getPaymentLabel(getClassGroups(card).get(1)).getStyleClass()
                     .contains("payment-status-paid"));
             assertLabel(card, "subjects", "Subjects: ", false);
             assertLabel(card, "cost", "", false);
@@ -97,10 +96,28 @@ public class PersonCardTest {
     }
 
     @Test
+    public void constructor_sameClassAcrossStudents_usesSameBadgeColor() throws Exception {
+        runOnFxThread(() -> {
+            Lesson firstLesson = lesson("Math", "30", "Monday1800-1930");
+            Lesson equivalentLesson = lesson("math", "30.00", "Monday1800-1930");
+            Person firstStudent = new PersonBuilder().withLessons(firstLesson).build();
+            Person secondStudent = new PersonBuilder().withName("Ben Tan").withPhone("91234567")
+                    .withEmail("ben@example.com").withLessons(equivalentLesson).build();
+            ClassColorPalette palette = new ClassColorPalette(List.of(firstStudent, secondStudent));
+
+            PersonCard firstCard = new PersonCard(firstStudent, 1, palette);
+            PersonCard secondCard = new PersonCard(secondStudent, 2, palette);
+
+            assertEquals(getColorStyleClass(getClassGroups(firstCard).get(0)),
+                    getColorStyleClass(getClassGroups(secondCard).get(0)));
+        });
+    }
+
+    @Test
     public void constructor_noStudentDetails_hidesOptionalFieldsAndTheirLayoutSpace() throws Exception {
         runOnFxThread(() -> {
             PersonCard card = new PersonCard(new PersonBuilder().build(), 1);
-            assertTrue(getClassRows(card).isEmpty());
+            assertTrue(getClassGroups(card).isEmpty());
             assertFalse(getClassPane(card).isVisible());
             assertFalse(getClassPane(card).isManaged());
             assertLabel(card, "subjects", "Subjects: ", false);
@@ -119,9 +136,9 @@ public class PersonCardTest {
             PersonCard card = new PersonCard(person, 1);
 
             assertEquals(List.of("Math · Mon 18:00–19:00", "Physics · Mon 18:00–19:00"),
-                    getClassRows(card).stream().map(PersonCardTest::getClassDetails).toList());
+                    getClassGroups(card).stream().map(PersonCardTest::getClassDetails).toList());
             assertEquals(List.of("Unpaid", "Unpaid"),
-                    getClassRows(card).stream().map(PersonCardTest::getPaymentStatus).toList());
+                    getClassGroups(card).stream().map(PersonCardTest::getPaymentStatus).toList());
             assertLabel(card, "subjects", "Subjects: Math, Physics", false);
             assertLabel(card, "cost", "Cost/hour: 30", false);
             assertLabel(card, "lesson", "Lesson: Monday1800", false);
@@ -133,7 +150,7 @@ public class PersonCardTest {
         runOnFxThread(() -> {
             PersonCard card = new PersonCard(legacyStudent(
                     Set.of(new seedu.address.model.person.Subject("A")), Optional.empty(), Optional.empty()), 1);
-            assertTrue(getClassRows(card).isEmpty());
+            assertTrue(getClassGroups(card).isEmpty());
             assertLabel(card, "subjects", "Subjects: A", true);
             assertLabel(card, "cost", "", false);
             assertLabel(card, "lesson", "", false);
@@ -145,7 +162,7 @@ public class PersonCardTest {
         runOnFxThread(() -> {
             PersonCard card = new PersonCard(legacyStudent(Set.of(),
                     Optional.of(new seedu.address.model.person.Cost("1")), Optional.empty()), 1);
-            assertTrue(getClassRows(card).isEmpty());
+            assertTrue(getClassGroups(card).isEmpty());
             assertLabel(card, "subjects", "Subjects: ", false);
             assertLabel(card, "cost", "Cost/hour: 1", true);
             assertLabel(card, "lesson", "", false);
@@ -157,7 +174,7 @@ public class PersonCardTest {
         runOnFxThread(() -> {
             PersonCard card = new PersonCard(legacyStudent(Set.of(), Optional.empty(),
                     Optional.of(new seedu.address.model.person.Lesson("Sunday2359"))), 1);
-            assertTrue(getClassRows(card).isEmpty());
+            assertTrue(getClassGroups(card).isEmpty());
             assertLabel(card, "subjects", "Subjects: ", false);
             assertLabel(card, "cost", "", false);
             assertLabel(card, "lesson", "Lesson: Sunday2359", true);
@@ -176,30 +193,37 @@ public class PersonCardTest {
                 base.getTags(), subjects, cost, lesson);
     }
 
-    private static VBox getClassPane(PersonCard card) {
-        VBox classes = (VBox) card.getRoot().lookup("#classes");
+    private static FlowPane getClassPane(PersonCard card) {
+        FlowPane classes = (FlowPane) card.getRoot().lookup("#classes");
         assertNotNull(classes);
         return classes;
     }
 
-    private static List<HBox> getClassRows(PersonCard card) {
+    private static List<HBox> getClassGroups(PersonCard card) {
         return getClassPane(card).getChildren().stream().map(node -> (HBox) node).toList();
     }
 
-    private static String getClassDetails(HBox classRow) {
-        return getClassDetailsLabel(classRow).getText();
+    private static String getClassDetails(HBox classGroup) {
+        return getClassBadge(classGroup).getText();
     }
 
-    private static Label getClassDetailsLabel(HBox classRow) {
-        return (Label) classRow.getChildren().get(0);
+    private static Label getClassBadge(HBox classGroup) {
+        return (Label) classGroup.getChildren().get(0);
     }
 
-    private static String getPaymentStatus(HBox classRow) {
-        return getPaymentLabel(classRow).getText();
+    private static String getColorStyleClass(HBox classGroup) {
+        return getClassBadge(classGroup).getStyleClass().stream()
+                .filter(styleClass -> styleClass.startsWith(ClassColorPalette.STYLE_CLASS_PREFIX))
+                .findFirst()
+                .orElseThrow();
     }
 
-    private static Label getPaymentLabel(HBox classRow) {
-        return (Label) classRow.getChildren().get(1);
+    private static String getPaymentStatus(HBox classGroup) {
+        return getPaymentLabel(classGroup).getText();
+    }
+
+    private static Label getPaymentLabel(HBox classGroup) {
+        return (Label) classGroup.getChildren().get(1);
     }
 
     private static void assertLabel(PersonCard card, String id, String text, boolean shown) {

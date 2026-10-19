@@ -142,7 +142,16 @@
     -fx-opacity: 1;
 }
 
-.list-cell .enrolled-class-row .payment-status {
+.list-cell .enrolled-class-badge {
+    -fx-background-radius: 4;
+    -fx-padding: 2 6 2 6;
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-size: 10px;
+    -fx-text-fill: #17210f;
+    -fx-opacity: 1;
+}
+
+.list-cell .enrolled-class-group .payment-status {
     -fx-background-radius: 3;
     -fx-padding: 1 4 1 4;
     -fx-font-family: "Segoe UI";
@@ -150,14 +159,46 @@
     -fx-opacity: 0.82;
 }
 
-.list-cell .enrolled-class-row .payment-status-paid {
+.list-cell .enrolled-class-group .payment-status-paid {
     -fx-background-color: #536159;
     -fx-text-fill: #e1e8e3;
 }
 
-.list-cell .enrolled-class-row .payment-status-unpaid {
+.list-cell .enrolled-class-group .payment-status-unpaid {
     -fx-background-color: #665e56;
     -fx-text-fill: #e8e2dc;
+}
+
+.list-cell .enrolled-class-color-0 {
+    -fx-background-color: #79c2ff;
+}
+
+.list-cell .enrolled-class-color-1 {
+    -fx-background-color: #ffb86b;
+}
+
+.list-cell .enrolled-class-color-2 {
+    -fx-background-color: #c5a3ff;
+}
+
+.list-cell .enrolled-class-color-3 {
+    -fx-background-color: #ff9fbd;
+}
+
+.list-cell .enrolled-class-color-4 {
+    -fx-background-color: #71d5c5;
+}
+
+.list-cell .enrolled-class-color-5 {
+    -fx-background-color: #f1d66a;
+}
+
+.list-cell .enrolled-class-color-6 {
+    -fx-background-color: #ff8a80;
+}
+
+.list-cell .enrolled-class-color-7 {
+    -fx-background-color: #a7c7e7;
 }
 
 .stack-pane {

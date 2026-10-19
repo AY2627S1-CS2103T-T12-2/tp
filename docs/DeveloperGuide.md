@@ -85,10 +85,12 @@ The `UI` component,
 * keeps a reference to the `Logic` component, because the `UI` relies on the `Logic` to execute commands.
 * depends on some classes in the `Model` component because it displays `Person` objects from the model.
 
-`PersonCard` renders each enrolled class as a normal information row below the student's email. The subject and lesson
-timing use the same typography as the other contact information. A smaller, muted paid or unpaid label follows the
-class text in the same row, keeping the status associated with its enrolment while leaving student tags visually more
-prominent. Lessons are sorted chronologically before the rows are created.
+`PersonCard` renders each enrolled class as a coloured badge beside the student's name. A smaller, muted paid or unpaid
+label follows the badge without inheriting its background colour. The badge and status are contained in one `HBox`, so
+the surrounding `FlowPane` wraps them together when multiple classes exceed the available width. A single
+`ClassColorPalette` is owned by `PersonListPanel` and shared by every card, ensuring that the same logical class uses the
+same colour across students. The palette identifies a class using its case-insensitive subject and complete lesson
+timing, matching `Lesson#isSameClass`; cost and payment status are not part of the colour identity.
 
 ### Logic component
 
@@ -768,14 +770,14 @@ the full student list should be displayed. Repeat `find sub/math` to check that 
 
 ### Updating payment status
 
-Use two students enrolled in `Math` at `Monday1800-1930`. Each student's Math information row should initially show
-the muted `Unpaid` label immediately after the lesson timing.
+Use two students enrolled in `Math` at `Monday1800-1930`. Each student's coloured Math badge should initially be
+followed by a separate, muted `Unpaid` label.
 
 | Test input | Expected result |
 | --- | --- |
-| `class payment 1 sub/Math c/Monday1800-1930 status/paid` | The first student's Math row shows `Paid`; the second student's row remains `Unpaid`. |
+| `class payment 1 sub/Math c/Monday1800-1930 status/paid` | The first student's Math badge is followed by `Paid`; the second student's remains `Unpaid`. |
 | Repeat the previous command | Feedback says the payment is already paid; no other data changes. |
-| `class payment 1 sub/Math c/Monday1800-1930 status/unpaid` | Only the first student's Math row returns to `Unpaid`. |
+| `class payment 1 sub/Math c/Monday1800-1930 status/unpaid` | Only the first student's Math status returns to `Unpaid`. |
 | `class payment 1 sub/Physics c/Monday1800-1930 status/paid` | Error says the student is not enrolled in the specified class; no data changes. |
 | `class payment 0 sub/Math c/Monday1800-1930 status/paid` | Invalid-index error; no data changes. |
 | `class payment 1 sub/Math c/Monday1800-1930 status/pending` | Invalid-status error; no data changes. |
