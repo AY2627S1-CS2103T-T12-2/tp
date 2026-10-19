@@ -19,6 +19,7 @@ import javafx.application.Platform;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
@@ -50,7 +51,7 @@ public class PersonCardTest {
     }
 
     @Test
-    public void constructor_enrolledClasses_displaysSortedGroupedBadgesBesideName() throws Exception {
+    public void constructor_enrolledClasses_displaysSortedGroupedBadgesBelowEmail() throws Exception {
         runOnFxThread(() -> {
             Lesson physics = lesson("Physics", "35", "Wednesday1700-1830")
                     .withPaymentStatus(PaymentStatus.PAID);
@@ -72,8 +73,11 @@ public class PersonCardTest {
                     getClassGroups(card).stream().map(PersonCardTest::getPaymentStatus).toList());
             assertTrue(getClassPane(card).isVisible());
             assertTrue(getClassPane(card).isManaged());
-            assertTrue(getClassPane(card).getParent() instanceof HBox);
-            assertEquals(8, getClassPane(card).getHgap());
+            assertTrue(getClassPane(card).getParent() instanceof VBox);
+            VBox details = (VBox) getClassPane(card).getParent();
+            assertEquals(details.getChildren().indexOf(email(card)) + 1,
+                    details.getChildren().indexOf(getClassPane(card)));
+            assertEquals(3.0, getClassPane(card).getSpacing());
             getClassGroups(card).forEach(group -> {
                 assertTrue(group.getStyleClass().contains("enrolled-class-group"));
                 assertEquals(5, group.getSpacing());
@@ -193,10 +197,16 @@ public class PersonCardTest {
                 base.getTags(), subjects, cost, lesson);
     }
 
-    private static FlowPane getClassPane(PersonCard card) {
-        FlowPane classes = (FlowPane) card.getRoot().lookup("#classes");
+    private static VBox getClassPane(PersonCard card) {
+        VBox classes = (VBox) card.getRoot().lookup("#classes");
         assertNotNull(classes);
         return classes;
+    }
+
+    private static Label email(PersonCard card) {
+        Label email = (Label) card.getRoot().lookup("#email");
+        assertNotNull(email);
+        return email;
     }
 
     private static List<HBox> getClassGroups(PersonCard card) {

@@ -85,12 +85,12 @@ The `UI` component,
 * keeps a reference to the `Logic` component, because the `UI` relies on the `Logic` to execute commands.
 * depends on some classes in the `Model` component because it displays `Person` objects from the model.
 
-`PersonCard` renders each enrolled class as a coloured badge beside the student's name. A smaller, muted paid or unpaid
-label follows the badge without inheriting its background colour. The badge and status are contained in one `HBox`, so
-the surrounding `FlowPane` wraps them together when multiple classes exceed the available width. A single
-`ClassColorPalette` is owned by `PersonListPanel` and shared by every card, ensuring that the same logical class uses the
-same colour across students. The palette identifies a class using its case-insensitive subject and complete lesson
-timing, matching `Lesson#isSameClass`; cost and payment status are not part of the colour identity.
+`PersonCard` renders enrolled classes as coloured badges in a vertical list below the student's email. A smaller,
+muted paid or unpaid label follows each badge without inheriting its background colour. Each badge and status are
+contained in one `HBox`, while the surrounding `VBox` places every class group on its own row. A single
+`ClassColorPalette` is owned by `PersonListPanel` and shared by every card, ensuring that the same logical class uses
+the same colour across students. The palette identifies a class using its case-insensitive subject and complete
+lesson timing, matching `Lesson#isSameClass`; cost and payment status are not part of the colour identity.
 
 ### Logic component
 
