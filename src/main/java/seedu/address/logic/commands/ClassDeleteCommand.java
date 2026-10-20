@@ -12,7 +12,7 @@ import java.util.Set;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.lesson.Lesson;
-import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.LessonSchedule;
 import seedu.address.model.lesson.Subject;
 import seedu.address.model.person.Person;
 
@@ -22,7 +22,7 @@ public class ClassDeleteCommand extends ClassCommand {
     public static final String SUBCOMMAND_WORD = "delete";
     public static final String MESSAGE_USAGE = COMMAND_WORD + " " + SUBCOMMAND_WORD
             + ": Deletes a class from every enrolled student.\n"
-            + "Parameters: " + PREFIX_SUBJECT + "SUBJECT " + PREFIX_CLASS + "DAYHHmm-HHmm\n"
+            + "Parameters: " + PREFIX_SUBJECT + "SUBJECT " + PREFIX_CLASS + "SCHEDULE\n"
             + "Example: " + COMMAND_WORD + " " + SUBCOMMAND_WORD
             + " sub/Math c/Monday1800-1930";
     public static final String MESSAGE_SUCCESS =
@@ -30,12 +30,12 @@ public class ClassDeleteCommand extends ClassCommand {
     public static final String MESSAGE_CLASS_NOT_FOUND = "The specified class does not exist.";
 
     private final Subject subject;
-    private final LessonTiming timing;
+    private final LessonSchedule schedule;
 
     /** Creates a command that deletes the specified class globally. */
-    public ClassDeleteCommand(Subject subject, LessonTiming timing) {
+    public ClassDeleteCommand(Subject subject, LessonSchedule schedule) {
         this.subject = requireNonNull(subject);
-        this.timing = requireNonNull(timing);
+        this.schedule = requireNonNull(schedule);
     }
 
     @Override
@@ -46,7 +46,7 @@ public class ClassDeleteCommand extends ClassCommand {
 
         for (Person person : List.copyOf(model.getAddressBook().getPersonList())) {
             Set<Lesson> updatedLessons = new HashSet<>(person.getLessons());
-            if (updatedLessons.removeIf(lesson -> lesson.isSameClass(subject, timing))) {
+            if (updatedLessons.removeIf(lesson -> lesson.isSameClass(subject, schedule))) {
                 personsToReplace.add(person);
                 replacementPersons.add(person.withLessons(updatedLessons));
             }
@@ -63,12 +63,12 @@ public class ClassDeleteCommand extends ClassCommand {
         int affectedStudents = personsToReplace.size();
         String studentLabel = affectedStudents == 1 ? "student" : "students";
         return new CommandResult(String.format(MESSAGE_SUCCESS,
-                subject, timing, affectedStudents, studentLabel));
+                subject, schedule, affectedStudents, studentLabel));
     }
 
     @Override
     public boolean equals(Object other) {
         return other == this || other instanceof ClassDeleteCommand otherCommand
-                && subject.equals(otherCommand.subject) && timing.equals(otherCommand.timing);
+                && subject.equals(otherCommand.subject) && schedule.equals(otherCommand.schedule);
     }
 }

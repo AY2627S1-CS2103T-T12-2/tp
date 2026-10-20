@@ -14,7 +14,7 @@ import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.lesson.Lesson;
-import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.LessonSchedule;
 import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.lesson.Subject;
 import seedu.address.model.person.Person;
@@ -26,7 +26,7 @@ public class ClassPaymentCommand extends ClassCommand {
     public static final String MESSAGE_USAGE = COMMAND_WORD + " " + SUBCOMMAND_WORD
             + ": Updates the payment status of the indexed student's class enrolment.\n"
             + "Parameters: STUDENT_INDEX " + PREFIX_SUBJECT + "SUBJECT "
-            + PREFIX_CLASS + "DAYHHmm-HHmm " + PREFIX_STATUS + "paid|unpaid\n"
+            + PREFIX_CLASS + "SCHEDULE " + PREFIX_STATUS + "paid|unpaid\n"
             + "Example: " + COMMAND_WORD + " " + SUBCOMMAND_WORD
             + " 1 sub/Math c/Monday1800-1930 status/paid";
     public static final String MESSAGE_SUCCESS =
@@ -38,15 +38,15 @@ public class ClassPaymentCommand extends ClassCommand {
 
     private final Index personIndex;
     private final Subject subject;
-    private final LessonTiming timing;
+    private final LessonSchedule schedule;
     private final PaymentStatus paymentStatus;
 
     /** Creates a command that updates the selected enrolment's payment status. */
-    public ClassPaymentCommand(Index personIndex, Subject subject, LessonTiming timing,
+    public ClassPaymentCommand(Index personIndex, Subject subject, LessonSchedule schedule,
             PaymentStatus paymentStatus) {
         this.personIndex = requireNonNull(personIndex);
         this.subject = requireNonNull(subject);
-        this.timing = requireNonNull(timing);
+        this.schedule = requireNonNull(schedule);
         this.paymentStatus = requireNonNull(paymentStatus);
     }
 
@@ -60,15 +60,15 @@ public class ClassPaymentCommand extends ClassCommand {
 
         Person person = persons.get(personIndex.getZeroBased());
         Lesson matchingLesson = person.getLessons().stream()
-                .filter(lesson -> lesson.isSameClass(subject, timing))
+                .filter(lesson -> lesson.isSameClass(subject, schedule))
                 .findFirst()
                 .orElseThrow(() -> new CommandException(
-                        String.format(MESSAGE_NOT_ENROLLED, subject, timing)));
+                        String.format(MESSAGE_NOT_ENROLLED, subject, schedule)));
 
         String displayStatus = paymentStatus.toString();
         if (matchingLesson.getPaymentStatus() == paymentStatus) {
             return new CommandResult(String.format(MESSAGE_ALREADY_MARKED,
-                    person.getName(), subject, timing, displayStatus));
+                    person.getName(), subject, schedule, displayStatus));
         }
 
         Set<Lesson> updatedLessons = new HashSet<>(person.getLessons());
@@ -76,7 +76,7 @@ public class ClassPaymentCommand extends ClassCommand {
         updatedLessons.add(matchingLesson.withPaymentStatus(paymentStatus));
         model.setPerson(person, person.withLessons(updatedLessons));
         return new CommandResult(String.format(MESSAGE_SUCCESS,
-                person.getName(), subject, timing, displayStatus));
+                person.getName(), subject, schedule, displayStatus));
     }
 
     @Override
@@ -84,7 +84,7 @@ public class ClassPaymentCommand extends ClassCommand {
         return other == this || other instanceof ClassPaymentCommand otherCommand
                 && personIndex.equals(otherCommand.personIndex)
                 && subject.equals(otherCommand.subject)
-                && timing.equals(otherCommand.timing)
+                && schedule.equals(otherCommand.schedule)
                 && paymentStatus == otherCommand.paymentStatus;
     }
 }

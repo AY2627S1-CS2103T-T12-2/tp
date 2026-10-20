@@ -23,6 +23,7 @@ import javafx.scene.layout.VBox;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.OneOffLessonSchedule;
 import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.lesson.Subject;
 import seedu.address.model.person.Person;
@@ -32,6 +33,14 @@ import seedu.address.testutil.PersonBuilder;
  * Tests the actual student card and its optional fields using the JavaFX application thread.
  */
 public class PersonCardTest {
+
+    @Test
+    public void formatClassBadge_oneOffSchedule_displaysExactDate() {
+        Lesson oneOff = new Lesson(new Subject("Math"), new Cost("30"),
+                new OneOffLessonSchedule("2026-10-20T1800-1930"));
+
+        assertEquals("Math · 20 Oct 2026 18:00–19:30", PersonCard.formatClassBadge(oneOff));
+    }
 
     @BeforeAll
     public static void startJavaFx() throws InterruptedException {

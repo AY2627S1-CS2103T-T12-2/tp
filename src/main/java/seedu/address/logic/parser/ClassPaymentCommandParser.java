@@ -8,7 +8,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.ClassPaymentCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
-import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.LessonSchedule;
 import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.lesson.Subject;
 
@@ -29,8 +29,8 @@ public class ClassPaymentCommandParser implements Parser<ClassPaymentCommand> {
 
         Index index = ParserUtil.parseIndex(arguments.getPreamble());
         Subject subject = ParserUtil.parseLessonSubject(arguments.getValue(PREFIX_SUBJECT).get());
-        LessonTiming timing = ParserUtil.parseLessonTiming(arguments.getValue(PREFIX_CLASS).get());
+        LessonSchedule schedule = ParserUtil.parseLessonSchedule(arguments.getValue(PREFIX_CLASS).get());
         PaymentStatus status = ParserUtil.parsePaymentStatus(arguments.getValue(PREFIX_STATUS).get());
-        return new ClassPaymentCommand(index, subject, timing, status);
+        return new ClassPaymentCommand(index, subject, schedule, status);
     }
 }

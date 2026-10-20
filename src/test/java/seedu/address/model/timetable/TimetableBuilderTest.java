@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.OneOffLessonSchedule;
 import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.lesson.Subject;
 import seedu.address.model.person.Person;
@@ -53,6 +54,21 @@ public class TimetableBuilderTest {
                 timetable.get(0).getEntries().stream().map(TimetableEntry::getLesson).toList());
         assertEquals(List.of(saturdayLesson),
                 timetable.get(2).getEntries().stream().map(TimetableEntry::getLesson).toList());
+    }
+
+    @Test
+    public void build_oneOffLesson_includesOnlyExactVisibleDate() {
+        Lesson visible = new Lesson(new Subject("Math"), new Cost("30"),
+                new OneOffLessonSchedule("2026-10-09T1800-1930"));
+        Lesson laterWeek = new Lesson(new Subject("Physics"), new Cost("35"),
+                new OneOffLessonSchedule("2026-10-16T1800-1930"));
+        Person student = new PersonBuilder().withLessons(visible, laterWeek).build();
+
+        List<TimetableDay> timetable = TimetableBuilder.build(List.of(student), THURSDAY);
+
+        assertEquals(List.of(visible), timetable.get(1).getEntries().stream()
+                .map(TimetableEntry::getLesson).toList());
+        assertEquals(1, timetable.stream().mapToInt(day -> day.getEntries().size()).sum());
     }
 
     @Test

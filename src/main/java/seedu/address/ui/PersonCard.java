@@ -16,6 +16,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import seedu.address.model.lesson.Lesson;
+import seedu.address.model.lesson.LessonScheduleComparator;
+import seedu.address.model.lesson.ScheduleType;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Subject;
 
@@ -29,10 +31,9 @@ public class PersonCard extends UiPart<Region> {
     private static final String ENROLLED_CLASS_BADGE_STYLE_CLASS = "enrolled-class-badge";
     private static final String PAYMENT_STATUS_STYLE_CLASS = "payment-status";
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("d MMM uuuu", Locale.ENGLISH);
     private static final Comparator<Lesson> LESSON_COMPARATOR = Comparator
-            .comparingInt((Lesson enrolledClass) -> enrolledClass.getTiming().getDay().getValue())
-            .thenComparing(enrolledClass -> enrolledClass.getTiming().getStartTime())
-            .thenComparing(enrolledClass -> enrolledClass.getTiming().getEndTime())
+            .comparing(Lesson::getSchedule, LessonScheduleComparator.INSTANCE)
             .thenComparing(enrolledClass -> enrolledClass.getSubject().toString(),
                     String.CASE_INSENSITIVE_ORDER);
 
@@ -135,9 +136,11 @@ public class PersonCard extends UiPart<Region> {
 
     static String formatClassBadge(Lesson enrolledClass) {
         requireNonNull(enrolledClass);
-        String day = enrolledClass.getTiming().getDay().getDisplayName(TextStyle.SHORT, Locale.ENGLISH);
-        String start = enrolledClass.getTiming().getStartTime().format(TIME_FORMAT);
-        String end = enrolledClass.getTiming().getEndTime().format(TIME_FORMAT);
-        return enrolledClass.getSubject() + " · " + day + " " + start + "–" + end;
+        String dateLabel = enrolledClass.getSchedule().getType() == ScheduleType.ONE_OFF
+                ? enrolledClass.getSchedule().getDate().orElseThrow().format(DATE_FORMAT)
+                : enrolledClass.getSchedule().getDay().getDisplayName(TextStyle.SHORT, Locale.ENGLISH);
+        String start = enrolledClass.getSchedule().getStartTime().format(TIME_FORMAT);
+        String end = enrolledClass.getSchedule().getEndTime().format(TIME_FORMAT);
+        return enrolledClass.getSubject() + " · " + dateLabel + " " + start + "–" + end;
     }
 }

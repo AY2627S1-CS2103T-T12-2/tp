@@ -34,7 +34,7 @@ public class AddCommand extends Command {
             + PREFIX_ADDRESS + "ADDRESS "
             + "[" + PREFIX_TAG + "TAG]... "
             + "[" + PREFIX_SUBJECT + "SUBJECT " + PREFIX_COST + "COST "
-            + PREFIX_CLASS + "DAYHHmm-HHmm]\n"
+            + PREFIX_CLASS + "SCHEDULE]\n"
             + "Example: " + COMMAND_WORD + " "
             + PREFIX_NAME + "John Doe "
             + PREFIX_PHONE + "98765432 "
