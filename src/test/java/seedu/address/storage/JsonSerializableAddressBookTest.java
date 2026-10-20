@@ -14,6 +14,7 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.OneOffLessonSchedule;
 import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.lesson.Subject;
 import seedu.address.model.person.Person;
@@ -56,6 +57,20 @@ public class JsonSerializableAddressBookTest {
         AddressBook original = TypicalPersons.getTypicalAddressBook();
         Lesson lesson = new Lesson(new Subject("Math"), new Cost("30"),
                 new LessonTiming("Monday1800-1930"), PaymentStatus.PAID);
+        Person firstPerson = original.getPersonList().get(0);
+        original.setPerson(firstPerson, new PersonBuilder(firstPerson).withLessons(lesson).build());
+
+        String json = JsonUtil.toJsonString(new JsonSerializableAddressBook(original));
+        JsonSerializableAddressBook restoredData = JsonUtil.fromJsonString(json, JsonSerializableAddressBook.class);
+
+        assertEquals(original, restoredData.toModelType());
+    }
+
+    @Test
+    public void jsonRoundTrip_oneOffLesson_success() throws Exception {
+        AddressBook original = TypicalPersons.getTypicalAddressBook();
+        Lesson lesson = new Lesson(new Subject("Math"), new Cost("30"),
+                new OneOffLessonSchedule("2026-10-20T1800-1930"));
         Person firstPerson = original.getPersonList().get(0);
         original.setPerson(firstPerson, new PersonBuilder(firstPerson).withLessons(lesson).build());
 
