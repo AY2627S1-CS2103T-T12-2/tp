@@ -176,6 +176,25 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Lesson scheduling model
+
+`LessonSchedule` is the common immutable contract for when a class occurs. `LessonTiming` implements it for a weekly
+schedule containing a `DayOfWeek`, start time, and end time. `OneOffLessonSchedule` implements it for an exact
+`LocalDate` and time range. Both reject null fields, invalid times, equal start and end times, and overnight ranges.
+
+Commands retain the existing weekly representation `c/Monday1800-1930` and accept one-off schedules in the form
+`c/2026-10-20T1800-1930`. `ParserUtil#parseLessonSchedule` selects the matching immutable schedule type. A `Lesson`
+stores the resulting `LessonSchedule`; its subject and complete schedule form its logical class identity, while cost and
+payment status remain enrolment properties excluded by `Lesson#isSameClass`.
+
+Schedule overlap is date-aware. Two weekly schedules conflict on the same weekday, two one-off schedules conflict only
+on the same date, and a weekly schedule conflicts with a one-off schedule when the date has the weekly schedule's
+weekday. In all three cases, their time ranges must overlap; ranges meeting only at an endpoint do not conflict.
+
+`JsonAdaptedLesson` stores `scheduleType` as `WEEKLY` or `ONE_OFF` alongside the compact `timing` value. Saved lessons
+without `scheduleType` are interpreted as weekly schedules, so existing address-book files load without manual
+migration. Weekly occurrences remain derived and are never expanded into persisted dated records.
+
 ### Find feature
 
 The `find` feature is implemented across `FindCommandParser`, `FindCommand`, the search predicates, and `CommandBox`.
@@ -191,7 +210,8 @@ prefixes, empty prefixed values, and invalid tag or lesson keywords before const
 For tag search, it normalizes keywords to lowercase before tag-format validation. This keeps stored tags lowercase-only
 while allowing case-insensitive search input for user convenience.
 Lesson keywords accept a weekday/prefix such as `Mon`, an HHmm-style time within `0000`-`2359`, or both; shorter
-numeric fragments such as `18` are accepted for partial matching.
+numeric fragments such as `18` are accepted for partial matching. An exact ISO date such as `2026-10-20` matches a
+one-off schedule, while a weekday search also matches one-off schedules occurring on that weekday.
 
 `FindCommand` applies the predicate through `Model#updateFilteredPersonList`. Predicates that implement
 `ScoredPersonPredicate` also provide a relevance score, so `FindCommand` requests a sorted filtered list with stronger
@@ -208,9 +228,11 @@ or when a non-`find` command succeeds.
 `TimetablePanel`.
 
 `ModelManager#getTimetable(LocalDate)` passes the complete address-book person list to `TimetableBuilder`. The builder
-iterates through each person's `Lesson` values, omits days before the supplied date's weekday, and groups equal lessons
-with their students. It then returns one immutable `TimetableDay` from the current day through Saturday, including empty
-days. Entries within a day are ordered by start time, subject, and end time.
+iterates through each person's `Lesson` values, generates the actual dates from the supplied date through Saturday, and
+uses `LessonSchedule#occursOn(LocalDate)` to select lessons for each date. This places weekly schedules on their matching
+weekday and one-off schedules only on their exact date. The builder groups equal logical classes with their students and
+returns one immutable `TimetableDay` per visible date, including empty days. Entries within a day are ordered by start
+time, subject, and end time.
 
 The UI renders the projection in three levels: `TimetablePanel` provides the scrolling list, `TimetableDayCard` displays
 a day heading and empty state, and `TimetableEntryCard` displays a class's time, subject, and students. Entering `list`
@@ -222,7 +244,7 @@ Every `Lesson` value stored by a `Person` represents that student's individual e
 `PaymentStatus` of `PAID` or `UNPAID`. Constructors that do not specify a status default to `UNPAID`, which also provides
 backwards compatibility for saved enrolments created before payment tracking was introduced.
 
-`class payment` parses a displayed student index, subject, complete class timing, and payment status. During execution,
+`class payment` parses a displayed student index, subject, complete class schedule, and payment status. During execution,
 `ClassPaymentCommand` resolves the student from the filtered list and locates the enrolment using
 `Lesson#isSameClass`. It replaces only that immutable enrolment and then replaces only the selected `Person`; other
 classes and students are not modified. A missing enrolment causes the command to fail before any model mutation.
