@@ -1,7 +1,7 @@
 package seedu.address.ui;
 
-import java.time.DayOfWeek;
-import java.time.format.TextStyle;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 import javafx.fxml.FXML;
@@ -14,6 +14,8 @@ import seedu.address.model.timetable.TimetableDay;
 public class TimetableDayCard extends UiPart<Region> {
 
     private static final String FXML = "TimetableDayCard.fxml";
+    private static final DateTimeFormatter DAY_FORMAT =
+            DateTimeFormatter.ofPattern("EEEE, d MMM", Locale.ENGLISH);
 
     @FXML
     private Label dayHeading;
@@ -25,7 +27,7 @@ public class TimetableDayCard extends UiPart<Region> {
     /** Creates a card for the supplied timetable day. */
     public TimetableDayCard(TimetableDay timetableDay) {
         super(FXML);
-        dayHeading.setText(formatDay(timetableDay.getDay()));
+        dayHeading.setText(formatDate(timetableDay.getDate()));
         timetableDay.getEntries().stream()
                 .map(TimetableEntryCard::new)
                 .map(TimetableEntryCard::getRoot)
@@ -34,7 +36,7 @@ public class TimetableDayCard extends UiPart<Region> {
         emptyMessage.setManaged(emptyMessage.isVisible());
     }
 
-    static String formatDay(DayOfWeek day) {
-        return day.getDisplayName(TextStyle.FULL, Locale.ENGLISH);
+    static String formatDate(LocalDate date) {
+        return date.format(DAY_FORMAT);
     }
 }

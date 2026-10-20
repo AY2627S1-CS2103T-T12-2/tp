@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -47,9 +46,9 @@ public class TimetableDayCardTest {
     }
 
     @Test
-    public void formatDay_dayOfWeek_returnsCapitalisedEnglishName() {
-        assertEquals("Monday", TimetableDayCard.formatDay(DayOfWeek.MONDAY));
-        assertEquals("Saturday", TimetableDayCard.formatDay(DayOfWeek.SATURDAY));
+    public void formatDate_date_returnsEnglishHeadingWithoutYear() {
+        assertEquals("Tuesday, 20 Oct", TimetableDayCard.formatDate(LocalDate.of(2026, 10, 20)));
+        assertEquals("Friday, 1 Jan", TimetableDayCard.formatDate(LocalDate.of(2027, 1, 1)));
     }
 
     @Test
@@ -71,7 +70,7 @@ public class TimetableDayCardTest {
             Label populatedMessage = (Label) populatedCard.getRoot().lookup("#emptyMessage");
 
             assertNotNull(dayHeading);
-            assertEquals("Monday", dayHeading.getText());
+            assertEquals("Monday, 19 Oct", dayHeading.getText());
             assertTrue(emptyMessage.isVisible());
             assertTrue(emptyMessage.isManaged());
             assertEquals(1, entriesContainer.getChildren().size());
