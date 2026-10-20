@@ -92,6 +92,8 @@ contained in one `HBox`, while the surrounding `VBox` places every class group o
 the same colour across students. The palette identifies a class using its case-insensitive subject and complete
 lesson timing, matching `Lesson#isSameClass`; cost and payment status are not part of the colour identity. A muted
 balance badge beside the student's name always displays `Person#getOutstandingBalance`, including when it is zero.
+Pinned students also display a `PINNED` badge beside their name. The badge is visible and participates in the layout
+only when `Person#isPinned` is true.
 
 ### Logic component
 
@@ -176,6 +178,24 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Pin feature
+
+Each `Person` stores a `pinned` boolean. `JsonAdaptedPerson` writes this value to the address-book data file and treats
+a missing value as `false`, allowing older files to remain compatible. Copy operations such as editing tags or lessons
+retain the existing pin state.
+
+`PinCommand` and `UnpinCommand` resolve their target against the displayed student list and replace that student with
+an immutable copy containing the new pin state. Repeating the existing state is rejected with an actionable error.
+
+`ModelManager` exposes a `SortedList` that places pinned students before unpinned students. This comparator is applied
+both to the complete list and to filtered lists. When a command supplies another comparator, such as the relevance
+comparator used by `find`, pinned state remains the primary key and the supplied comparator orders students within
+each pin group. Filters still control which students are included.
+
+`PersonListPanel` observes this sorted list, so pinning or unpinning immediately reorders the existing list and updates
+displayed indexes. `PersonCard` reads the pin state when rendering and shows the `PINNED` badge for pinned students.
+`CommandBox` suggests the `pin INDEX` and `unpin INDEX` formats while either command is being entered.
+
 ### Find feature
 
 The `find` feature is implemented across `FindCommandParser`, `FindCommand`, the search predicates, and `CommandBox`.
@@ -195,7 +215,8 @@ numeric fragments such as `18` are accepted for partial matching.
 
 `FindCommand` applies the predicate through `Model#updateFilteredPersonList`. Predicates that implement
 `ScoredPersonPredicate` also provide a relevance score, so `FindCommand` requests a sorted filtered list with stronger
-matches first and preserves original address-book order for ties.
+matches first within each pin group and preserves original address-book order for ties. Matching pinned students are
+placed before matching unpinned students.
 
 `CommandBox` provides light-grey input-bar hints for common `find` inputs. After a successful `find`, it keeps the
 suggestion overlay visible with `Type 'list' to return to the home page.`; the hint clears when the user starts typing
@@ -426,6 +447,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *`    | tutor deleting a student or class           | see which enrollments and lessons will be affected                | avoid removing related information accidentally                           |
 | `* *`    | tutor                                       | view my next few lessons when the application opens               | prepare without navigating the full timetable                             |
 | `* *`    | tutor with many students                    | sort and filter my students                                        | manage a large contact list easily                                         |
+| `* *`    | tutor with frequently accessed students     | pin important students above the rest                              | access their details quickly                                               |
 | `* *`    | tutor                                       | add notes about each student                                       | remember their learning needs and progress                                 |
 | `* *`    | tutor who conducts in-person lessons        | store a student's home address                                     | travel to their lessons easily                                             |
 | `* *`    | tutor teaching minors                       | record a parent or guardian's contact details                      | contact them when necessary                                                |

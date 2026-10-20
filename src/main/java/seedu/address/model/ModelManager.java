@@ -23,6 +23,8 @@ import seedu.address.model.timetable.TimetableDay;
  */
 public class ModelManager implements Model {
     private static final Logger logger = LogsCenter.getLogger(ModelManager.class);
+    private static final Comparator<Person> PINNED_FIRST_COMPARATOR =
+            Comparator.comparing(Person::isPinned).reversed();
 
     private final AddressBook addressBook;
     private final UserPrefs userPrefs;
@@ -40,7 +42,7 @@ public class ModelManager implements Model {
         this.addressBook = new AddressBook(addressBook);
         this.userPrefs = new UserPrefs(userPrefs);
         filteredPersons = new FilteredList<>(this.addressBook.getPersonList());
-        sortedFilteredPersons = new SortedList<>(filteredPersons);
+        sortedFilteredPersons = new SortedList<>(filteredPersons, getDefaultPersonComparator());
     }
 
     public ModelManager() {
@@ -116,14 +118,19 @@ public class ModelManager implements Model {
     public void updateFilteredPersonList(Predicate<Person> predicate) {
         requireNonNull(predicate);
         filteredPersons.setPredicate(predicate);
-        sortedFilteredPersons.setComparator(null);
+        sortedFilteredPersons.setComparator(getDefaultPersonComparator());
     }
 
     @Override
     public void updateFilteredPersonList(Predicate<Person> predicate, Comparator<Person> comparator) {
         requireAllNonNull(predicate, comparator);
         filteredPersons.setPredicate(predicate);
-        sortedFilteredPersons.setComparator(comparator);
+        sortedFilteredPersons.setComparator(PINNED_FIRST_COMPARATOR.thenComparing(comparator));
+    }
+
+    private Comparator<Person> getDefaultPersonComparator() {
+        List<Person> originalOrder = addressBook.getPersonList();
+        return PINNED_FIRST_COMPARATOR.thenComparingInt(originalOrder::indexOf);
     }
 
     @Override

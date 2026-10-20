@@ -45,8 +45,8 @@ public class PinCommandTest {
         PinCommand pinCommand = new PinCommand(INDEX_FIRST_PERSON);
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(personToPin, personToPin.withPinned(true));
         showPersonAtIndex(expectedModel, INDEX_SECOND_PERSON);
+        expectedModel.setPerson(personToPin, personToPin.withPinned(true));
         String expectedMessage = String.format(PinCommand.MESSAGE_PIN_PERSON_SUCCESS, personToPin.getName());
 
         assertCommandSuccess(pinCommand, model, expectedMessage, expectedModel);

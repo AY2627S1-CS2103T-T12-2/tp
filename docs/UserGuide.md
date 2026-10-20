@@ -172,9 +172,36 @@ re-enable the other commands.
 
 ### Listing all persons: `list`
 
-Shows a list of all persons in the address book.
+Shows all students in the address book. Pinned students appear before unpinned students.
 
 Format: `list`
+
+### Pinning a student: `pin`
+
+Pins a student so that they appear above unpinned students in the student list. The pin is saved and remains after
+TutEasy is restarted.
+
+Format: `pin INDEX`
+
+* `INDEX` refers to the index number shown in the displayed student list.
+* The student must not already be pinned.
+* During a search, only matching students are shown; matching pinned students appear before matching unpinned students.
+* Search relevance and the existing list order are preserved within the pinned and unpinned groups.
+
+Example: `pin 3`
+
+Pinned students display a `PINNED` badge beside their name and balance.
+
+### Unpinning a student: `unpin`
+
+Unpins a student and returns them to the unpinned section of the student list.
+
+Format: `unpin INDEX`
+
+* `INDEX` refers to the index number shown in the displayed student list.
+* The student must already be pinned.
+
+Example: `unpin 1`
 
 ### Editing a person: `edit`
 
@@ -233,7 +260,9 @@ Formats:
   for input convenience, e.g. `find t/PRI` matches `priority`.
 * Name and tag searches use partial matching, e.g. `ali` matches `Alice`, and `pri` matches `priority`.
 * With `c/`, search by lesson day, time, or both. Days accept full names or prefixes, e.g. `Monday` or `Mon`. Times use HHmm style from `0000` to `2359`, e.g. `1800`; shorter fragments such as `18` are accepted for partial matching.
-* Name and tag searches return students matching at least one keyword. Students with more matching keywords are shown first; ties keep the current list order.
+* Name and tag searches return students matching at least one keyword. Matching pinned students are shown before
+  matching unpinned students. Within each group, students with more matching keywords are shown first; ties keep the
+  current list order.
 * After a successful `find`, the command box shows this light-grey hint: `Type 'list' to return to the home page.`
 
 Examples:

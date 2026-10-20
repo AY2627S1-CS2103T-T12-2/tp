@@ -7,8 +7,11 @@ import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
+import static seedu.address.testutil.TypicalPersons.CARL;
+import static seedu.address.testutil.TypicalPersons.DANIEL;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -79,6 +82,54 @@ public class ModelManagerTest {
     @Test
     public void getFilteredPersonList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> modelManager.getFilteredPersonList().remove(0));
+    }
+
+    @Test
+    public void constructor_pinnedAndUnpinnedPersons_placesPinnedFirstAndPreservesGroupOrder() {
+        Person pinnedBenson = new PersonBuilder(BENSON).withPinned(true).build();
+        Person pinnedDaniel = new PersonBuilder(DANIEL).withPinned(true).build();
+        AddressBook addressBook = new AddressBookBuilder()
+                .withPerson(ALICE)
+                .withPerson(pinnedBenson)
+                .withPerson(CARL)
+                .withPerson(pinnedDaniel)
+                .build();
+
+        modelManager = new ModelManager(addressBook, new UserPrefs());
+
+        assertEquals(List.of(pinnedBenson, pinnedDaniel, ALICE, CARL),
+                modelManager.getFilteredPersonList());
+    }
+
+    @Test
+    public void setPerson_unpinnedPersonBecomesPinned_reordersListImmediately() {
+        AddressBook addressBook = new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON).build();
+        modelManager = new ModelManager(addressBook, new UserPrefs());
+        Person pinnedBenson = BENSON.withPinned(true);
+
+        modelManager.setPerson(BENSON, pinnedBenson);
+
+        assertEquals(List.of(pinnedBenson, ALICE), modelManager.getFilteredPersonList());
+    }
+
+    @Test
+    public void updateFilteredPersonList_customComparator_ordersWithinPinGroups() {
+        Person pinnedBenson = BENSON.withPinned(true);
+        Person pinnedDaniel = DANIEL.withPinned(true);
+        AddressBook addressBook = new AddressBookBuilder()
+                .withPerson(ALICE)
+                .withPerson(pinnedBenson)
+                .withPerson(CARL)
+                .withPerson(pinnedDaniel)
+                .build();
+        modelManager = new ModelManager(addressBook, new UserPrefs());
+        Comparator<Person> reverseNameOrder = Comparator.comparing(
+                person -> person.getName().fullName, Comparator.reverseOrder());
+
+        modelManager.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS, reverseNameOrder);
+
+        assertEquals(List.of(pinnedDaniel, pinnedBenson, CARL, ALICE),
+                modelManager.getFilteredPersonList());
     }
 
     @Test
