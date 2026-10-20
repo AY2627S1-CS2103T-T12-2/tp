@@ -14,6 +14,11 @@ import static seedu.address.testutil.TypicalPersons.BOB;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.model.lesson.Cost;
+import seedu.address.model.lesson.Lesson;
+import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.PaymentStatus;
+import seedu.address.model.lesson.Subject;
 import seedu.address.testutil.PersonBuilder;
 
 public class PersonTest {
@@ -32,6 +37,26 @@ public class PersonTest {
     public void asObservableList_modifyList_throwsUnsupportedOperationException() {
         Person person = new PersonBuilder().build();
         assertThrows(UnsupportedOperationException.class, () -> person.getTags().remove(0));
+    }
+
+    @Test
+    public void getOutstandingBalance_noUnpaidLessons_returnsZero() {
+        Lesson paidLesson = lesson("Math", "30", "Monday1800-1930")
+                .withPaymentStatus(PaymentStatus.PAID);
+        Person person = new PersonBuilder().withLessons(paidLesson).build();
+
+        assertEquals("0", person.getOutstandingBalance().toPlainString());
+    }
+
+    @Test
+    public void getOutstandingBalance_paidAndUnpaidLessons_sumsOnlyUnpaidCosts() {
+        Lesson math = lesson("Math", "30", "Monday1800-1930");
+        Lesson computing = lesson("Computing", "60.50", "Tuesday1500-1700");
+        Lesson paidPhysics = lesson("Physics", "35", "Wednesday1700-1830")
+                .withPaymentStatus(PaymentStatus.PAID);
+        Person person = new PersonBuilder().withLessons(math, computing, paidPhysics).build();
+
+        assertEquals("90.5", person.getOutstandingBalance().toPlainString());
     }
 
     @Test
@@ -112,5 +137,9 @@ public class PersonTest {
                 + ", cost=" + ALICE.getCost()
                 + ", lesson=" + ALICE.getLesson() + "}";
         assertEquals(expected, ALICE.toString());
+    }
+
+    private static Lesson lesson(String subject, String cost, String timing) {
+        return new Lesson(new Subject(subject), new Cost(cost), new LessonTiming(timing));
     }
 }

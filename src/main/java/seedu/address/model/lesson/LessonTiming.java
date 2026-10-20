@@ -68,6 +68,17 @@ public class LessonTiming implements Comparable<LessonTiming> {
         return day == expectedDay && startTime.equals(expectedTime);
     }
 
+    /**
+     * Returns whether this timing overlaps {@code other} on the same day.
+     * Timings that only meet at an endpoint are not considered overlapping.
+     */
+    public boolean overlapsWith(LessonTiming other) {
+        requireNonNull(other);
+        return day == other.day
+                && startTime.isBefore(other.endTime)
+                && other.startTime.isBefore(endTime);
+    }
+
     @Override
     public int compareTo(LessonTiming other) {
         int dayComparison = Integer.compare(day.getValue(), other.day.getValue());

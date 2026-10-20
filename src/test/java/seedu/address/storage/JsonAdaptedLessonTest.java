@@ -9,6 +9,7 @@ import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.lesson.Subject;
 
 public class JsonAdaptedLessonTest {
@@ -20,6 +21,9 @@ public class JsonAdaptedLessonTest {
     public void toModelType_validLessonDetails_returnsLesson() throws Exception {
         assertEquals(VALID_LESSON, new JsonAdaptedLesson("Math", "30", "Monday1800-1930").toModelType());
         assertEquals(VALID_LESSON, new JsonAdaptedLesson(VALID_LESSON).toModelType());
+        Lesson paidLesson = VALID_LESSON.withPaymentStatus(PaymentStatus.PAID);
+        assertEquals(paidLesson,
+                new JsonAdaptedLesson("Math", "30", "Monday1800-1930", "PAID").toModelType());
     }
 
     @Test
@@ -40,5 +44,7 @@ public class JsonAdaptedLessonTest {
                 "Math", "-1", "Monday1800-1930").toModelType());
         assertThrows(IllegalValueException.class, () -> new JsonAdaptedLesson(
                 "Math", "30", "Monday2400-0100").toModelType());
+        assertThrows(IllegalValueException.class, PaymentStatus.MESSAGE_CONSTRAINTS, () -> new JsonAdaptedLesson(
+                "Math", "30", "Monday1800-1930", "pending").toModelType());
     }
 }

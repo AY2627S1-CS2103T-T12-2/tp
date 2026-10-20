@@ -1,10 +1,14 @@
 package seedu.address.logic;
 
+import static java.util.Objects.requireNonNull;
+
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import seedu.address.logic.parser.Prefix;
+import seedu.address.model.lesson.Lesson;
 import seedu.address.model.person.Person;
 
 /**
@@ -46,6 +50,27 @@ public class Messages {
                 .append("; Tags: ");
         person.getTags().forEach(builder::append);
         return builder.toString();
+    }
+
+    /**
+     * Returns an actionable error message for a candidate class that overlaps existing classes.
+     */
+    public static String getClassOverlapMessage(Lesson candidate, List<Lesson> conflicts) {
+        requireNonNull(candidate);
+        requireNonNull(conflicts);
+        assert !conflicts.isEmpty();
+
+        String conflictDetails = conflicts.stream()
+                .map(Messages::formatLesson)
+                .map(formattedLesson -> "- " + formattedLesson)
+                .collect(Collectors.joining(System.lineSeparator()));
+        return "Cannot add " + formatLesson(candidate) + " because it overlaps with:"
+                + System.lineSeparator() + conflictDetails
+                + System.lineSeparator() + "Choose a non-overlapping time.";
+    }
+
+    private static String formatLesson(Lesson lesson) {
+        return lesson.getSubject() + " (" + lesson.getTiming() + ")";
     }
 
 }

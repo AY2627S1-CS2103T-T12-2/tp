@@ -110,6 +110,13 @@ Example: `class enrol 1 sub/Physics cost/35 c/Wednesday1700-1830`
 The same class can be assigned to multiple students, but its cost must be consistent. A student cannot be enrolled in
 the same class more than once.
 
+Enrolled classes appear as coloured badges below each student's email. Each badge includes the subject and lesson
+timing, and students enrolled in the same class receive a badge with the same colour. When a student has multiple
+classes, each badge group appears on its own row.
+
+A subdued balance badge beside each student's name shows the total cost of that student's unpaid lesson enrolments.
+Paid enrolments are excluded. The badge remains visible as `Balance: 0` when the student has no unpaid enrolments.
+
 ### Unenrolling a student from a class: `class unenrol`
 
 Removes one class from one student without affecting other students enrolled in that class.
@@ -117,6 +124,28 @@ Removes one class from one student without affecting other students enrolled in 
 Format: `class unenrol STUDENT_INDEX sub/SUBJECT c/DAYHHmm-HHmm`
 
 Example: `class unenrol 1 sub/Physics c/Wednesday1700-1830`
+
+### Updating an enrolment's payment status: `class payment`
+
+Marks one student's enrolment in a recurring weekly class as paid or unpaid. The student is identified by the index
+shown in the current student list, while the subject and complete lesson timing identify the enrolment.
+
+Format: `class payment STUDENT_INDEX sub/SUBJECT c/DAYHHmm-HHmm status/paid|unpaid`
+
+Examples:
+
+* `class payment 1 sub/Physics c/Wednesday1700-1830 status/paid`
+* `class payment 1 sub/Physics c/Wednesday1700-1830 status/unpaid`
+
+New and previously saved enrolments default to unpaid. A subdued status label appears immediately after the
+corresponding coloured class badge, without sharing the badge's background colour. Each class badge and status label
+stay together on one row, keeping the status associated with the correct class. Updating one student's payment status
+does not affect other students enrolled in the same class. If the specified student is not enrolled in that class, no
+data is changed.
+
+Payment status describes the current recurring enrolment as a whole; it is not a payment history for individual weekly
+sessions or billing months. Correspondingly, the displayed balance is the sum of the current unpaid enrolments rather
+than a history of accumulated charges.
 
 ### Deleting a class: `class delete`
 
@@ -191,27 +220,33 @@ Examples:
 
 ### Locating persons by name, tag, or lesson: `find`
 
-Finds persons whose names, tags, or lessons contain any of the given keywords.
+Finds students whose names, tags, or lesson timings partially match the given search input.
 
 Formats:
 * `find KEYWORD [MORE_KEYWORDS]`
 * `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]`
-* `find c/DAYHHmm`
+* `find c/DAY [TIME_HHmm]` or `find c/TIME_HHmm`
 
 * The search is case-insensitive; for example, `hans` matches `Hans`.
-* Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
 * Without `t/`, the search considers only names.
-* With `t/`, the search considers only tags.
-* With `c/`, the search returns students whose classes start at the specified day and time.
-* Name and tag searches require full-word matches; for example, `Han` does not match `Hans`.
-* Persons matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
+* With `t/`, the search considers only tags. Stored tags use lowercase, but tag search keywords are case-insensitive
+  for input convenience, e.g. `find t/PRI` matches `priority`.
+* Name and tag searches use partial matching, e.g. `ali` matches `Alice`, and `pri` matches `priority`.
+* With `c/`, search by lesson day, time, or both. Days accept full names or prefixes, e.g. `Monday` or `Mon`. Times use HHmm style from `0000` to `2359`, e.g. `1800`; shorter fragments such as `18` are accepted for partial matching.
+* Name and tag searches return students matching at least one keyword. Students with more matching keywords are shown first; ties keep the current list order.
+* After a successful `find`, the command box shows this light-grey hint: `Type 'list' to return to the home page.`
 
 Examples:
-* `find John` returns `john` and `John Doe`
-* `find t/friends` returns persons tagged `friends`
-* `find c/Monday1800` returns students whose class starts on Monday at 18:00
+* `find Joh` returns `John` and `John Doe`
+* `find t/fri` returns students tagged `friends`
+* `find c/Monday` returns students with Monday lessons
+* `find c/1800` returns students with lessons containing `1800`
+* `find c/Mon 1800` returns students with Monday lessons containing `1800`
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
+
+The command box shows light-grey hints for common `find` inputs, such as `find`, the available search formats, the
+lesson example `find c/Monday 1800`, and the post-search `Type 'list'...` hint.
 
 ### Deleting a person: `delete`
 
@@ -281,13 +316,14 @@ Action     | Format, Examples
 **Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [sub/SUBJECT cost/COST c/DAYHHmm-HHmm]` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/Clementi t/friend sub/Math cost/30 c/Monday1800-1930`
 **Enrol in class** | `class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/DAYHHmm-HHmm`<br> e.g., `class enrol 1 sub/Physics cost/35 c/Wednesday1700-1830`
 **Unenrol from class** | `class unenrol STUDENT_INDEX sub/SUBJECT c/DAYHHmm-HHmm`<br> e.g., `class unenrol 1 sub/Physics c/Wednesday1700-1830`
+**Update payment status** | `class payment STUDENT_INDEX sub/SUBJECT c/DAYHHmm-HHmm status/paid|unpaid`<br> e.g., `class payment 1 sub/Physics c/Wednesday1700-1830 status/paid`
 **Delete class** | `class delete sub/SUBJECT c/DAYHHmm-HHmm`<br> e.g., `class delete sub/Physics c/Wednesday1700-1830`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Tag**    | `tag INDEX TAG [MORE_TAGS]`<br> e.g., `tag 3 exam-prep needs-follow-up`
 **Untag**  | `untag INDEX TAG [MORE_TAGS]` or `untag INDEX -all`<br> e.g., `untag 2 parent-follow-up`
-**Find**   | `find KEYWORD [MORE_KEYWORDS]`, `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]`, or `find c/DAYHHmm`<br> e.g., `find James Jake`, `find t/friends`, `find c/Monday1800`
+**Find**   | `find KEYWORD [MORE_KEYWORDS]`, `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]`, `find c/DAY [TIME_HHmm]`, or `find c/TIME_HHmm`<br> e.g., `find Jam`, `find t/fri`, `find c/Mon 1800`
 **List**   | `list`
 **Help**   | `help`
 **Timetable** | `timetable`

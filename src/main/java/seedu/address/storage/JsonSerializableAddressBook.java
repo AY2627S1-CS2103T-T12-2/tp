@@ -20,6 +20,8 @@ import seedu.address.model.person.Person;
 class JsonSerializableAddressBook {
 
     public static final String MESSAGE_DUPLICATE_PERSON = "Persons list contains duplicate person(s).";
+    public static final String MESSAGE_DUPLICATE_ENROLMENT =
+            "A student has duplicate enrolments for the same class.";
     public static final String MESSAGE_CLASS_COST_CONFLICT = "Students in the same class have different costs.";
 
     private final List<JsonAdaptedPerson> persons = new ArrayList<>();
@@ -60,6 +62,11 @@ class JsonSerializableAddressBook {
                             && !first.getCost().equals(second.getCost())));
             if (hasInternalCostConflict) {
                 throw new IllegalValueException(MESSAGE_CLASS_COST_CONFLICT);
+            }
+            boolean hasDuplicateEnrolment = person.getLessons().stream().anyMatch(first ->
+                    person.getLessons().stream().anyMatch(second -> first != second && first.isSameClass(second)));
+            if (hasDuplicateEnrolment) {
+                throw new IllegalValueException(MESSAGE_DUPLICATE_ENROLMENT);
             }
             boolean hasCostConflict = addressBook.getPersonList().stream()
                     .flatMap(existingPerson -> existingPerson.getLessons().stream())

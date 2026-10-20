@@ -123,6 +123,32 @@ public class StringUtilTest {
         assertTrue(StringUtil.containsWordIgnoreCase("AAA bBb ccc  bbb", "bbB"));
     }
 
+    //---------------- Tests for containsIgnoreCase --------------------------------------
+
+    @Test
+    public void containsIgnoreCase_nullQuery_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> StringUtil.containsIgnoreCase("typical sentence", null));
+    }
+
+    @Test
+    public void containsIgnoreCase_emptyQuery_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, "Query parameter cannot be empty", ()
+            -> StringUtil.containsIgnoreCase("typical sentence", "  "));
+    }
+
+    @Test
+    public void containsIgnoreCase_nullSentence_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> StringUtil.containsIgnoreCase(null, "abc"));
+    }
+
+    @Test
+    public void containsIgnoreCase_validInputs_correctResult() {
+        assertTrue(StringUtil.containsIgnoreCase("Alice Bob", "lic"));
+        assertTrue(StringUtil.containsIgnoreCase("Alice Bob", " BOB "));
+        assertFalse(StringUtil.containsIgnoreCase("Alice Bob", "Carol"));
+        assertFalse(StringUtil.containsIgnoreCase("", "Alice"));
+    }
+
     //---------------- Tests for getDetails --------------------------------------
 
     /*

@@ -3,6 +3,7 @@ package seedu.address.model.lesson;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
@@ -16,9 +17,11 @@ public class LessonTest {
     @Test
     public void isSameClass_lessonWithSameIdentity_returnsTrue() {
         Lesson differentCost = new Lesson(new Subject("math"), new Cost("40"), MATH.getTiming());
+        Lesson differentPaymentStatus = MATH.withPaymentStatus(PaymentStatus.PAID);
 
         assertTrue(MATH.isSameClass(MATH));
         assertTrue(MATH.isSameClass(differentCost));
+        assertTrue(MATH.isSameClass(differentPaymentStatus));
     }
 
     @Test
@@ -53,10 +56,12 @@ public class LessonTest {
         Lesson differentSubject = new Lesson(new Subject("Physics"), new Cost("30"), MATH.getTiming());
         Lesson differentCost = new Lesson(MATH.getSubject(), new Cost("40"), MATH.getTiming());
         Lesson differentTiming = new Lesson(MATH.getSubject(), MATH.getCost(), DIFFERENT_TIMING);
+        Lesson differentPaymentStatus = MATH.withPaymentStatus(PaymentStatus.PAID);
 
         assertNotEquals(MATH, differentSubject);
         assertNotEquals(MATH, differentCost);
         assertNotEquals(MATH, differentTiming);
+        assertNotEquals(MATH, differentPaymentStatus);
         assertNotEquals(MATH, "Math");
         assertNotEquals(MATH, null);
     }
@@ -64,5 +69,22 @@ public class LessonTest {
     @Test
     public void cost_equivalentDecimalValues_areEqual() {
         assertEquals(new Cost("30"), new Cost("30.00"));
+    }
+
+    @Test
+    public void paymentStatus_newLessonDefaultsUnpaidAndCanBeReplaced() {
+        assertEquals(PaymentStatus.UNPAID, MATH.getPaymentStatus());
+        assertEquals(PaymentStatus.PAID, MATH.withPaymentStatus(PaymentStatus.PAID).getPaymentStatus());
+        assertEquals(PaymentStatus.UNPAID, MATH.getPaymentStatus());
+    }
+
+    @Test
+    public void paymentStatus_parsingAndDisplay_returnsExpectedValues() {
+        assertTrue(PaymentStatus.isValidPaymentStatus("paid"));
+        assertTrue(PaymentStatus.isValidPaymentStatus("UNPAID"));
+        assertFalse(PaymentStatus.isValidPaymentStatus(null));
+        assertEquals(PaymentStatus.PAID, PaymentStatus.fromString("PaId"));
+        assertEquals("Paid", PaymentStatus.PAID.toDisplayString());
+        assertThrows(IllegalArgumentException.class, () -> PaymentStatus.fromString("pending"));
     }
 }

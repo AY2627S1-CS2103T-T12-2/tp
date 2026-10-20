@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.lesson.Subject;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.PersonBuilder;
@@ -59,7 +60,8 @@ public class TimetableBuilderTest {
         Lesson sharedLesson = lesson("Math", "30", "Friday1800-1930");
         Person zoe = new PersonBuilder().withName("Zoe Tan").withLessons(sharedLesson).build();
         Person alice = new PersonBuilder().withName("Alice Tan").withEmail("alice@example.com")
-                .withPhone("91234567").withLessons(sharedLesson).build();
+                .withPhone("91234567").withLessons(
+                        sharedLesson.withPaymentStatus(PaymentStatus.PAID)).build();
 
         TimetableEntry entry = TimetableBuilder.build(List.of(zoe, alice, alice), THURSDAY)
                 .get(1).getEntries().get(0);
@@ -67,6 +69,8 @@ public class TimetableBuilderTest {
         assertEquals(sharedLesson, entry.getLesson());
         assertEquals(List.of("Alice Tan", "Zoe Tan"), entry.getStudents().stream()
                 .map(person -> person.getName().fullName).toList());
+        assertEquals(1, TimetableBuilder.build(List.of(zoe, alice), THURSDAY)
+                .get(1).getEntries().size());
     }
 
     @Test

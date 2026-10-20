@@ -85,6 +85,14 @@ The `UI` component,
 * keeps a reference to the `Logic` component, because the `UI` relies on the `Logic` to execute commands.
 * depends on some classes in the `Model` component because it displays `Person` objects from the model.
 
+`PersonCard` renders enrolled classes as coloured badges in a vertical list below the student's email. A smaller,
+muted paid or unpaid label follows each badge without inheriting its background colour. Each badge and status are
+contained in one `HBox`, while the surrounding `VBox` places every class group on its own row. A single
+`ClassColorPalette` is owned by `PersonListPanel` and shared by every card, ensuring that the same logical class uses
+the same colour across students. The palette identifies a class using its case-insensitive subject and complete
+lesson timing, matching `Lesson#isSameClass`; cost and payment status are not part of the colour identity. A muted
+balance badge beside the student's name always displays `Person#getOutstandingBalance`, including when it is zero.
+
 ### Logic component
 
 **API** : [`Logic.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/logic/Logic.java)
@@ -168,6 +176,31 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Find feature
+
+The `find` feature is implemented across `FindCommandParser`, `FindCommand`, the search predicates, and `CommandBox`.
+
+Supported modes are mutually exclusive:
+
+* `find KEYWORD [MORE_KEYWORDS]` -> `NameContainsKeywordsPredicate`
+* `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]` -> `TagContainsKeywordsPredicate`
+* `find c/DAY [TIME_HHmm]` or `find c/TIME_HHmm` -> `LessonContainsKeywordsPredicate`
+
+`FindCommandParser` selects the mode from the prefix immediately after `find`. It rejects mixed modes, duplicate search
+prefixes, empty prefixed values, and invalid tag or lesson keywords before constructing the corresponding predicate.
+For tag search, it normalizes keywords to lowercase before tag-format validation. This keeps stored tags lowercase-only
+while allowing case-insensitive search input for user convenience.
+Lesson keywords accept a weekday/prefix such as `Mon`, an HHmm-style time within `0000`-`2359`, or both; shorter
+numeric fragments such as `18` are accepted for partial matching.
+
+`FindCommand` applies the predicate through `Model#updateFilteredPersonList`. Predicates that implement
+`ScoredPersonPredicate` also provide a relevance score, so `FindCommand` requests a sorted filtered list with stronger
+matches first and preserves original address-book order for ties.
+
+`CommandBox` provides light-grey input-bar hints for common `find` inputs. After a successful `find`, it keeps the
+suggestion overlay visible with `Type 'list' to return to the home page.`; the hint clears when the user starts typing
+or when a non-`find` command succeeds.
+
 ### Timetable view
 
 `TimetableCommand` does not modify model data. It returns a `CommandResult` requesting the `TIMETABLE` view.
@@ -182,6 +215,28 @@ days. Entries within a day are ordered by start time, subject, and end time.
 The UI renders the projection in three levels: `TimetablePanel` provides the scrolling list, `TimetableDayCard` displays
 a day heading and empty state, and `TimetableEntryCard` displays a class's time, subject, and students. Entering `list`
 restores the existing person panel and normal command availability.
+
+### Payment status
+
+Every `Lesson` value stored by a `Person` represents that student's individual enrolment and contains an immutable
+`PaymentStatus` of `PAID` or `UNPAID`. Constructors that do not specify a status default to `UNPAID`, which also provides
+backwards compatibility for saved enrolments created before payment tracking was introduced.
+
+`class payment` parses a displayed student index, subject, complete class timing, and payment status. During execution,
+`ClassPaymentCommand` resolves the student from the filtered list and locates the enrolment using
+`Lesson#isSameClass`. It replaces only that immutable enrolment and then replaces only the selected `Person`; other
+classes and students are not modified. A missing enrolment causes the command to fail before any model mutation.
+
+Full `Lesson#equals` includes payment status so model and UI updates are observable. Logical class operations use
+`Lesson#isSameClass`, which excludes cost and payment status. `TimetableBuilder` and overlap detection therefore group
+by logical class identity explicitly, ensuring students with different payment statuses still appear in one class.
+
+`JsonAdaptedLesson` stores the status as `paymentStatus`. A missing property is interpreted as `UNPAID`, while an
+unrecognised value is rejected as invalid data.
+
+The outstanding balance is derived rather than stored. `Person#getOutstandingBalance` sums the cost of each enrolment
+whose status is `UNPAID`, excluding paid enrolments. Recomputing it from the immutable lesson values prevents a stored
+balance from becoming stale after `class payment`, enrolment, unenrolment, or class deletion operations.
 
 ### Subject search
 
@@ -350,6 +405,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *`  | tutor                                       | see the subject, students, start time, and end time for each class | view important class details immediately                                  |
 | `* * *`  | tutor with a busy schedule                  | be warned when two classes overlap                                 | avoid scheduling conflicts                                                 |
 | `* * *`  | tutor                                       | see the students in each class and the classes assigned to each student | understand class membership from either direction                    |
+| `* * *`  | tutor collecting lesson fees                | mark each student's class enrolment as paid or unpaid               | track outstanding payments without affecting classmates                  |
 | `* * *`  | tutor                                       | clear an active search, filter, or grouping                        | return to the complete student list easily                                |
 | `* * *`  | keyboard-driven user                        | receive clear success messages and actionable error messages      | know whether a command worked and how to correct invalid input            |
 | `* * *`  | tutor                                       | have my student and class information saved and restored automatically | avoid losing my records when the application restarts                 |
@@ -564,28 +620,38 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 
 **MSS**
 
-1. Tutor requests to find students by one or more keywords or by a tag.
+1. Tutor requests to find students by partial name keywords, tag keywords, or lesson timing keywords.
 
-2. TutEasy searches the student list.
+2. TutEasy validates the chosen search mode and search input.
 
-3. TutEasy displays the matching students.
+3. TutEasy searches the student list.
+
+4. TutEasy ranks matching students by relevance.
+
+5. TutEasy displays the matching students and shows the light-grey input-bar hint for returning to the home page.
 
    Use case ends.
 
 **Extensions**
 
-* 2a. No student matches the keyword or tag.
+* 2a. The search input is empty or invalid for the chosen mode.
 
-    * 2a1. TutEasy displays a message to show that there are no people matched.
+    * 2a1. TutEasy shows a search-mode-specific error message.
 
       Use case resumes at step 1.
 
-* 2b. Multiple search results refer to the same student.
+* 3a. No student matches the search input.
 
-    * 2b1. TutEasy removes the duplicate results.
-    * 2b2. TutEasy displays only the unique matching students.
+    * 3a1. TutEasy displays a message to show that there are no people matched.
 
-      Use case resumes at step 3.
+      Use case resumes at step 1.
+
+* 3b. Multiple search results refer to the same student.
+
+    * 3b1. TutEasy removes the duplicate results.
+    * 3b2. TutEasy displays only the unique matching students.
+
+      Use case resumes at step 5.
 
 * 1a. There is no whitespace between `find` and the keyword.
 
@@ -706,6 +772,23 @@ and Carol taking no subjects. These tests assume the student view; use `list` fi
 
 After a subject search, exit and relaunch the app. All remaining students and their enrolments should be present;
 the full student list should be displayed. Repeat `find sub/math` to check that saved class subjects remain searchable.
+
+### Updating payment status
+
+Use two students enrolled in `Math` at `Monday1800-1930`. Each student's coloured Math badge should initially be
+followed by a separate, muted `Unpaid` label, and each balance badge should initially include the Math cost.
+
+| Test input | Expected result |
+| --- | --- |
+| `class payment 1 sub/Math c/Monday1800-1930 status/paid` | The first student's Math badge is followed by `Paid` and its balance decreases by the Math cost; the second student's status and balance remain unchanged. |
+| Repeat the previous command | Feedback says the payment is already paid; no other data changes. |
+| `class payment 1 sub/Math c/Monday1800-1930 status/unpaid` | Only the first student's Math status returns to `Unpaid`, and its balance increases by the Math cost. |
+| `class payment 1 sub/Physics c/Monday1800-1930 status/paid` | Error says the student is not enrolled in the specified class; no data changes. |
+| `class payment 0 sub/Math c/Monday1800-1930 status/paid` | Invalid-index error; no data changes. |
+| `class payment 1 sub/Math c/Monday1800-1930 status/pending` | Invalid-status error; no data changes. |
+
+Mark one student as paid, exit the app, and relaunch it. The paid status should still appear, while the other student's
+status remains unpaid. Open the timetable and verify that both students still appear together in one Math class.
 
 ### Saving data
 

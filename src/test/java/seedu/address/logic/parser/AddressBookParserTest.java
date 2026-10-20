@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.ClassDeleteCommand;
 import seedu.address.logic.commands.ClassEnrolCommand;
+import seedu.address.logic.commands.ClassPaymentCommand;
 import seedu.address.logic.commands.ClassUnenrolCommand;
 import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.DeleteCommand;
@@ -32,6 +33,7 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.lesson.Subject;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
@@ -79,6 +81,14 @@ public class AddressBookParserTest {
         LessonTiming timing = new LessonTiming("Monday1800-1930");
         assertEquals(new ClassDeleteCommand(subject, timing), parser.parseCommand(
                 "class delete sub/Math c/Monday1800-1930"));
+    }
+
+    @Test
+    public void parseCommand_classPayment() throws Exception {
+        Subject subject = new Subject("Math");
+        LessonTiming timing = new LessonTiming("Monday1800-1930");
+        assertEquals(new ClassPaymentCommand(INDEX_FIRST_PERSON, subject, timing, PaymentStatus.PAID),
+                parser.parseCommand("class payment 1 sub/Math c/Monday1800-1930 status/paid"));
     }
 
     @Test

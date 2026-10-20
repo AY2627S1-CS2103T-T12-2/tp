@@ -40,6 +40,13 @@ public class LessonContainsKeywordsPredicateTest {
 
         // different person -> returns false
         assertFalse(firstPredicate.equals(secondPredicate));
+
+        // same day but different time -> returns false
+        LessonContainsKeywordsPredicate sameDayDifferentTimePredicate =
+                new LessonContainsKeywordsPredicate(Optional.of("first"), Optional.of("1800"));
+        LessonContainsKeywordsPredicate sameDayDifferentTimePredicateCopy =
+                new LessonContainsKeywordsPredicate(Optional.of("first"), Optional.of("1900"));
+        assertFalse(sameDayDifferentTimePredicate.equals(sameDayDifferentTimePredicateCopy));
     }
 
     @Test
@@ -56,13 +63,21 @@ public class LessonContainsKeywordsPredicateTest {
         predicate = new LessonContainsKeywordsPredicate(List.of("1800"));
         assertTrue(predicate.test(personWithLesson("Monday1800")));
 
-        // Only one matching keyword
-        predicate = new LessonContainsKeywordsPredicate(List.of("Tuesday", "1800"));
+        // Day and time keywords both match
+        predicate = new LessonContainsKeywordsPredicate(List.of("Monday", "1800"));
         assertTrue(predicate.test(personWithLesson("Monday1800")));
 
         // Mixed-case keywords
         predicate = new LessonContainsKeywordsPredicate(List.of("mOnDaY"));
         assertTrue(predicate.test(personWithLesson("Monday1800")));
+
+        // Structured class day and start time match
+        predicate = new LessonContainsKeywordsPredicate(List.of("Mon", "1800"));
+        assertTrue(predicate.test(personWithClass("Math", "30", "Monday1800-1930")));
+
+        // Structured class end time matches
+        predicate = new LessonContainsKeywordsPredicate(List.of("1930"));
+        assertTrue(predicate.test(personWithClass("Math", "30", "Monday1800-1930")));
     }
 
     @Test
@@ -75,6 +90,10 @@ public class LessonContainsKeywordsPredicateTest {
         predicate = new LessonContainsKeywordsPredicate(List.of("Tuesday"));
         assertFalse(predicate.test(personWithLesson("Monday1800")));
 
+        // Time matches but day does not match
+        predicate = new LessonContainsKeywordsPredicate(List.of("Tuesday", "1800"));
+        assertFalse(predicate.test(personWithLesson("Monday1800")));
+
         // Keywords match name, phone, email and address, but do not match lesson
         predicate = new LessonContainsKeywordsPredicate(List.of("Alice", "12345", "alice@email.com", "Main"));
         assertFalse(predicate.test(new PersonBuilder().withName("Alice").withPhone("12345")
@@ -83,14 +102,23 @@ public class LessonContainsKeywordsPredicateTest {
         // Person has no lesson
         predicate = new LessonContainsKeywordsPredicate(List.of("Monday"));
         assertFalse(predicate.test(new PersonBuilder().build()));
+
+        // Structured class time matches but day does not match
+        predicate = new LessonContainsKeywordsPredicate(List.of("Tuesday", "1800"));
+        assertFalse(predicate.test(personWithClass("Math", "30", "Monday1800-1930")));
+
+        // Structured class day matches but time does not match
+        predicate = new LessonContainsKeywordsPredicate(List.of("Monday", "2359"));
+        assertFalse(predicate.test(personWithClass("Math", "30", "Monday1800-1930")));
     }
 
     @Test
     public void toStringMethod() {
-        List<String> keywords = List.of("keyword1", "keyword2");
+        List<String> keywords = List.of("Monday", "1800");
         LessonContainsKeywordsPredicate predicate = new LessonContainsKeywordsPredicate(keywords);
 
-        String expected = LessonContainsKeywordsPredicate.class.getCanonicalName() + "{keywords=" + keywords + "}";
+        String expected = LessonContainsKeywordsPredicate.class.getCanonicalName()
+                + "{dayKeyword=Optional[monday], timeKeyword=Optional[1800]}";
         assertEquals(expected, predicate.toString());
     }
 
@@ -98,5 +126,15 @@ public class LessonContainsKeywordsPredicateTest {
         Person person = new PersonBuilder().build();
         return new Person(person.getName(), person.getPhone(), person.getEmail(), person.getAddress(),
                 person.getTags(), Set.of(), Optional.empty(), Optional.of(new Lesson(lesson)));
+    }
+
+    private Person personWithClass(String subject, String cost, String timing) {
+        Person person = new PersonBuilder().build();
+        seedu.address.model.lesson.Lesson lesson = new seedu.address.model.lesson.Lesson(
+                new seedu.address.model.lesson.Subject(subject),
+                new seedu.address.model.lesson.Cost(cost),
+                new seedu.address.model.lesson.LessonTiming(timing));
+        return new Person(person.getName(), person.getPhone(), person.getEmail(), person.getAddress(),
+                person.getTags(), Set.<seedu.address.model.lesson.Lesson>of(lesson));
     }
 }

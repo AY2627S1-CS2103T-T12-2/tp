@@ -1,6 +1,10 @@
 package seedu.address.model;
 
+import static java.util.Objects.requireNonNull;
+
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -73,6 +77,14 @@ public interface Model {
      */
     void updateFilteredPersonList(Predicate<Person> predicate);
 
+    /**
+     * Updates the filtered person list and sorts matching persons with the given comparator.
+     * @throws NullPointerException if {@code predicate} or {@code comparator} is null.
+     */
+    default void updateFilteredPersonList(Predicate<Person> predicate, Comparator<Person> comparator) {
+        updateFilteredPersonList(predicate);
+    }
+
     /** Returns the timetable derived from all persons for the specified date. */
     List<TimetableDay> getTimetable(LocalDate today);
 
@@ -82,6 +94,33 @@ public interface Model {
                 .flatMap(person -> person.getLessons().stream())
                 .anyMatch(existing -> existing.isSameClass(candidate)
                         && !existing.getCost().equals(candidate.getCost()));
+    }
+
+    /**
+     * Returns the distinct existing classes that overlap {@code candidate}, ordered by day,
+     * start time, end time, then subject. Copies of the same group class are returned once.
+     */
+    default List<Lesson> findOverlappingClasses(Lesson candidate) {
+        requireNonNull(candidate);
+        Comparator<Lesson> classOrder = Comparator
+                .comparingInt((Lesson lesson) -> lesson.getTiming().getDay().getValue())
+                .thenComparing(lesson -> lesson.getTiming().getStartTime())
+                .thenComparing(lesson -> lesson.getTiming().getEndTime())
+                .thenComparing(lesson -> lesson.getSubject().toString(), String.CASE_INSENSITIVE_ORDER);
+
+        List<Lesson> overlappingLessons = getAddressBook().getPersonList().stream()
+                .flatMap(person -> person.getLessons().stream())
+                .filter(existing -> !existing.isSameClass(candidate))
+                .filter(existing -> existing.getTiming().overlapsWith(candidate.getTiming()))
+                .sorted(classOrder)
+                .toList();
+        List<Lesson> distinctClasses = new ArrayList<>();
+        for (Lesson lesson : overlappingLessons) {
+            if (distinctClasses.stream().noneMatch(existing -> existing.isSameClass(lesson))) {
+                distinctClasses.add(lesson);
+            }
+        }
+        return List.copyOf(distinctClasses);
     }
 
 }
