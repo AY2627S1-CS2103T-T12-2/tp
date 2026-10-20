@@ -7,15 +7,21 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 
+import java.util.Optional;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
+import seedu.address.logic.commands.ClassAddCommand;
 import seedu.address.logic.commands.ClassCommand;
 import seedu.address.logic.commands.ClassDeleteCommand;
+import seedu.address.logic.commands.ClassEditCommand;
 import seedu.address.logic.commands.ClassEnrolCommand;
+import seedu.address.logic.commands.ClassListCommand;
 import seedu.address.logic.commands.ClassPaymentCommand;
 import seedu.address.logic.commands.ClassUnenrolCommand;
+import seedu.address.model.lesson.ClassId;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
@@ -29,6 +35,20 @@ public class ClassCommandParserTest {
     private static final Lesson LESSON = new Lesson(SUBJECT, new Cost("30"), TIMING);
 
     private final ClassCommandParser parser = new ClassCommandParser();
+
+    @Test
+    public void parse_newClassCommands_success() {
+        assertParseSuccess(parser, " add sub/Math cost/30 c/Monday1800-1930",
+                new ClassAddCommand(SUBJECT, new Cost("30"), TIMING));
+        assertParseSuccess(parser, " edit id/c001 cost/35",
+                new ClassEditCommand(new ClassId("C001"), Optional.empty(),
+                        Optional.of(new Cost("35")), Optional.empty()));
+        assertParseSuccess(parser, " list", new ClassListCommand());
+        assertParseSuccess(parser, " enrol 1 id/C001",
+                new ClassEnrolCommand(Index.fromOneBased(1), new ClassId("C001")));
+        assertParseSuccess(parser, " payment 1 id/C001 status/paid",
+                new ClassPaymentCommand(Index.fromOneBased(1), new ClassId("C001"), PaymentStatus.PAID));
+    }
 
     @Test
     public void parse_enrolAllFieldsPresent_success() {

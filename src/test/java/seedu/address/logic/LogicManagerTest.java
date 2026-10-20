@@ -119,6 +119,9 @@ public class LogicManagerTest {
         assertEquals(ExitCommand.MESSAGE_EXIT_ACKNOWLEDGEMENT,
                 logic.execute(ExitCommand.COMMAND_WORD).getFeedbackToUser());
 
+        CommandResult classListResult = logic.execute("class list");
+        assertEquals(CommandResult.ViewChange.CLASS_LIST, classListResult.getViewChange());
+
         CommandResult listResult = logic.execute(ListCommand.COMMAND_WORD);
         assertEquals(CommandResult.ViewChange.PERSON_LIST, listResult.getViewChange());
         assertEquals(ClearCommand.MESSAGE_SUCCESS, logic.execute("clear").getFeedbackToUser());

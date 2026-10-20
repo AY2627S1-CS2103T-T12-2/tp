@@ -19,12 +19,14 @@ import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.lesson.ClassId;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonStart;
 import seedu.address.model.lesson.LessonTiming;
 import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.lesson.Subject;
+import seedu.address.model.lesson.TuitionClass;
 import seedu.address.model.person.Person;
 
 public class ClassCommandsIntegrationTest {
@@ -356,6 +358,50 @@ public class ClassCommandsIntegrationTest {
         assertEquals(TimetableCommand.MESSAGE_SUCCESS, result.getFeedbackToUser());
         assertEquals(CommandResult.ViewChange.TIMETABLE, result.getViewChange());
         assertEquals(expectedModel, model);
+    }
+
+    @Test
+    public void addAndList_independentClass_allocatesStableIdAndSwitchesView() throws CommandException {
+        CommandResult addResult = new ClassAddCommand(new Subject("Math"), new Cost("30"),
+                new LessonTiming("Monday1800-1930")).execute(model);
+
+        assertEquals(1, model.getTuitionClassList().size());
+        assertEquals(new ClassId("C001"), model.getTuitionClassList().get(0).getClassId());
+        assertTrue(addResult.getFeedbackToUser().contains("C001"));
+
+        CommandResult listResult = new ClassListCommand().execute(model);
+        assertEquals(CommandResult.ViewChange.CLASS_LIST, listResult.getViewChange());
+    }
+
+    @Test
+    public void enrolAndEdit_byStableId_updatesSharedDetailsAndPreservesPayment() throws CommandException {
+        ClassId classId = model.allocateClassId();
+        TuitionClass original = new TuitionClass(classId, new Subject("Math"), new Cost("30"),
+                new LessonTiming("Monday1800-1930"));
+        model.addTuitionClass(original);
+        new ClassEnrolCommand(Index.fromOneBased(1), classId).execute(model);
+        new ClassPaymentCommand(Index.fromOneBased(1), classId, PaymentStatus.PAID).execute(model);
+
+        new ClassEditCommand(classId, java.util.Optional.of(new Subject("Advanced Math")),
+                java.util.Optional.of(new Cost("35")), java.util.Optional.empty()).execute(model);
+
+        TuitionClass edited = model.getTuitionClass(classId);
+        Lesson enrollment = model.getAddressBook().getPersonList().get(0).getLessons().iterator().next();
+        assertEquals(new Subject("Advanced Math"), edited.getSubject());
+        assertEquals(new Cost("35"), enrollment.getCost());
+        assertEquals(classId, enrollment.getClassId());
+        assertEquals(PaymentStatus.PAID, enrollment.getPaymentStatus());
+    }
+
+    @Test
+    public void deleteThenAdd_classIdsAreNotReused() throws CommandException {
+        new ClassAddCommand(new Subject("Math"), new Cost("30"),
+                new LessonTiming("Monday1800-1930")).execute(model);
+        new ClassDeleteCommand(new ClassId("C001")).execute(model);
+        new ClassAddCommand(new Subject("Physics"), new Cost("35"),
+                new LessonTiming("Tuesday1800-1930")).execute(model);
+
+        assertEquals(new ClassId("C002"), model.getTuitionClassList().get(0).getClassId());
     }
 
     private void enrolStudentsInLesson(Lesson lesson, int... oneBasedIndexes) throws CommandException {

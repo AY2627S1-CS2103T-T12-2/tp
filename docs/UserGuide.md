@@ -92,20 +92,53 @@ and use only lowercase letters, numbers, and single hyphens between characters.
 
 * `sub/SUBJECT`, `cost/COST`, and `c/DAYHHmm-HHmm` must be supplied together when adding a class.
 * Times use the 24-hour range `0000`–`2359`, and the end time must be later than the start time.
+* If class details are supplied, TutEasy creates the class if necessary and enrols the new student in it.
 
 Examples:
 * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
 * `add n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
 * `add n/John Davis p/91234567 e/johndavis@gmail.com a/Clementi t/exam-prep sub/Math cost/30 c/Monday1800-1930`
 
+### Adding a class: `class add`
+
+Creates a class independently of any student. TutEasy assigns a stable class ID such as `C001`; IDs remain unchanged
+when a class is edited and are not reused after deletion.
+
+Format: `class add sub/SUBJECT cost/COST c/DAYHHmm-HHmm`
+
+Example: `class add sub/Physics cost/35 c/Wednesday1700-1830`
+
+Classes cannot share the same subject and timing, and overlapping class times are rejected.
+
+### Viewing classes: `class list`
+
+Opens a read-only graphical list showing every class's stable ID, subject, schedule, and cost.
+
+Format: `class list`
+
+This command is available from both the student list and timetable. Use `list` to return to the student list or
+`timetable` to open the timetable.
+
+### Editing a class: `class edit`
+
+Updates a class while retaining its stable ID and enrolments. Supply at least one field to change. Payment statuses are
+preserved, and the new details appear for every enrolled student.
+
+Format: `class edit id/CLASS_ID [sub/SUBJECT] [cost/COST] [c/DAYHHmm-HHmm]`
+
+Examples:
+
+* `class edit id/C001 cost/40`
+* `class edit id/C001 sub/Advanced Math c/Tuesday1800-1930`
+
 ### Enrolling a student in a class: `class enrol`
 
 Enrols an existing student in a recurring weekly class. The student is identified by the index shown in the current
 student list.
 
-Format: `class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/DAYHHmm-HHmm`
+Format: `class enrol STUDENT_INDEX id/CLASS_ID`
 
-Example: `class enrol 1 sub/Physics cost/35 c/Wednesday1700-1830`
+Example: `class enrol 1 id/C001`
 
 The same class can be assigned to multiple students, but its cost must be consistent. A student cannot be enrolled in
 the same class more than once.
@@ -121,21 +154,21 @@ Paid enrolments are excluded. The badge remains visible as `Balance: 0` when the
 
 Removes one class from one student without affecting other students enrolled in that class.
 
-Format: `class unenrol STUDENT_INDEX sub/SUBJECT c/DAYHHmm-HHmm`
+Format: `class unenrol STUDENT_INDEX id/CLASS_ID`
 
-Example: `class unenrol 1 sub/Physics c/Wednesday1700-1830`
+Example: `class unenrol 1 id/C001`
 
 ### Updating an enrolment's payment status: `class payment`
 
 Marks one student's enrolment in a recurring weekly class as paid or unpaid. The student is identified by the index
-shown in the current student list, while the subject and complete lesson timing identify the enrolment.
+shown in the current student list, while the stable class ID identifies the enrolment.
 
-Format: `class payment STUDENT_INDEX sub/SUBJECT c/DAYHHmm-HHmm status/paid|unpaid`
+Format: `class payment STUDENT_INDEX id/CLASS_ID status/paid|unpaid`
 
 Examples:
 
-* `class payment 1 sub/Physics c/Wednesday1700-1830 status/paid`
-* `class payment 1 sub/Physics c/Wednesday1700-1830 status/unpaid`
+* `class payment 1 id/C001 status/paid`
+* `class payment 1 id/C001 status/unpaid`
 
 New and previously saved enrolments default to unpaid. A subdued status label appears immediately after the
 corresponding coloured class badge, without sharing the badge's background colour. Each class badge and status label
@@ -152,9 +185,9 @@ than a history of accumulated charges.
 Deletes a class globally by removing it from every enrolled student. Students and their other information are not
 deleted. The command searches the complete address book even when the displayed student list is filtered.
 
-Format: `class delete sub/SUBJECT c/DAYHHmm-HHmm`
+Format: `class delete id/CLASS_ID`
 
-Example: `class delete sub/Physics c/Wednesday1700-1830`
+Example: `class delete id/C001`
 
 ### Viewing the weekly timetable: `timetable`
 
@@ -167,8 +200,8 @@ then subject.
 
 Format: `timetable`
 
-While the timetable is open, only `list`, `help`, and `exit` are available. Use `list` to return to the student list and
-re-enable the other commands.
+While the timetable is open, `class list`, `list`, `help`, and `exit` are available. `class list` replaces the timetable
+with the class list. Use `list` to return to the student list and re-enable modifying commands.
 
 ### Listing all persons: `list`
 
@@ -314,10 +347,13 @@ _Details coming soon ..._
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 **Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [sub/SUBJECT cost/COST c/DAYHHmm-HHmm]` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/Clementi t/friend sub/Math cost/30 c/Monday1800-1930`
-**Enrol in class** | `class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/DAYHHmm-HHmm`<br> e.g., `class enrol 1 sub/Physics cost/35 c/Wednesday1700-1830`
-**Unenrol from class** | `class unenrol STUDENT_INDEX sub/SUBJECT c/DAYHHmm-HHmm`<br> e.g., `class unenrol 1 sub/Physics c/Wednesday1700-1830`
-**Update payment status** | `class payment STUDENT_INDEX sub/SUBJECT c/DAYHHmm-HHmm status/paid|unpaid`<br> e.g., `class payment 1 sub/Physics c/Wednesday1700-1830 status/paid`
-**Delete class** | `class delete sub/SUBJECT c/DAYHHmm-HHmm`<br> e.g., `class delete sub/Physics c/Wednesday1700-1830`
+**Add class** | `class add sub/SUBJECT cost/COST c/DAYHHmm-HHmm`<br> e.g., `class add sub/Physics cost/35 c/Wednesday1700-1830`
+**List classes** | `class list`
+**Edit class** | `class edit id/CLASS_ID [sub/SUBJECT] [cost/COST] [c/DAYHHmm-HHmm]`<br> e.g., `class edit id/C001 cost/40`
+**Enrol in class** | `class enrol STUDENT_INDEX id/CLASS_ID`<br> e.g., `class enrol 1 id/C001`
+**Unenrol from class** | `class unenrol STUDENT_INDEX id/CLASS_ID`<br> e.g., `class unenrol 1 id/C001`
+**Update payment status** | `class payment STUDENT_INDEX id/CLASS_ID status/paid|unpaid`<br> e.g., `class payment 1 id/C001 status/paid`
+**Delete class** | `class delete id/CLASS_ID`<br> e.g., `class delete id/C001`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`

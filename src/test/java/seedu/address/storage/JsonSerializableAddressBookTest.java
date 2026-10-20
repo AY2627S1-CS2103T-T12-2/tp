@@ -11,11 +11,13 @@ import org.junit.jupiter.api.Test;
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.commons.util.JsonUtil;
 import seedu.address.model.AddressBook;
+import seedu.address.model.lesson.ClassId;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
 import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.lesson.Subject;
+import seedu.address.model.lesson.TuitionClass;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.PersonBuilder;
 import seedu.address.testutil.TypicalPersons;
@@ -63,6 +65,21 @@ public class JsonSerializableAddressBookTest {
         JsonSerializableAddressBook restoredData = JsonUtil.fromJsonString(json, JsonSerializableAddressBook.class);
 
         assertEquals(original, restoredData.toModelType());
+    }
+
+    @Test
+    public void jsonRoundTrip_independentClassAndNextId_success() throws Exception {
+        AddressBook original = new AddressBook();
+        ClassId firstId = original.allocateClassId();
+        TuitionClass tuitionClass = new TuitionClass(firstId, new Subject("Math"), new Cost("30"),
+                new LessonTiming("Monday1800-1930"));
+        original.addTuitionClass(tuitionClass);
+
+        String json = JsonUtil.toJsonString(new JsonSerializableAddressBook(original));
+        AddressBook restored = JsonUtil.fromJsonString(json, JsonSerializableAddressBook.class).toModelType();
+
+        assertEquals(java.util.List.of(tuitionClass), restored.getTuitionClassList());
+        assertEquals(new ClassId("C002"), restored.allocateClassId());
     }
 
     @Test

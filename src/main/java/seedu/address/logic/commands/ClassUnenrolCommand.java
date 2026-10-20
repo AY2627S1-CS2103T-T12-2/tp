@@ -1,8 +1,7 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS_ID;
 
 import java.util.HashSet;
 import java.util.List;
@@ -12,6 +11,7 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
+import seedu.address.model.lesson.ClassId;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
 import seedu.address.model.lesson.Subject;
@@ -23,21 +23,29 @@ public class ClassUnenrolCommand extends ClassCommand {
     public static final String SUBCOMMAND_WORD = "unenrol";
     public static final String MESSAGE_USAGE = COMMAND_WORD + " " + SUBCOMMAND_WORD
             + ": Unenrols the indexed student from a class.\n"
-            + "Parameters: STUDENT_INDEX " + PREFIX_SUBJECT + "SUBJECT "
-            + PREFIX_CLASS + "DAYHHmm-HHmm\n"
-            + "Example: " + COMMAND_WORD + " " + SUBCOMMAND_WORD
-            + " 1 sub/Math c/Monday1800-1930";
+            + "Parameters: STUDENT_INDEX " + PREFIX_CLASS_ID + "CLASS_ID\n"
+            + "Example: " + COMMAND_WORD + " " + SUBCOMMAND_WORD + " 1 id/C001";
     public static final String MESSAGE_SUCCESS = "Unenrolled %1$s from %2$s, %3$s.";
     public static final String MESSAGE_NOT_ENROLLED =
             "This student is not enrolled in the specified class.";
 
     private final Index personIndex;
+    private final ClassId classId;
     private final Subject subject;
     private final LessonTiming timing;
+
+    /** Creates an ID-based unenrolment command. */
+    public ClassUnenrolCommand(Index personIndex, ClassId classId) {
+        this.personIndex = requireNonNull(personIndex);
+        this.classId = requireNonNull(classId);
+        this.subject = null;
+        this.timing = null;
+    }
 
     /** Creates a command that unenrols the indexed student from the specified class. */
     public ClassUnenrolCommand(Index personIndex, Subject subject, LessonTiming timing) {
         this.personIndex = requireNonNull(personIndex);
+        this.classId = null;
         this.subject = requireNonNull(subject);
         this.timing = requireNonNull(timing);
     }
@@ -52,19 +60,23 @@ public class ClassUnenrolCommand extends ClassCommand {
 
         Person person = persons.get(personIndex.getZeroBased());
         Set<Lesson> updatedLessons = new HashSet<>(person.getLessons());
-        boolean wasRemoved = updatedLessons.removeIf(lesson -> lesson.isSameClass(subject, timing));
+        boolean wasRemoved = updatedLessons.removeIf(lesson -> classId != null
+                ? classId.equals(lesson.getClassId()) : lesson.isSameClass(subject, timing));
         if (!wasRemoved) {
             throw new CommandException(MESSAGE_NOT_ENROLLED);
         }
 
         model.setPerson(person, person.withLessons(updatedLessons));
-        return new CommandResult(String.format(MESSAGE_SUCCESS, person.getName(), subject, timing));
+        return new CommandResult(String.format(MESSAGE_SUCCESS, person.getName(),
+                classId != null ? classId : subject, classId != null ? "" : timing));
     }
 
     @Override
     public boolean equals(Object other) {
         return other == this || other instanceof ClassUnenrolCommand otherCommand
                 && personIndex.equals(otherCommand.personIndex)
-                && subject.equals(otherCommand.subject) && timing.equals(otherCommand.timing);
+                && java.util.Objects.equals(classId, otherCommand.classId)
+                && java.util.Objects.equals(subject, otherCommand.subject)
+                && java.util.Objects.equals(timing, otherCommand.timing);
     }
 }

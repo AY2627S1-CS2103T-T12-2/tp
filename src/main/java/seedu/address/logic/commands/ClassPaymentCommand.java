@@ -1,9 +1,8 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS_ID;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_STATUS;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 
 import java.util.HashSet;
 import java.util.List;
@@ -13,6 +12,7 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
+import seedu.address.model.lesson.ClassId;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
 import seedu.address.model.lesson.PaymentStatus;
@@ -25,10 +25,10 @@ public class ClassPaymentCommand extends ClassCommand {
     public static final String SUBCOMMAND_WORD = "payment";
     public static final String MESSAGE_USAGE = COMMAND_WORD + " " + SUBCOMMAND_WORD
             + ": Updates the payment status of the indexed student's class enrolment.\n"
-            + "Parameters: STUDENT_INDEX " + PREFIX_SUBJECT + "SUBJECT "
-            + PREFIX_CLASS + "DAYHHmm-HHmm " + PREFIX_STATUS + "paid|unpaid\n"
+            + "Parameters: STUDENT_INDEX " + PREFIX_CLASS_ID + "CLASS_ID "
+            + PREFIX_STATUS + "paid|unpaid\n"
             + "Example: " + COMMAND_WORD + " " + SUBCOMMAND_WORD
-            + " 1 sub/Math c/Monday1800-1930 status/paid";
+            + " 1 id/C001 status/paid";
     public static final String MESSAGE_SUCCESS =
             "Payment for %1$s in %2$s (%3$s) marked as %4$s.";
     public static final String MESSAGE_ALREADY_MARKED =
@@ -37,14 +37,25 @@ public class ClassPaymentCommand extends ClassCommand {
             "This student is not enrolled in %1$s (%2$s). No payment status was changed.";
 
     private final Index personIndex;
+    private final ClassId classId;
     private final Subject subject;
     private final LessonTiming timing;
     private final PaymentStatus paymentStatus;
+
+    /** Creates an ID-based payment command. */
+    public ClassPaymentCommand(Index personIndex, ClassId classId, PaymentStatus paymentStatus) {
+        this.personIndex = requireNonNull(personIndex);
+        this.classId = requireNonNull(classId);
+        this.subject = null;
+        this.timing = null;
+        this.paymentStatus = requireNonNull(paymentStatus);
+    }
 
     /** Creates a command that updates the selected enrolment's payment status. */
     public ClassPaymentCommand(Index personIndex, Subject subject, LessonTiming timing,
             PaymentStatus paymentStatus) {
         this.personIndex = requireNonNull(personIndex);
+        this.classId = null;
         this.subject = requireNonNull(subject);
         this.timing = requireNonNull(timing);
         this.paymentStatus = requireNonNull(paymentStatus);
@@ -60,15 +71,18 @@ public class ClassPaymentCommand extends ClassCommand {
 
         Person person = persons.get(personIndex.getZeroBased());
         Lesson matchingLesson = person.getLessons().stream()
-                .filter(lesson -> lesson.isSameClass(subject, timing))
+                .filter(lesson -> classId != null
+                        ? classId.equals(lesson.getClassId()) : lesson.isSameClass(subject, timing))
                 .findFirst()
                 .orElseThrow(() -> new CommandException(
-                        String.format(MESSAGE_NOT_ENROLLED, subject, timing)));
+                        String.format(MESSAGE_NOT_ENROLLED,
+                                classId != null ? classId : subject, classId != null ? "" : timing)));
 
         String displayStatus = paymentStatus.toString();
         if (matchingLesson.getPaymentStatus() == paymentStatus) {
             return new CommandResult(String.format(MESSAGE_ALREADY_MARKED,
-                    person.getName(), subject, timing, displayStatus));
+                    person.getName(), classId != null ? classId : subject,
+                    classId != null ? "" : timing, displayStatus));
         }
 
         Set<Lesson> updatedLessons = new HashSet<>(person.getLessons());
@@ -76,15 +90,17 @@ public class ClassPaymentCommand extends ClassCommand {
         updatedLessons.add(matchingLesson.withPaymentStatus(paymentStatus));
         model.setPerson(person, person.withLessons(updatedLessons));
         return new CommandResult(String.format(MESSAGE_SUCCESS,
-                person.getName(), subject, timing, displayStatus));
+                person.getName(), classId != null ? classId : subject,
+                classId != null ? "" : timing, displayStatus));
     }
 
     @Override
     public boolean equals(Object other) {
         return other == this || other instanceof ClassPaymentCommand otherCommand
                 && personIndex.equals(otherCommand.personIndex)
-                && subject.equals(otherCommand.subject)
-                && timing.equals(otherCommand.timing)
+                && java.util.Objects.equals(classId, otherCommand.classId)
+                && java.util.Objects.equals(subject, otherCommand.subject)
+                && java.util.Objects.equals(timing, otherCommand.timing)
                 && paymentStatus == otherCommand.paymentStatus;
     }
 }
