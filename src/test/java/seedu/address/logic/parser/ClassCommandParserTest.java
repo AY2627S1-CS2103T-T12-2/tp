@@ -236,6 +236,14 @@ public class ClassCommandParserTest {
     }
 
     @Test
+    public void parse_deleteIdMixedWithLegacyPrefix_failure() {
+        String expected = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ClassDeleteCommand.MESSAGE_USAGE);
+        assertParseFailure(parser, " delete id/C001 sub/Math", expected);
+        assertParseFailure(parser, " delete id/C001 c/Monday1800-1930", expected);
+        assertParseFailure(parser, " delete id/C001 sub/Math c/Monday1800-1930", expected);
+    }
+
+    @Test
     public void parse_deleteDuplicateTiming_failure() {
         assertParseFailure(parser,
                 " delete sub/Math c/Monday1800-1930 c/Tuesday1800-1930",

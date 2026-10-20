@@ -35,6 +35,12 @@ public class ClassPaymentCommand extends ClassCommand {
             "Payment for %1$s in %2$s (%3$s) is already marked as %4$s.";
     public static final String MESSAGE_NOT_ENROLLED =
             "This student is not enrolled in %1$s (%2$s). No payment status was changed.";
+    public static final String MESSAGE_SUCCESS_BY_ID =
+            "Payment for %1$s in %2$s marked as %3$s.";
+    public static final String MESSAGE_ALREADY_MARKED_BY_ID =
+            "Payment for %1$s in %2$s is already marked as %3$s.";
+    public static final String MESSAGE_NOT_ENROLLED_BY_ID =
+            "This student is not enrolled in %1$s. No payment status was changed.";
 
     private final Index personIndex;
     private final ClassId classId;
@@ -74,24 +80,26 @@ public class ClassPaymentCommand extends ClassCommand {
                 .filter(lesson -> classId != null
                         ? classId.equals(lesson.getClassId()) : lesson.isSameClass(subject, timing))
                 .findFirst()
-                .orElseThrow(() -> new CommandException(
-                        String.format(MESSAGE_NOT_ENROLLED,
-                                classId != null ? classId : subject, classId != null ? "" : timing)));
+                .orElseThrow(() -> new CommandException(classId != null
+                        ? String.format(MESSAGE_NOT_ENROLLED_BY_ID, classId)
+                        : String.format(MESSAGE_NOT_ENROLLED, subject, timing)));
 
         String displayStatus = paymentStatus.toString();
         if (matchingLesson.getPaymentStatus() == paymentStatus) {
-            return new CommandResult(String.format(MESSAGE_ALREADY_MARKED,
-                    person.getName(), classId != null ? classId : subject,
-                    classId != null ? "" : timing, displayStatus));
+            String message = classId != null
+                    ? String.format(MESSAGE_ALREADY_MARKED_BY_ID, person.getName(), classId, displayStatus)
+                    : String.format(MESSAGE_ALREADY_MARKED, person.getName(), subject, timing, displayStatus);
+            return new CommandResult(message);
         }
 
         Set<Lesson> updatedLessons = new HashSet<>(person.getLessons());
         updatedLessons.remove(matchingLesson);
         updatedLessons.add(matchingLesson.withPaymentStatus(paymentStatus));
         model.setPerson(person, person.withLessons(updatedLessons));
-        return new CommandResult(String.format(MESSAGE_SUCCESS,
-                person.getName(), classId != null ? classId : subject,
-                classId != null ? "" : timing, displayStatus));
+        String message = classId != null
+                ? String.format(MESSAGE_SUCCESS_BY_ID, person.getName(), classId, displayStatus)
+                : String.format(MESSAGE_SUCCESS, person.getName(), subject, timing, displayStatus);
+        return new CommandResult(message);
     }
 
     @Override

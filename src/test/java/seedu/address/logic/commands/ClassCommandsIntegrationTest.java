@@ -457,10 +457,37 @@ public class ClassCommandsIntegrationTest {
                 new LessonTiming("Monday1800-1930")));
         new ClassEnrolCommand(Index.fromOneBased(1), id).execute(model);
 
-        new ClassUnenrolCommand(Index.fromOneBased(1), id).execute(model);
+        Person person = model.getFilteredPersonList().get(0);
+        CommandResult result = new ClassUnenrolCommand(Index.fromOneBased(1), id).execute(model);
+
+        assertEquals(String.format(ClassUnenrolCommand.MESSAGE_SUCCESS_BY_ID, person.getName(), id),
+                result.getFeedbackToUser());
         assertTrue(model.getAddressBook().getPersonList().get(0).getLessons().isEmpty());
         assertCommandFailure(new ClassUnenrolCommand(Index.fromOneBased(1), id), model,
                 ClassUnenrolCommand.MESSAGE_NOT_ENROLLED);
+    }
+
+    @Test
+    public void payment_byStableId_usesIdSpecificMessages() throws CommandException {
+        ClassId id = model.allocateClassId();
+        model.addTuitionClass(new TuitionClass(id, new Subject("Math"), new Cost("30"),
+                new LessonTiming("Monday1800-1930")));
+        new ClassEnrolCommand(Index.fromOneBased(1), id).execute(model);
+        Person person = model.getFilteredPersonList().get(0);
+
+        CommandResult success = new ClassPaymentCommand(
+                Index.fromOneBased(1), id, PaymentStatus.PAID).execute(model);
+        assertEquals(String.format(ClassPaymentCommand.MESSAGE_SUCCESS_BY_ID,
+                person.getName(), id, "paid"), success.getFeedbackToUser());
+
+        CommandResult alreadyMarked = new ClassPaymentCommand(
+                Index.fromOneBased(1), id, PaymentStatus.PAID).execute(model);
+        assertEquals(String.format(ClassPaymentCommand.MESSAGE_ALREADY_MARKED_BY_ID,
+                person.getName(), id, "paid"), alreadyMarked.getFeedbackToUser());
+
+        assertCommandFailure(new ClassPaymentCommand(
+                Index.fromOneBased(2), id, PaymentStatus.PAID), model,
+                String.format(ClassPaymentCommand.MESSAGE_NOT_ENROLLED_BY_ID, id));
     }
 
     @Test

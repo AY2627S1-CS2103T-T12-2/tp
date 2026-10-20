@@ -26,6 +26,7 @@ public class ClassUnenrolCommand extends ClassCommand {
             + "Parameters: STUDENT_INDEX " + PREFIX_CLASS_ID + "CLASS_ID\n"
             + "Example: " + COMMAND_WORD + " " + SUBCOMMAND_WORD + " 1 id/C001";
     public static final String MESSAGE_SUCCESS = "Unenrolled %1$s from %2$s, %3$s.";
+    public static final String MESSAGE_SUCCESS_BY_ID = "Unenrolled %1$s from %2$s.";
     public static final String MESSAGE_NOT_ENROLLED =
             "This student is not enrolled in the specified class.";
 
@@ -67,8 +68,10 @@ public class ClassUnenrolCommand extends ClassCommand {
         }
 
         model.setPerson(person, person.withLessons(updatedLessons));
-        return new CommandResult(String.format(MESSAGE_SUCCESS, person.getName(),
-                classId != null ? classId : subject, classId != null ? "" : timing));
+        String message = classId != null
+                ? String.format(MESSAGE_SUCCESS_BY_ID, person.getName(), classId)
+                : String.format(MESSAGE_SUCCESS, person.getName(), subject, timing);
+        return new CommandResult(message);
     }
 
     @Override

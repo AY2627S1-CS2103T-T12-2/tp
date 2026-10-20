@@ -14,16 +14,18 @@ public class ClassDeleteCommandParser implements Parser<ClassDeleteCommand> {
     @Override
     public ClassDeleteCommand parse(String args) throws ParseException {
         ArgumentMultimap arguments = ArgumentTokenizer.tokenize(args, PREFIX_CLASS_ID, PREFIX_SUBJECT, PREFIX_CLASS);
-        boolean usesId = arguments.getValue(PREFIX_CLASS_ID).isPresent();
-        boolean usesLegacyDetails = arguments.getValue(PREFIX_SUBJECT).isPresent()
-                && arguments.getValue(PREFIX_CLASS).isPresent();
-        if (!arguments.getPreamble().isEmpty() || usesId == usesLegacyDetails) {
+        boolean hasId = arguments.getValue(PREFIX_CLASS_ID).isPresent();
+        boolean hasSubject = arguments.getValue(PREFIX_SUBJECT).isPresent();
+        boolean hasTiming = arguments.getValue(PREFIX_CLASS).isPresent();
+        boolean usesOnlyId = hasId && !hasSubject && !hasTiming;
+        boolean usesOnlyLegacyDetails = !hasId && hasSubject && hasTiming;
+        if (!arguments.getPreamble().isEmpty() || usesOnlyId == usesOnlyLegacyDetails) {
             throw new ParseException(String.format(
                     MESSAGE_INVALID_COMMAND_FORMAT, ClassDeleteCommand.MESSAGE_USAGE));
         }
         arguments.verifyNoDuplicatePrefixesFor(PREFIX_CLASS_ID, PREFIX_SUBJECT, PREFIX_CLASS);
 
-        if (usesId) {
+        if (usesOnlyId) {
             return new ClassDeleteCommand(ParserUtil.parseClassId(arguments.getValue(PREFIX_CLASS_ID).get()));
         }
         return new ClassDeleteCommand(
