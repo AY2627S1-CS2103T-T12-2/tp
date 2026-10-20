@@ -2,6 +2,7 @@ package seedu.address.model.person;
 
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
@@ -12,6 +13,7 @@ import java.util.Set;
 
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.lesson.Lesson;
+import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -141,6 +143,15 @@ public class Person {
     /** Returns the immutable set of lessons in which this person is enrolled. */
     public Set<Lesson> getLessons() {
         return Collections.unmodifiableSet(lessons);
+    }
+
+    /** Returns the total cost of this person's unpaid lesson enrolments. */
+    public BigDecimal getOutstandingBalance() {
+        return lessons.stream()
+                .filter(lesson -> lesson.getPaymentStatus() == PaymentStatus.UNPAID)
+                .map(lesson -> lesson.getCost().value)
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .stripTrailingZeros();
     }
 
     /** Returns a copy of this person with {@code updatedLessons} replacing the current lessons. */

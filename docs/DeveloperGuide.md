@@ -90,7 +90,8 @@ muted paid or unpaid label follows each badge without inheriting its background 
 contained in one `HBox`, while the surrounding `VBox` places every class group on its own row. A single
 `ClassColorPalette` is owned by `PersonListPanel` and shared by every card, ensuring that the same logical class uses
 the same colour across students. The palette identifies a class using its case-insensitive subject and complete
-lesson timing, matching `Lesson#isSameClass`; cost and payment status are not part of the colour identity.
+lesson timing, matching `Lesson#isSameClass`; cost and payment status are not part of the colour identity. A muted
+balance badge beside the student's name always displays `Person#getOutstandingBalance`, including when it is zero.
 
 ### Logic component
 
@@ -232,6 +233,10 @@ by logical class identity explicitly, ensuring students with different payment s
 
 `JsonAdaptedLesson` stores the status as `paymentStatus`. A missing property is interpreted as `UNPAID`, while an
 unrecognised value is rejected as invalid data.
+
+The outstanding balance is derived rather than stored. `Person#getOutstandingBalance` sums the cost of each enrolment
+whose status is `UNPAID`, excluding paid enrolments. Recomputing it from the immutable lesson values prevents a stored
+balance from becoming stale after `class payment`, enrolment, unenrolment, or class deletion operations.
 
 ### Subject search
 
@@ -771,13 +776,13 @@ the full student list should be displayed. Repeat `find sub/math` to check that 
 ### Updating payment status
 
 Use two students enrolled in `Math` at `Monday1800-1930`. Each student's coloured Math badge should initially be
-followed by a separate, muted `Unpaid` label.
+followed by a separate, muted `Unpaid` label, and each balance badge should initially include the Math cost.
 
 | Test input | Expected result |
 | --- | --- |
-| `class payment 1 sub/Math c/Monday1800-1930 status/paid` | The first student's Math badge is followed by `Paid`; the second student's remains `Unpaid`. |
+| `class payment 1 sub/Math c/Monday1800-1930 status/paid` | The first student's Math badge is followed by `Paid` and its balance decreases by the Math cost; the second student's status and balance remain unchanged. |
 | Repeat the previous command | Feedback says the payment is already paid; no other data changes. |
-| `class payment 1 sub/Math c/Monday1800-1930 status/unpaid` | Only the first student's Math status returns to `Unpaid`. |
+| `class payment 1 sub/Math c/Monday1800-1930 status/unpaid` | Only the first student's Math status returns to `Unpaid`, and its balance increases by the Math cost. |
 | `class payment 1 sub/Physics c/Monday1800-1930 status/paid` | Error says the student is not enrolled in the specified class; no data changes. |
 | `class payment 0 sub/Math c/Monday1800-1930 status/paid` | Invalid-index error; no data changes. |
 | `class payment 1 sub/Math c/Monday1800-1930 status/pending` | Invalid-status error; no data changes. |

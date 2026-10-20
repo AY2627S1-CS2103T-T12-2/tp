@@ -114,6 +114,9 @@ Enrolled classes appear as coloured badges below each student's email. Each badg
 timing, and students enrolled in the same class receive a badge with the same colour. When a student has multiple
 classes, each badge group appears on its own row.
 
+A subdued balance badge beside each student's name shows the total cost of that student's unpaid lesson enrolments.
+Paid enrolments are excluded. The badge remains visible as `Balance: 0` when the student has no unpaid enrolments.
+
 ### Unenrolling a student from a class: `class unenrol`
 
 Removes one class from one student without affecting other students enrolled in that class.
@@ -141,7 +144,8 @@ does not affect other students enrolled in the same class. If the specified stud
 data is changed.
 
 Payment status describes the current recurring enrolment as a whole; it is not a payment history for individual weekly
-sessions or billing months.
+sessions or billing months. Correspondingly, the displayed balance is the sum of the current unpaid enrolments rather
+than a history of accumulated charges.
 
 ### Deleting a class: `class delete`
 
