@@ -214,6 +214,21 @@
     -fx-background-color: #a7c7e7;
 }
 
+.class-list-heading {
+    -fx-font-size: 22px;
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-text-fill: white;
+    -fx-padding: 4 8 4 8;
+}
+
+.list-cell .class-id-badge {
+    -fx-background-color: #3e7b91;
+    -fx-background-radius: 4;
+    -fx-padding: 3 8 3 8;
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-text-fill: white;
+}
+
 .stack-pane {
      -fx-background-color: derive(#1d1d1d, 20%);
 }

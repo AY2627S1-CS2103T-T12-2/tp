@@ -9,6 +9,7 @@ import seedu.address.model.Model;
 import seedu.address.model.lesson.ClassDetails;
 import seedu.address.model.lesson.ClassMode;
 import seedu.address.model.lesson.Lesson;
+import seedu.address.model.lesson.TuitionClass;
 
 /** Optional class fields supplied when adding a contact; omitted fields inherit existing class values. */
 public record ClassDetailsUpdate(Optional<ClassMode> mode, Optional<String> meetingLink,
@@ -41,16 +42,20 @@ public record ClassDetailsUpdate(Optional<ClassMode> mode, Optional<String> meet
 
     /** Inherits an existing class's fields and rejects conflicting details on a new enrolment. */
     public Lesson forEnrolment(Model model, Lesson lesson) throws CommandException {
-        Optional<Lesson> existing = model.getAddressBook().getPersonList().stream()
-                .flatMap(person -> person.getLessons().stream()).filter(candidate -> candidate.isSameClass(lesson))
-                .findFirst();
+        Optional<TuitionClass> existing = model.getTuitionClassList().stream()
+                .filter(item -> item.getSubject().equals(lesson.getSubject())
+                        && item.getTiming().equals(lesson.getTiming())).findFirst();
         try {
-            ClassDetails base = existing.map(Lesson::getDetails).orElse(lesson.getDetails());
+            ClassDetails base = existing.map(TuitionClass::getDetails).orElse(lesson.getDetails());
             ClassDetails updated = applyTo(base);
-            if (existing.isPresent() && !updated.equals(base)) {
+            boolean hasStudents = model.getAddressBook().getPersonList().stream()
+                    .flatMap(person -> person.getLessons().stream()).anyMatch(item -> item.isSameClass(lesson));
+            boolean canFillEmptyClass = !hasStudents && base.equals(ClassDetails.EMPTY);
+            if (existing.isPresent() && !updated.equals(base) && !canFillEmptyClass) {
                 throw new CommandException(MESSAGE_CONFLICT);
             }
-            return lesson.withDetails(updated);
+            return existing.isPresent() ? lesson.withTuitionClass(existing.get().withDetails(updated))
+                    : lesson.withDetails(updated);
         } catch (IllegalArgumentException e) {
             throw new CommandException(e.getMessage());
         }

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.lesson.ClassDetails;
+import seedu.address.model.lesson.ClassId;
 import seedu.address.model.lesson.ClassMode;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
@@ -17,6 +18,7 @@ class JsonAdaptedLesson {
 
     public static final String MISSING_FIELD_MESSAGE_FORMAT = "Lesson's %s field is missing!";
 
+    private final String classId;
     private final String subject;
     private final String cost;
     private final String timing;
@@ -32,7 +34,8 @@ class JsonAdaptedLesson {
             @JsonProperty("paymentStatus") String paymentStatus,
             @JsonProperty("meetingLink") String meetingLink,
             @JsonProperty("location") String location, @JsonProperty("notes") String notes,
-            @JsonProperty("mode") String mode) {
+            @JsonProperty("mode") String mode, @JsonProperty("classId") String classId) {
+        this.classId = classId;
         this.mode = mode;
         this.meetingLink = meetingLink;
         this.location = location;
@@ -41,6 +44,17 @@ class JsonAdaptedLesson {
         this.cost = cost;
         this.timing = timing;
         this.paymentStatus = paymentStatus;
+    }
+
+    /** Retains the attribute-only storage constructor used before stable class IDs. */
+    public JsonAdaptedLesson(String subject, String cost, String timing, String paymentStatus,
+            String meetingLink, String location, String notes, String mode) {
+        this(subject, cost, timing, paymentStatus, meetingLink, location, notes, mode, null);
+    }
+
+    /** Retains the class-ID constructor for records without additional details. */
+    public JsonAdaptedLesson(String subject, String cost, String timing, String paymentStatus, String classId) {
+        this(subject, cost, timing, paymentStatus, null, null, null, null, classId);
     }
 
     /** Backwards-compatible constructor for details saved before modes were introduced. */
@@ -60,6 +74,7 @@ class JsonAdaptedLesson {
     }
 
     public JsonAdaptedLesson(Lesson source) {
+        classId = source.getClassId() == null ? null : source.getClassId().toString();
         subject = source.getSubject().value;
         cost = source.getCost().toString();
         timing = source.getTiming().toStorageString();
@@ -68,6 +83,11 @@ class JsonAdaptedLesson {
         mode = source.getDetails().mode().name();
         location = source.getDetails().location();
         notes = source.getDetails().notes();
+    }
+
+    /** Returns whether this record explicitly stores additional class fields. */
+    boolean hasExplicitDetails() {
+        return mode != null || meetingLink != null || location != null || notes != null;
     }
 
     public Lesson toModelType() throws IllegalValueException {
@@ -90,14 +110,17 @@ class JsonAdaptedLesson {
             }
             modelPaymentStatus = PaymentStatus.fromString(paymentStatus);
         }
+        if (classId != null && !ClassId.isValidClassId(classId)) {
+            throw new IllegalValueException(ClassId.MESSAGE_CONSTRAINTS);
+        }
         try {
             String link = meetingLink == null ? "" : meetingLink;
             ClassMode classMode = mode == null ? (link.isEmpty() ? ClassMode.OFFLINE : ClassMode.ONLINE)
                     : ClassMode.fromString(mode);
             ClassDetails details = new ClassDetails(classMode, link,
                     location == null ? "" : location, notes == null ? "" : notes);
-            return new Lesson(new Subject(subject), new Cost(cost), new LessonTiming(timing), modelPaymentStatus,
-                    details);
+            return new Lesson(classId == null ? null : new ClassId(classId), new Subject(subject), new Cost(cost),
+                    new LessonTiming(timing), modelPaymentStatus, details);
         } catch (IllegalArgumentException e) {
             throw new IllegalValueException(e.getMessage());
         }

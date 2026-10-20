@@ -12,9 +12,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import seedu.address.model.lesson.Enrollment;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
 import seedu.address.model.lesson.Subject;
+import seedu.address.model.lesson.TuitionClass;
 import seedu.address.model.person.Person;
 
 /** Builds a read-only timetable projection from the lessons owned by students. */
@@ -27,11 +29,24 @@ public final class TimetableBuilder {
      * Builds day groups from {@code today} through Saturday, including empty days.
      */
     public static List<TimetableDay> build(List<Person> persons, LocalDate today) {
+        return build(List.of(), persons, today);
+    }
+
+    /** Builds a timetable that also includes independently stored classes without students. */
+    public static List<TimetableDay> build(List<TuitionClass> tuitionClasses, List<Person> persons, LocalDate today) {
+        requireNonNull(tuitionClasses);
         requireNonNull(persons);
         requireNonNull(today);
 
         List<DayOfWeek> visibleDays = getVisibleDays(today.getDayOfWeek());
         Map<ClassIdentity, ClassGroup> groupsByClass = new LinkedHashMap<>();
+
+        for (TuitionClass tuitionClass : tuitionClasses) {
+            if (visibleDays.contains(tuitionClass.getTiming().getDay())) {
+                Lesson lesson = new Enrollment(tuitionClass);
+                groupsByClass.put(new ClassIdentity(lesson.getSubject(), lesson.getTiming()), new ClassGroup(lesson));
+            }
+        }
 
         for (Person person : persons) {
             requireNonNull(person);

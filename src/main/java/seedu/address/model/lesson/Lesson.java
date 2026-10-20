@@ -10,6 +10,7 @@ import seedu.address.commons.util.ToStringBuilder;
 public class Lesson {
 
     private final ClassDetails details;
+    private final ClassId classId;
     private final Subject subject;
     private final Cost cost;
     private final LessonTiming timing;
@@ -22,26 +23,44 @@ public class Lesson {
 
     /** Creates a lesson enrolment with the supplied payment status. */
     public Lesson(Subject subject, Cost cost, LessonTiming timing, PaymentStatus paymentStatus) {
-        this(subject, cost, timing, paymentStatus, ClassDetails.EMPTY);
+        this(null, subject, cost, timing, paymentStatus);
     }
 
-    /** Creates an enrolment with shared class details and individual payment status. */
+    /** Creates an enrolment linked to an independently stored class. */
+    public Lesson(ClassId classId, Subject subject, Cost cost, LessonTiming timing,
+            PaymentStatus paymentStatus) {
+        this(classId, subject, cost, timing, paymentStatus, ClassDetails.EMPTY);
+    }
+
+    /** Creates an unlinked legacy enrolment with additional class details. */
     public Lesson(Subject subject, Cost cost, LessonTiming timing, PaymentStatus paymentStatus, ClassDetails details) {
+        this(null, subject, cost, timing, paymentStatus, details);
+    }
+
+    /** Creates an enrolment retaining its class ID, shared details and individual payment status. */
+    public Lesson(ClassId classId, Subject subject, Cost cost, LessonTiming timing,
+            PaymentStatus paymentStatus, ClassDetails details) {
         requireAllNonNull(subject, cost, timing, paymentStatus, details);
         this.details = details;
+        this.classId = classId;
         this.subject = subject;
         this.cost = cost;
         this.timing = timing;
         this.paymentStatus = paymentStatus;
     }
 
+    /** Returns the stable class ID, or {@code null} for a legacy unlinked enrolment. */
+    public ClassId getClassId() {
+        return classId;
+    }
+
     public ClassDetails getDetails() {
         return details;
     }
 
-    /** Returns a copy with updated shared class details, retaining its payment status. */
+    /** Returns a copy with updated details, preserving its class ID and payment. */
     public Lesson withDetails(ClassDetails updatedDetails) {
-        return new Lesson(subject, cost, timing, paymentStatus, updatedDetails);
+        return new Lesson(classId, subject, cost, timing, paymentStatus, updatedDetails);
     }
 
     public Subject getSubject() {
@@ -63,7 +82,13 @@ public class Lesson {
     /** Returns a copy of this lesson enrolment with {@code updatedPaymentStatus}. */
     public Lesson withPaymentStatus(PaymentStatus updatedPaymentStatus) {
         requireAllNonNull(updatedPaymentStatus);
-        return new Lesson(subject, cost, timing, updatedPaymentStatus, details);
+        return new Lesson(classId, subject, cost, timing, updatedPaymentStatus, details);
+    }
+
+    /** Returns a copy linked to the supplied central class while retaining payment status. */
+    public Lesson withTuitionClass(TuitionClass tuitionClass) {
+        requireAllNonNull(tuitionClass);
+        return new Enrollment(tuitionClass, paymentStatus);
     }
 
     /**
@@ -71,8 +96,16 @@ public class Lesson {
      * in the same class must share one cost.
      */
     public boolean isSameClass(Lesson otherLesson) {
-        return otherLesson == this || otherLesson != null
-                && subject.value.equalsIgnoreCase(otherLesson.subject.value)
+        if (otherLesson == this) {
+            return true;
+        }
+        if (otherLesson == null) {
+            return false;
+        }
+        if (classId != null && otherLesson.classId != null) {
+            return classId.equals(otherLesson.classId);
+        }
+        return subject.value.equalsIgnoreCase(otherLesson.subject.value)
                 && timing.equals(otherLesson.timing);
     }
 

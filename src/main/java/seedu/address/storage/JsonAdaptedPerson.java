@@ -112,6 +112,16 @@ class JsonAdaptedPerson {
         lesson = source.getLesson().map(Object::toString).orElse(null);
     }
 
+    /** Distinguishes old enrolments without class fields from explicitly supplied empty fields. */
+    boolean hasExplicitClassDetails(Lesson lesson) throws IllegalValueException {
+        for (JsonAdaptedLesson adapted : lessons) {
+            if (adapted.hasExplicitDetails() && adapted.toModelType().equals(lesson)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Converts this Jackson-friendly adapted person object into the model's {@code Person} object.
      *
