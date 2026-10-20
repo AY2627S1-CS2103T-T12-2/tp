@@ -5,8 +5,10 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -121,12 +123,21 @@ public class TagCommand extends Command {
             }
         }
 
+        Map<Person, Person> replacements = new LinkedHashMap<>();
         for (Person person : personsToTag) {
             Set<Tag> updatedTags = new LinkedHashSet<>(person.getTags());
             updatedTags.add(tagToAdd);
-            model.setPerson(person, person.withTags(updatedTags));
+            replacements.put(person, person.withTags(updatedTags));
+        }
+        if (!replacements.isEmpty()) {
+            model.setPersons(replacements);
         }
 
+        return createBatchResult(tagToAdd, personsToTag, alreadyTaggedPersons, personsAtTagLimit);
+    }
+
+    private static CommandResult createBatchResult(Tag tagToAdd, List<Person> personsToTag,
+            List<Person> alreadyTaggedPersons, List<Person> personsAtTagLimit) {
         if (personsToTag.isEmpty()) {
             return new CommandResult(String.format(MESSAGE_BATCH_NO_CHANGE, tagToAdd.tagName,
                     formatPersons(alreadyTaggedPersons), formatPersons(personsAtTagLimit)));

@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 
 import javafx.collections.ObservableList;
@@ -67,6 +68,12 @@ public interface Model {
      * The person identity of {@code editedPerson} must not be the same as another existing person in the address book.
      */
     void setPerson(Person target, Person editedPerson);
+
+    /**
+     * Atomically replaces every target person with its corresponding edited person.
+     * Every target must exist, and the resulting persons must have unique identities.
+     */
+    void setPersons(Map<Person, Person> replacements);
 
     /** Returns an unmodifiable view of the filtered person list */
     ObservableList<Person> getFilteredPersonList();

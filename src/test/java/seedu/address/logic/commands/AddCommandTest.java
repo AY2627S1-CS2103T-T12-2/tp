@@ -10,6 +10,7 @@ import static seedu.address.testutil.TypicalPersons.ALICE;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 
 import org.junit.jupiter.api.Test;
@@ -131,6 +132,11 @@ public class AddCommandTest {
 
         @Override
         public void setPerson(Person target, Person editedPerson) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void setPersons(Map<Person, Person> replacements) {
             throw new AssertionError("This method should not be called.");
         }
 

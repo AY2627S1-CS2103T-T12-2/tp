@@ -15,9 +15,11 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
 
+import javafx.collections.ListChangeListener;
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
 import seedu.address.model.AddressBook;
@@ -85,6 +87,28 @@ public class TagCommandTest {
                 TagCommand.MESSAGE_NO_STUDENTS, TagCommand.MESSAGE_NO_STUDENTS);
 
         assertCommandSuccess(tagCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_batchOutOfOrderIndexes_preservesInputOrderAndUpdatesModelOnce() {
+        Index thirdIndex = Index.fromOneBased(3);
+        Tag tagToAdd = new Tag("math-2026");
+        Person thirdStudent = model.getFilteredPersonList().get(thirdIndex.getZeroBased());
+        Person firstStudent = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        TagCommand tagCommand = new TagCommand(List.of(thirdIndex, INDEX_FIRST_PERSON), tagToAdd);
+        AtomicInteger modelUpdateCount = new AtomicInteger();
+        model.getAddressBook().getPersonList().addListener((ListChangeListener<Person>)
+                change -> modelUpdateCount.incrementAndGet());
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(thirdStudent, addTag(thirdStudent, tagToAdd));
+        expectedModel.setPerson(firstStudent, addTag(firstStudent, tagToAdd));
+        String expectedMessage = String.format(TagCommand.MESSAGE_BATCH_SUCCESS, tagToAdd.tagName,
+                thirdStudent.getName() + ", " + firstStudent.getName(),
+                TagCommand.MESSAGE_NO_STUDENTS, TagCommand.MESSAGE_NO_STUDENTS);
+
+        assertCommandSuccess(tagCommand, model, expectedMessage, expectedModel);
+        assertEquals(1, modelUpdateCount.get());
     }
 
     @Test
