@@ -471,6 +471,17 @@
     -fx-background-color: transparent;
 }
 
+.timetable-navigation-header {
+    -fx-background-color: derive(#1d1d1d, 25%);
+    -fx-padding: 8;
+}
+
+.timetable-date-range {
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-size: 15px;
+    -fx-text-fill: white;
+}
+
 .timetable-day-heading {
     -fx-font-family: "Segoe UI Semibold";
     -fx-font-size: 19px;
