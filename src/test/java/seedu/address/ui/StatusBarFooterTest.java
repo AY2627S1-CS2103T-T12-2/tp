@@ -58,6 +58,18 @@ public class StatusBarFooterTest {
         });
     }
 
+    @Test
+    public void constructor_withoutPrivacyState_hidesIndicator() throws Exception {
+        runOnFxThread(() -> {
+            StatusBarFooter footer = new StatusBarFooter(Path.of("data", "addressbook.json"));
+            Label privacyStatus = (Label) footer.getRoot().lookup("#privacyStatus");
+
+            assertNotNull(privacyStatus);
+            assertFalse(privacyStatus.isVisible());
+            assertFalse(privacyStatus.isManaged());
+        });
+    }
+
     private static void runOnFxThread(Runnable assertions) throws Exception {
         FutureTask<Void> task = new FutureTask<>(assertions, null);
         Platform.runLater(task);

@@ -88,6 +88,8 @@ public class PersonListPanelTest {
                     (PersonListPanel.PersonListViewCell) listView.getCellFactory().call(listView);
             cell.updateItem(person, false);
 
+            panel.setPrivacyModeEnabled(false);
+
             assertContactLabelShown(cell, "phone", "91234567");
             assertContactLabelShown(cell, "email", "student@example.com");
             assertContactLabelShown(cell, "address", "123 Privacy Street");

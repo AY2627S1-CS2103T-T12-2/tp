@@ -1,6 +1,8 @@
 package seedu.address.model;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 
@@ -36,6 +38,22 @@ public class UserPrefsTest {
 
         userPrefs.setPrivacyModeEnabled(false);
         assertFalse(userPrefs.isPrivacyModeEnabled());
+    }
+
+    @Test
+    public void equalsAndHashCode_privacyModeIncluded() {
+        UserPrefs first = new UserPrefs();
+        UserPrefs sameValues = new UserPrefs();
+
+        assertEquals(first, first);
+        assertEquals(first, sameValues);
+        assertEquals(first.hashCode(), sameValues.hashCode());
+
+        sameValues.setPrivacyModeEnabled(true);
+
+        assertNotEquals(first, sameValues);
+        assertNotEquals(first, null);
+        assertNotEquals(first, new Object());
     }
 
 }
