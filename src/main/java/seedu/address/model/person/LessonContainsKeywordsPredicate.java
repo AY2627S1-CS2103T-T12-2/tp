@@ -41,7 +41,8 @@ public class LessonContainsKeywordsPredicate implements ScoredPersonPredicate {
         this(dayKeyword, timeKeyword, Optional.empty());
     }
 
-    private LessonContainsKeywordsPredicate(Optional<String> dayKeyword, Optional<String> timeKeyword,
+    /** Creates a predicate from independently parsed day, time, and exact-date search values. */
+    public LessonContainsKeywordsPredicate(Optional<String> dayKeyword, Optional<String> timeKeyword,
             Optional<LocalDate> dateKeyword) {
         this.dayKeyword = dayKeyword.map(keyword -> keyword.toLowerCase(Locale.ROOT));
         this.timeKeyword = timeKeyword;

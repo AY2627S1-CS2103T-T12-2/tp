@@ -234,14 +234,16 @@ Finds students whose names, tags, or lesson timings partially match the given se
 Formats:
 * `find KEYWORD [MORE_KEYWORDS]`
 * `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]`
-* `find c/DAY [TIME_HHmm]` or `find c/TIME_HHmm`
+* `find c/DAY [TIME_HHmm]`, `find c/TIME_HHmm`, or `find c/DATE [TIME_HHmm]`
 
 * The search is case-insensitive; for example, `hans` matches `Hans`.
 * Without `t/`, the search considers only names.
 * With `t/`, the search considers only tags. Stored tags use lowercase, but tag search keywords are case-insensitive
   for input convenience, e.g. `find t/PRI` matches `priority`.
 * Name and tag searches use partial matching, e.g. `ali` matches `Alice`, and `pri` matches `priority`.
-* With `c/`, search by lesson day, time, or both. Days accept full names or prefixes, e.g. `Monday` or `Mon`. Times use HHmm style from `0000` to `2359`, e.g. `1800`; shorter fragments such as `18` are accepted for partial matching.
+* With `c/`, search by lesson day, exact date, time, or a supported combination. Days accept full names or prefixes,
+  e.g. `Monday` or `Mon`. Exact dates use `yyyy-MM-dd`. Times use HHmm style from `0000` to `2359`, e.g. `1800`;
+  shorter fragments such as `18` are accepted for partial matching.
 * Name and tag searches return students matching at least one keyword. Students with more matching keywords are shown first; ties keep the current list order.
 * After a successful `find`, the command box shows this light-grey hint: `Type 'list' to return to the home page.`
 
@@ -251,6 +253,8 @@ Examples:
 * `find c/Monday` returns students with Monday lessons
 * `find c/1800` returns students with lessons containing `1800`
 * `find c/Mon 1800` returns students with Monday lessons containing `1800`
+* `find c/2026-10-20` returns students with a one-off lesson on 20 October 2026
+* `find c/2026-10-20 1800` additionally requires the one-off lesson to contain `1800`
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
 
@@ -332,7 +336,7 @@ Action     | Format, Examples
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Tag**    | `tag INDEX TAG [MORE_TAGS]`<br> e.g., `tag 3 exam-prep needs-follow-up`
 **Untag**  | `untag INDEX TAG [MORE_TAGS]` or `untag INDEX -all`<br> e.g., `untag 2 parent-follow-up`
-**Find**   | `find KEYWORD [MORE_KEYWORDS]`, `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]`, `find c/DAY [TIME_HHmm]`, or `find c/TIME_HHmm`<br> e.g., `find Jam`, `find t/fri`, `find c/Mon 1800`
+**Find**   | `find KEYWORD [MORE_KEYWORDS]`, `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]`, `find c/DAY [TIME_HHmm]`, `find c/TIME_HHmm`, or `find c/DATE [TIME_HHmm]`<br> e.g., `find Jam`, `find t/fri`, `find c/Mon 1800`, `find c/2026-10-20`
 **List**   | `list`
 **Help**   | `help`
 **Timetable** | `timetable`
