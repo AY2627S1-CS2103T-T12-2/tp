@@ -263,9 +263,9 @@ public class ModelManager implements Model {
     }
 
     @Override
-    public List<TimetableDay> getTimetable(LocalDate today) {
-        requireNonNull(today);
-        return TimetableBuilder.build(addressBook.getTuitionClassList(), addressBook.getPersonList(), today);
+    public List<TimetableDay> getTimetable(LocalDate anchorDate) {
+        requireNonNull(anchorDate);
+        return TimetableBuilder.build(addressBook.getTuitionClassList(), addressBook.getPersonList(), anchorDate);
     }
 
     @Override
