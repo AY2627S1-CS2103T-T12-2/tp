@@ -2,6 +2,8 @@ package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS_ID;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_COST;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_STATUS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
@@ -48,6 +50,43 @@ public class ClassCommandParserTest {
                 new ClassEnrolCommand(Index.fromOneBased(1), new ClassId("C001")));
         assertParseSuccess(parser, " payment 1 id/C001 status/paid",
                 new ClassPaymentCommand(Index.fromOneBased(1), new ClassId("C001"), PaymentStatus.PAID));
+    }
+
+    @Test
+    public void parse_addMissingExtraAndDuplicateFields_failure() {
+        String expected = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ClassAddCommand.MESSAGE_USAGE);
+        assertParseFailure(parser, " add cost/30 c/Monday1800-1930", expected);
+        assertParseFailure(parser, " add sub/Math c/Monday1800-1930", expected);
+        assertParseFailure(parser, " add sub/Math cost/30", expected);
+        assertParseFailure(parser, " add unexpected sub/Math cost/30 c/Monday1800-1930", expected);
+        assertParseFailure(parser, " add sub/Math cost/30 cost/31 c/Monday1800-1930",
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_COST));
+    }
+
+    @Test
+    public void parse_editEachOptionalFieldAndAllFields_success() {
+        assertParseSuccess(parser, " edit id/C001 sub/Physics",
+                new ClassEditCommand(new ClassId("C001"), Optional.of(new Subject("Physics")),
+                        Optional.empty(), Optional.empty()));
+        assertParseSuccess(parser, " edit id/C001 c/Tuesday1800-1930",
+                new ClassEditCommand(new ClassId("C001"), Optional.empty(), Optional.empty(),
+                        Optional.of(new LessonTiming("Tuesday1800-1930"))));
+        assertParseSuccess(parser, " edit id/C001 sub/Physics cost/40 c/Tuesday1800-1930",
+                new ClassEditCommand(new ClassId("C001"), Optional.of(new Subject("Physics")),
+                        Optional.of(new Cost("40")), Optional.of(new LessonTiming("Tuesday1800-1930"))));
+    }
+
+    @Test
+    public void parse_editMissingInvalidAndDuplicateFields_failure() {
+        String expected = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ClassEditCommand.MESSAGE_USAGE);
+        assertParseFailure(parser, " edit id/C001", expected);
+        assertParseFailure(parser, " edit cost/40", expected);
+        assertParseFailure(parser, " edit unexpected id/C001 cost/40", expected);
+        assertParseFailure(parser, " edit id/C001 id/C002 cost/40",
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_CLASS_ID));
+        assertParseFailure(parser, " edit id/C001 sub/Math!", Subject.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, " edit id/C001 cost/-1", Cost.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, " edit id/C001 c/Monday2000-1900", LessonTiming.MESSAGE_CONSTRAINTS);
     }
 
     @Test

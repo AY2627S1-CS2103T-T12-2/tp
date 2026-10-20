@@ -37,13 +37,13 @@ class JsonAdaptedTuitionClass {
         if (!ClassId.isValidClassId(id)) {
             throw new IllegalValueException(ClassId.MESSAGE_CONSTRAINTS);
         }
-        if (!Subject.isValidSubject(subject)) {
+        if (subject == null || !Subject.isValidSubject(subject)) {
             throw new IllegalValueException(Subject.MESSAGE_CONSTRAINTS);
         }
-        if (!Cost.isValidCost(cost)) {
+        if (cost == null || !Cost.isValidCost(cost)) {
             throw new IllegalValueException(Cost.MESSAGE_CONSTRAINTS);
         }
-        if (!LessonTiming.isValidLessonTiming(timing)) {
+        if (timing == null || !LessonTiming.isValidLessonTiming(timing)) {
             throw new IllegalValueException(LessonTiming.MESSAGE_CONSTRAINTS);
         }
         return new TuitionClass(new ClassId(id), new Subject(subject), new Cost(cost), new LessonTiming(timing));
