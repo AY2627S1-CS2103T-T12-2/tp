@@ -1,6 +1,8 @@
 package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.CommandTestUtil.ADDRESS_DESC_AMY;
@@ -27,6 +29,7 @@ import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.PrivacyCommand;
 import seedu.address.logic.commands.TimetableCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -83,6 +86,27 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void privacyMode_getAndSet_delegatesToModel() {
+        assertFalse(logic.isPrivacyModeEnabled());
+
+        logic.setPrivacyModeEnabled(true);
+
+        assertTrue(logic.isPrivacyModeEnabled());
+        assertTrue(model.isPrivacyModeEnabled());
+    }
+
+    @Test
+    public void execute_privacyCommand_persistsAcrossRestart() throws Exception {
+        assertEquals(PrivacyCommand.MESSAGE_PRIVACY_MODE_ENABLED,
+                logic.execute("privacy on").getFeedbackToUser());
+
+        UserPrefs reloadedPrefs = storage.readUserPrefs().orElseThrow();
+        Logic restartedLogic = new LogicManager(new ModelManager(model.getAddressBook(), reloadedPrefs), storage);
+
+        assertTrue(restartedLogic.isPrivacyModeEnabled());
+    }
+
+    @Test
     public void execute_storageThrowsIoException_throwsCommandException() {
         assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, String.format(
                 LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
@@ -100,7 +124,7 @@ public class LogicManagerTest {
     }
 
     @Test
-    public void execute_timetableMode_onlyListHelpAndExitAllowed() throws Exception {
+    public void execute_timetableMode_onlyListPrivacyHelpAndExitAllowed() throws Exception {
         CommandResult timetableResult = logic.execute(TimetableCommand.COMMAND_WORD);
         assertEquals(CommandResult.ViewChange.TIMETABLE, timetableResult.getViewChange());
 
@@ -116,6 +140,8 @@ public class LogicManagerTest {
 
         assertEquals(HelpCommand.SHOWING_HELP_MESSAGE,
                 logic.execute(HelpCommand.COMMAND_WORD).getFeedbackToUser());
+        assertEquals(PrivacyCommand.MESSAGE_PRIVACY_MODE_ENABLED,
+                logic.execute("privacy on").getFeedbackToUser());
         assertEquals(ExitCommand.MESSAGE_EXIT_ACKNOWLEDGEMENT,
                 logic.execute(ExitCommand.COMMAND_WORD).getFeedbackToUser());
 

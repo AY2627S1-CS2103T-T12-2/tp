@@ -12,6 +12,7 @@ import seedu.address.commons.core.GuiSettings;
 public class UserPrefs implements ReadOnlyUserPrefs {
 
     private GuiSettings guiSettings = new GuiSettings();
+    private boolean privacyModeEnabled;
 
     /**
      * Creates a {@code UserPrefs} with default values.
@@ -24,6 +25,7 @@ public class UserPrefs implements ReadOnlyUserPrefs {
     public UserPrefs(ReadOnlyUserPrefs userPrefs) {
         requireNonNull(userPrefs);
         setGuiSettings(userPrefs.getGuiSettings());
+        setPrivacyModeEnabled(userPrefs.isPrivacyModeEnabled());
     }
 
     public GuiSettings getGuiSettings() {
@@ -33,6 +35,15 @@ public class UserPrefs implements ReadOnlyUserPrefs {
     public void setGuiSettings(GuiSettings guiSettings) {
         requireNonNull(guiSettings);
         this.guiSettings = guiSettings;
+    }
+
+    @Override
+    public boolean isPrivacyModeEnabled() {
+        return privacyModeEnabled;
+    }
+
+    public void setPrivacyModeEnabled(boolean privacyModeEnabled) {
+        this.privacyModeEnabled = privacyModeEnabled;
     }
 
     @Override
@@ -46,17 +57,18 @@ public class UserPrefs implements ReadOnlyUserPrefs {
             return false;
         }
 
-        return guiSettings.equals(otherUserPrefs.guiSettings);
+        return guiSettings.equals(otherUserPrefs.guiSettings)
+                && privacyModeEnabled == otherUserPrefs.privacyModeEnabled;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(guiSettings);
+        return Objects.hash(guiSettings, privacyModeEnabled);
     }
 
     @Override
     public String toString() {
-        return "Gui Settings : " + guiSettings;
+        return "Gui Settings : " + guiSettings + "; Privacy Mode Enabled : " + privacyModeEnabled;
     }
 
 }

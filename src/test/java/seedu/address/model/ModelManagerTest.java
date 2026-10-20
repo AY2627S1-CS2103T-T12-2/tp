@@ -32,6 +32,7 @@ public class ModelManagerTest {
     public void constructor() {
         assertEquals(new UserPrefs(), modelManager.getUserPrefs());
         assertEquals(new GuiSettings(), modelManager.getGuiSettings());
+        assertFalse(modelManager.isPrivacyModeEnabled());
         assertEquals(new AddressBook(), new AddressBook(modelManager.getAddressBook()));
     }
 
@@ -39,12 +40,14 @@ public class ModelManagerTest {
     public void constructor_validUserPrefs_copiesUserPrefs() {
         UserPrefs userPrefs = new UserPrefs();
         userPrefs.setGuiSettings(new GuiSettings(1, 2, 3, 4));
+        userPrefs.setPrivacyModeEnabled(true);
         modelManager = new ModelManager(new AddressBook(), userPrefs);
         assertEquals(userPrefs, modelManager.getUserPrefs());
 
         // Modifying userPrefs should not modify modelManager's userPrefs
         UserPrefs oldUserPrefs = new UserPrefs(userPrefs);
         userPrefs.setGuiSettings(new GuiSettings(5, 6, 7, 8));
+        userPrefs.setPrivacyModeEnabled(false);
         assertEquals(oldUserPrefs, modelManager.getUserPrefs());
     }
 
@@ -58,6 +61,15 @@ public class ModelManagerTest {
         GuiSettings guiSettings = new GuiSettings(1, 2, 3, 4);
         modelManager.setGuiSettings(guiSettings);
         assertEquals(guiSettings, modelManager.getGuiSettings());
+    }
+
+    @Test
+    public void setPrivacyModeEnabled_validValue_setsPrivacyMode() {
+        modelManager.setPrivacyModeEnabled(true);
+        assertTrue(modelManager.isPrivacyModeEnabled());
+
+        modelManager.setPrivacyModeEnabled(false);
+        assertFalse(modelManager.isPrivacyModeEnabled());
     }
 
     @Test

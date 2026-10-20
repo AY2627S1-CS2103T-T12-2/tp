@@ -38,4 +38,10 @@ public interface Logic {
      * Set the user prefs' GUI settings.
      */
     void setGuiSettings(GuiSettings guiSettings);
+
+    /** Returns whether privacy mode is enabled. */
+    boolean isPrivacyModeEnabled();
+
+    /** Enables or disables privacy mode. */
+    void setPrivacyModeEnabled(boolean privacyModeEnabled);
 }

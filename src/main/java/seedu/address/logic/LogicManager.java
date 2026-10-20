@@ -17,6 +17,7 @@ import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.PrivacyCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -35,7 +36,7 @@ public class LogicManager implements Logic {
             "Could not save data to file %s due to insufficient permissions to write to the file or the folder.";
 
     public static final String MESSAGE_TIMETABLE_READ_ONLY = "Timetable is read-only. Use \"list\" to return to "
-            + "the student view. Only list, help, and exit are available.";
+            + "the student view. Only list, privacy, help, and exit are available.";
 
     private final Logger logger = LogsCenter.getLogger(LogicManager.class);
 
@@ -75,6 +76,7 @@ public class LogicManager implements Logic {
 
         try {
             storage.saveAddressBook(model.getAddressBook());
+            storage.saveUserPrefs(model.getUserPrefs());
         } catch (AccessDeniedException e) {
             throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, e.getMessage()), e);
         } catch (IOException ioe) {
@@ -108,7 +110,18 @@ public class LogicManager implements Logic {
         model.setGuiSettings(guiSettings);
     }
 
+    @Override
+    public boolean isPrivacyModeEnabled() {
+        return model.isPrivacyModeEnabled();
+    }
+
+    @Override
+    public void setPrivacyModeEnabled(boolean privacyModeEnabled) {
+        model.setPrivacyModeEnabled(privacyModeEnabled);
+    }
+
     private boolean isAllowedInTimetable(Command command) {
-        return command instanceof ListCommand || command instanceof HelpCommand || command instanceof ExitCommand;
+        return command instanceof ListCommand || command instanceof HelpCommand || command instanceof PrivacyCommand
+                || command instanceof ExitCommand;
     }
 }
