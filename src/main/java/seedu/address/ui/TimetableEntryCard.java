@@ -30,7 +30,7 @@ public class TimetableEntryCard extends UiPart<Region> {
         subject.setText(entry.getLesson().getSubject().toString());
         students.setText(formatStudents(entry));
         details.setText(entry.getLesson().getDetails().toString());
-        details.setVisible(!entry.getLesson().getDetails().isEmpty());
+        details.setVisible(true);
         details.setManaged(details.isVisible());
     }
 

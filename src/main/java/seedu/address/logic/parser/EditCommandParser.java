@@ -3,12 +3,18 @@ package seedu.address.logic.parser;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_GUARDIAN_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_GUARDIAN_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_GUARDIAN_PHONE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_LINK;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_LOCATION;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_MODE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTES;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
 import java.util.Collection;
@@ -17,6 +23,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import seedu.address.commons.core.index.Index;
+import seedu.address.logic.commands.ClassDetailsUpdate;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -37,7 +44,8 @@ public class EditCommandParser implements Parser<EditCommand> {
         requireNonNull(args);
         ArgumentMultimap argMultimap =
                 ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS, PREFIX_TAG,
-                        PREFIX_GUARDIAN_NAME, PREFIX_GUARDIAN_PHONE, PREFIX_GUARDIAN_EMAIL);
+                        PREFIX_GUARDIAN_NAME, PREFIX_GUARDIAN_PHONE, PREFIX_GUARDIAN_EMAIL,
+                PREFIX_SUBJECT, PREFIX_CLASS, PREFIX_MODE, PREFIX_LINK, PREFIX_LOCATION, PREFIX_NOTES);
 
         Index index;
 
@@ -48,7 +56,8 @@ public class EditCommandParser implements Parser<EditCommand> {
         }
 
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS,
-                PREFIX_GUARDIAN_NAME, PREFIX_GUARDIAN_PHONE, PREFIX_GUARDIAN_EMAIL);
+                PREFIX_GUARDIAN_NAME, PREFIX_GUARDIAN_PHONE, PREFIX_GUARDIAN_EMAIL,
+                PREFIX_SUBJECT, PREFIX_CLASS, PREFIX_MODE, PREFIX_LINK, PREFIX_LOCATION, PREFIX_NOTES);
 
         EditPersonDescriptor editPersonDescriptor = new EditPersonDescriptor();
 
@@ -78,6 +87,21 @@ public class EditCommandParser implements Parser<EditCommand> {
         }
         if (argMultimap.getValue(PREFIX_GUARDIAN_EMAIL).isPresent()) {
             editPersonDescriptor.setGuardianEmail(guardian.email());
+        }
+
+        ClassDetailsUpdate details = ParserUtil.parseClassDetailsUpdate(argMultimap);
+        boolean hasSubject = argMultimap.getValue(PREFIX_SUBJECT).isPresent();
+        boolean hasTiming = argMultimap.getValue(PREFIX_CLASS).isPresent();
+        if (hasSubject != hasTiming || (hasSubject && details.isEmpty())
+                || (!hasSubject && !details.isEmpty())) {
+            throw new ParseException(EditCommand.MESSAGE_CLASS_IDENTITY_REQUIRED);
+        }
+        if (!details.isEmpty()) {
+            editPersonDescriptor.setClassSubject(
+                    ParserUtil.parseLessonSubject(argMultimap.getValue(PREFIX_SUBJECT).get()));
+            editPersonDescriptor.setClassTiming(
+                    ParserUtil.parseLessonTiming(argMultimap.getValue(PREFIX_CLASS).get()));
+            editPersonDescriptor.setClassDetailsUpdate(details);
         }
 
         if (!editPersonDescriptor.isAnyFieldEdited()) {

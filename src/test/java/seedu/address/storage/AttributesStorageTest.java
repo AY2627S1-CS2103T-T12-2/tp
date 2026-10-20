@@ -33,7 +33,7 @@ public class AttributesStorageTest {
         assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
         ModelManager restored = new ModelManager(storage.readAddressBook().orElseThrow(), model.getUserPrefs());
         new AddressBookParser().parseCommand("edit 1 gp/").execute(restored);
-        new AddressBookParser().parseCommand("class details sub/Math c/Monday1800-1930 link/").execute(restored);
+        new AddressBookParser().parseCommand("edit 1 sub/Math c/Monday1800-1930 link/").execute(restored);
         storage.saveAddressBook(restored.getAddressBook());
         assertEquals(restored.getAddressBook(), storage.readAddressBook().orElseThrow());
     }
@@ -58,7 +58,8 @@ public class AttributesStorageTest {
         for (String invalid : List.of(valid.replace("98765432", "abc"),
                 valid.replace("mary@example.com", "invalid"), valid.replace("Mary Tan", "@Mary"),
                 valid.replace("https://example.com/math", "javascript:alert(1)"),
-                valid.replace("Room 2", "x".repeat(501)))) {
+                valid.replace("Room 2", "x".repeat(501)),
+                valid.replace("ONLINE", "HYBRID"), valid.replace("ONLINE", "OFFLINE"))) {
             var data = JsonUtil.fromJsonString(invalid, JsonSerializableAddressBook.class);
             assertThrows(IllegalValueException.class, data::toModelType);
             Path file = temporaryFolder.resolve("invalid.json");
@@ -86,7 +87,7 @@ public class AttributesStorageTest {
                 "add n/Bob p/81234567 e/bob@example.com a/Two",
                 "class enrol 1 sub/Math cost/30 c/Monday1800-1930",
                 "class enrol 2 sub/Math cost/30 c/Monday1800-1930",
-                "class details sub/Math c/Monday1800-1930 link/https://example.com/math"
+                "edit 1 sub/Math c/Monday1800-1930 mode/online link/https://example.com/math"
                         + " location/Room 2 notes/Bring notes",
                 "class payment 1 sub/Math c/Monday1800-1930 status/paid")) {
             parser.parseCommand(command).execute(model);

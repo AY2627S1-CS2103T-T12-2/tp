@@ -8,7 +8,9 @@ import java.util.Set;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.StringUtil;
+import seedu.address.logic.commands.ClassDetailsUpdate;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.lesson.ClassMode;
 import seedu.address.model.lesson.LessonStart;
 import seedu.address.model.lesson.LessonTiming;
 import seedu.address.model.lesson.PaymentStatus;
@@ -202,6 +204,17 @@ public class ParserUtil {
             throw new ParseException(LessonTiming.MESSAGE_CONSTRAINTS);
         }
         return new LessonTiming(trimmedTiming);
+    }
+
+    /** Parses optional inline class fields, distinguishing omission from an empty value. */
+    public static ClassDetailsUpdate parseClassDetailsUpdate(ArgumentMultimap arguments) throws ParseException {
+        try {
+            return new ClassDetailsUpdate(arguments.getValue(CliSyntax.PREFIX_MODE).map(ClassMode::fromString),
+                    arguments.getValue(CliSyntax.PREFIX_LINK), arguments.getValue(CliSyntax.PREFIX_LOCATION),
+                    arguments.getValue(CliSyntax.PREFIX_NOTES));
+        } catch (IllegalArgumentException e) {
+            throw new ParseException(e.getMessage(), e);
+        }
     }
 
     /** Parses optional guardian details, allowing empty fields to clear them. */

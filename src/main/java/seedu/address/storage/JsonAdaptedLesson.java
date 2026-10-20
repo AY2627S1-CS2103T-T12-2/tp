@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.lesson.ClassDetails;
+import seedu.address.model.lesson.ClassMode;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
@@ -21,6 +22,7 @@ class JsonAdaptedLesson {
     private final String timing;
     private final String paymentStatus;
     private final String meetingLink;
+    private final String mode;
     private final String location;
     private final String notes;
 
@@ -29,7 +31,9 @@ class JsonAdaptedLesson {
             @JsonProperty("cost") String cost, @JsonProperty("timing") String timing,
             @JsonProperty("paymentStatus") String paymentStatus,
             @JsonProperty("meetingLink") String meetingLink,
-            @JsonProperty("location") String location, @JsonProperty("notes") String notes) {
+            @JsonProperty("location") String location, @JsonProperty("notes") String notes,
+            @JsonProperty("mode") String mode) {
+        this.mode = mode;
         this.meetingLink = meetingLink;
         this.location = location;
         this.notes = notes;
@@ -37,6 +41,12 @@ class JsonAdaptedLesson {
         this.cost = cost;
         this.timing = timing;
         this.paymentStatus = paymentStatus;
+    }
+
+    /** Backwards-compatible constructor for details saved before modes were introduced. */
+    public JsonAdaptedLesson(String subject, String cost, String timing, String paymentStatus,
+            String meetingLink, String location, String notes) {
+        this(subject, cost, timing, paymentStatus, meetingLink, location, notes, null);
     }
 
     /** Backwards-compatible constructor for enrolments without shared details. */
@@ -55,6 +65,7 @@ class JsonAdaptedLesson {
         timing = source.getTiming().toStorageString();
         paymentStatus = source.getPaymentStatus().name();
         meetingLink = source.getDetails().meetingLink();
+        mode = source.getDetails().mode().name();
         location = source.getDetails().location();
         notes = source.getDetails().notes();
     }
@@ -80,7 +91,10 @@ class JsonAdaptedLesson {
             modelPaymentStatus = PaymentStatus.fromString(paymentStatus);
         }
         try {
-            ClassDetails details = new ClassDetails(meetingLink == null ? "" : meetingLink,
+            String link = meetingLink == null ? "" : meetingLink;
+            ClassMode classMode = mode == null ? (link.isEmpty() ? ClassMode.OFFLINE : ClassMode.ONLINE)
+                    : ClassMode.fromString(mode);
+            ClassDetails details = new ClassDetails(classMode, link,
                     location == null ? "" : location, notes == null ? "" : notes);
             return new Lesson(new Subject(subject), new Cost(cost), new LessonTiming(timing), modelPaymentStatus,
                     details);

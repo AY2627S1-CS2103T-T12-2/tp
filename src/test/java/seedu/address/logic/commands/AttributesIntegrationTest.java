@@ -18,6 +18,7 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ModelManager;
 import seedu.address.model.lesson.ClassDetails;
+import seedu.address.model.lesson.ClassMode;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.person.GuardianContact;
@@ -73,7 +74,7 @@ public class AttributesIntegrationTest {
         Lesson physics = student(0).getLessons().stream()
                 .filter(lesson -> lesson.getSubject().value.equals("Physics")).findFirst().orElseThrow();
         model.updateFilteredPersonList(person -> person.getName().fullName.equals("Alice"));
-        execute("class details sub/math c/Monday1800-1930 link/" + LINK + " location/Room 2 notes/Bring notes");
+        execute("edit 1 sub/math c/Monday1800-1930 mode/online link/" + LINK + " location/Room 2 notes/Bring notes");
         ClassDetails expected = new ClassDetails(LINK, "Room 2", "Bring notes");
         assertEquals(expected, math(0).getDetails());
         assertEquals(expected, math(1).getDetails());
@@ -91,19 +92,19 @@ public class AttributesIntegrationTest {
 
     @Test
     public void details_partialEditAndClear_preserveOmittedFields() throws Exception {
-        execute("class details" + MATH + " link/" + LINK + " location/Room 2 notes/Bring notes");
-        execute("class details" + MATH + " notes/Bring calculator");
+        execute("edit 1" + MATH + " mode/online link/" + LINK + " location/Room 2 notes/Bring notes");
+        execute("edit 1" + MATH + " notes/Bring calculator");
         assertEquals(new ClassDetails(LINK, "Room 2", "Bring calculator"), math(0).getDetails());
-        execute("class details" + MATH + " link/");
-        assertEquals(new ClassDetails("", "Room 2", "Bring calculator"), math(1).getDetails());
-        execute("class details" + MATH + " location/ notes/");
-        assertEquals(ClassDetails.EMPTY, math(0).getDetails());
-        assertEquals(ClassDetails.EMPTY, math(1).getDetails());
+        execute("edit 1" + MATH + " link/");
+        assertEquals(new ClassDetails(ClassMode.ONLINE, "", "Room 2", "Bring calculator"), math(1).getDetails());
+        execute("edit 1" + MATH + " location/ notes/");
+        assertEquals(new ClassDetails(ClassMode.ONLINE, "", "", ""), math(0).getDetails());
+        assertEquals(new ClassDetails(ClassMode.ONLINE, "", "", ""), math(1).getDetails());
     }
 
     @Test
     public void enrolAndAdd_existingClass_inheritSharedDetails() throws Exception {
-        execute("class details" + MATH + " link/" + LINK);
+        execute("edit 1" + MATH + " mode/online link/" + LINK);
         execute("class enrol 3 cost/30" + MATH);
         execute("add n/Dan p/61234567 e/dan@example.com a/Four sub/Math cost/30 c/Monday1800-1930 gp/99999999");
         for (int index = 0; index < 4; index++) {
@@ -115,7 +116,7 @@ public class AttributesIntegrationTest {
 
     @Test
     public void otherCommands_preserveAttributes() throws Exception {
-        execute("class details" + MATH + " link/" + LINK);
+        execute("edit 1" + MATH + " mode/online link/" + LINK);
         GuardianContact guardian = student(0).getGuardianContact();
         execute("class payment 1" + MATH + " status/paid");
         execute("edit 1 n/Alice Tan p/91111111");
@@ -135,17 +136,22 @@ public class AttributesIntegrationTest {
     public void invalidInputs_rejectedWithoutChangingData() {
         AddressBook before = new AddressBook(model.getAddressBook());
         List<String> invalid = List.of(
-                "class details" + MATH,
-                "class details 1" + MATH + " link/" + LINK,
-                "class details sub/Math link/" + LINK,
-                "class details c/Monday1800-1930 link/" + LINK,
-                "class details sub/ c/Monday1800-1930 link/" + LINK,
-                "class details sub/Math c/Monday2400-2500 link/" + LINK,
-                "class details" + MATH + " link/not-a-url",
-                "class details" + MATH + " link/javascript:alert(1)",
-                "class details" + MATH + " link/https://",
-                "class details" + MATH + " link/https://example.com link/https://other.example.com",
-                "class details" + MATH + " notes/" + "x".repeat(501),
+                "edit 1" + MATH,
+                "edit 1 1" + MATH + " link/" + LINK,
+                "edit 1 sub/Math link/" + LINK,
+                "edit 1 c/Monday1800-1930 link/" + LINK,
+                "edit 1 sub/ c/Monday1800-1930 link/" + LINK,
+                "edit 1 sub/Math c/Monday2400-2500 link/" + LINK,
+                "edit 1" + MATH + " link/not-a-url",
+                "edit 1" + MATH + " link/javascript:alert(1)",
+                "edit 1" + MATH + " link/https://",
+                "edit 1" + MATH + " link/https://example.com link/https://other.example.com",
+                "edit 1" + MATH + " notes/" + "x".repeat(501),
+                "edit 1 mode/online", "edit 1" + MATH + " mode/hybrid",
+                "edit 1" + MATH + " mode/", "edit 1" + MATH + " mode/online mode/offline",
+                "edit 1" + MATH + " mode/offline link/" + LINK,
+                "add n/Dan p/61234567 e/dan@example.com a/Four mode/online",
+                "class details" + MATH + " link/" + LINK,
                 "edit 1 gp/abc", "edit 1 ge/invalid", "edit 1 gn/@Mary", "edit 1 gp/123 gp/456",
                 "add n/Dan p/61234567 e/dan@example.com a/Four gp/abc",
                 "add n/Dan p/61234567 e/dan@example.com a/Four gn/Mary gn/Ben");
@@ -159,7 +165,7 @@ public class AttributesIntegrationTest {
     public void missingClassOrInvalidIndex_rejectedWithoutChangingData() {
         AddressBook before = new AddressBook(model.getAddressBook());
         assertThrows(CommandException.class, () -> execute(
-                "class details sub/English c/Friday1800-1930 notes/Test"));
+                "edit 1 sub/English c/Friday1800-1930 notes/Test"));
         assertThrows(CommandException.class, () -> execute("edit 99 gn/Mary"));
         assertEquals(before, model.getAddressBook());
     }
@@ -170,10 +176,50 @@ public class AttributesIntegrationTest {
         assertNotEquals(parser.parseCommand("edit 1 gn/Mary"), parser.parseCommand("edit 1 gn/Ben"));
         assertNotEquals(parser.parseCommand("edit 1 gp/123"), parser.parseCommand("edit 1 gp/456"));
         assertNotEquals(parser.parseCommand("edit 1 ge/a@b.com"), parser.parseCommand("edit 1 ge/c@b.com"));
-        assertEquals(parser.parseCommand("class details" + MATH + " notes/Test"),
-                parser.parseCommand("class details" + MATH + " notes/Test"));
-        assertNotEquals(parser.parseCommand("class details" + MATH + " notes/Test"),
-                parser.parseCommand("class details" + MATH + " notes/"));
+        assertEquals(parser.parseCommand("edit 1" + MATH + " mode/online"),
+                parser.parseCommand("edit 1" + MATH + " mode/online"));
+        assertNotEquals(parser.parseCommand("edit 1" + MATH + " mode/online"),
+                parser.parseCommand("edit 1" + MATH + " mode/offline"));
+    }
+
+    @Test
+    public void mode_onlineAndOffline_changesInlineAndClearsLink() throws Exception {
+        execute("edit 1" + MATH + " mode/OnLiNe link/" + LINK);
+        assertEquals(ClassMode.ONLINE, math(0).getDetails().mode());
+        execute("edit 1" + MATH + " link/https://example.com/replacement");
+        assertEquals("https://example.com/replacement", math(1).getDetails().meetingLink());
+        execute("edit 1" + MATH + " mode/offline");
+        assertEquals(ClassDetails.EMPTY, math(0).getDetails());
+        assertEquals(ClassDetails.EMPTY, math(1).getDetails());
+        execute("edit 1" + MATH + " mode/online");
+        assertEquals(ClassMode.ONLINE, math(0).getDetails().mode());
+        assertEquals("", math(0).getDetails().meetingLink());
+    }
+
+    @Test
+    public void mode_addAndEnrol_acceptInlineFieldsOnNewClasses() throws Exception {
+        execute("add n/Dan p/61234567 e/dan@example.com a/Four sub/English cost/20 c/Thursday1800-1930"
+                + " mode/online link/" + LINK + " gn/Ben gp/99999999");
+        Lesson english = student(3).getLessons().iterator().next();
+        assertEquals(ClassMode.ONLINE, english.getDetails().mode());
+        assertEquals(LINK, english.getDetails().meetingLink());
+        assertEquals("Ben", student(3).getGuardianContact().name());
+        execute("class enrol 3 sub/Art cost/10 c/Friday1800-1930 mode/offline location/Room 1");
+        Lesson art = student(2).getLessons().iterator().next();
+        assertEquals(ClassMode.OFFLINE, art.getDetails().mode());
+        assertEquals("", art.getDetails().meetingLink());
+        assertEquals("Room 1", art.getDetails().location());
+    }
+
+    @Test
+    public void mode_invalidContextAndConflictingEnrolment_doNotMutateData() throws Exception {
+        AddressBook before = new AddressBook(model.getAddressBook());
+        assertThrows(CommandException.class, () -> execute("edit 1" + MATH + " link/" + LINK));
+        assertThrows(CommandException.class, () -> execute("class enrol 3 cost/30" + MATH + " mode/online"));
+        assertThrows(CommandException.class, () -> execute(
+                "add n/Dan p/61234567 e/dan@example.com a/Four sub/Math cost/30 c/Monday1800-1930 mode/online"));
+        assertThrows(CommandException.class, () -> execute("edit 3 n/Changed" + MATH + " mode/online"));
+        assertEquals(before, model.getAddressBook());
     }
 
     private void execute(String command) throws Exception {

@@ -10,9 +10,9 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
@@ -36,7 +36,7 @@ public class AddCommand extends Command {
             + PREFIX_ADDRESS + "ADDRESS "
             + "[" + PREFIX_TAG + "TAG]... [gn/GUARDIAN_NAME] [gp/GUARDIAN_PHONE] [ge/GUARDIAN_EMAIL] "
             + "[" + PREFIX_SUBJECT + "SUBJECT " + PREFIX_COST + "COST "
-            + PREFIX_CLASS + "DAYHHmm-HHmm]\n"
+            + PREFIX_CLASS + "DAYHHmm-HHmm [mode/online|offline] [link/URL] [location/LOCATION] [notes/NOTES]]\n"
             + "Example: " + COMMAND_WORD + " "
             + PREFIX_NAME + "John Doe "
             + PREFIX_PHONE + "98765432 "
@@ -50,11 +50,18 @@ public class AddCommand extends Command {
             "This class already exists with a different cost. Students in the same class must have the same cost.";
 
     private final Person toAdd;
+    private final ClassDetailsUpdate detailsUpdate;
 
     /**
      * Creates an AddCommand to add the specified {@code Person}
      */
     public AddCommand(Person person) {
+        this(person, ClassDetailsUpdate.NONE);
+    }
+
+    /** Creates a student with optional inline class fields. */
+    public AddCommand(Person person, ClassDetailsUpdate detailsUpdate) {
+        this.detailsUpdate = requireNonNull(detailsUpdate);
         requireNonNull(person);
         toAdd = person;
     }
@@ -78,8 +85,10 @@ public class AddCommand extends Command {
             }
         }
 
-        Set<Lesson> lessons = toAdd.getLessons().stream().map(model::withExistingClassDetails)
-                .collect(Collectors.toSet());
+        Set<Lesson> lessons = new LinkedHashSet<>();
+        for (Lesson lesson : toAdd.getLessons()) {
+            lessons.add(detailsUpdate.forEnrolment(model, lesson));
+        }
         Person student = toAdd.withLessons(lessons);
         model.addPerson(student);
         return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.format(student)));
@@ -96,7 +105,7 @@ public class AddCommand extends Command {
             return false;
         }
 
-        return toAdd.equals(otherAddCommand.toAdd);
+        return toAdd.equals(otherAddCommand.toAdd) && detailsUpdate.equals(otherAddCommand.detailsUpdate);
     }
 
     @Override

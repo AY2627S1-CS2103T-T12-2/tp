@@ -88,13 +88,6 @@ public interface Model {
     /** Returns the timetable derived from all persons for the specified date. */
     List<TimetableDay> getTimetable(LocalDate today);
 
-    /** Copies shared details when enrolling another student in an existing class. */
-    default Lesson withExistingClassDetails(Lesson candidate) {
-        return getAddressBook().getPersonList().stream().flatMap(person -> person.getLessons().stream())
-                .filter(existing -> existing.isSameClass(candidate)).findFirst()
-                .map(existing -> candidate.withDetails(existing.getDetails())).orElse(candidate);
-    }
-
     /** Returns whether an existing student has the same class with a different cost. */
     default boolean hasClassCostConflict(Lesson candidate) {
         return getAddressBook().getPersonList().stream()

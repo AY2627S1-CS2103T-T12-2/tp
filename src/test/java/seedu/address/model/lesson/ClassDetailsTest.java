@@ -35,6 +35,17 @@ public class ClassDetailsTest {
     }
 
     @Test
+    public void mode_offlineRejectsLinksAndOnlineAllowsOptionalLinks() {
+        assertEquals(ClassMode.OFFLINE, ClassDetails.EMPTY.mode());
+        assertEquals(ClassMode.ONLINE, new ClassDetails(ClassMode.ONLINE, "", "", "").mode());
+        assertThrows(IllegalArgumentException.class, () -> new ClassDetails(
+                ClassMode.OFFLINE, "https://example.com", "", ""));
+        assertEquals(ClassMode.ONLINE, ClassMode.fromString("OnLiNe"));
+        assertEquals(ClassMode.OFFLINE, ClassMode.fromString("OFFLINE"));
+        assertThrows(IllegalArgumentException.class, () -> ClassMode.fromString("hybrid"));
+    }
+
+    @Test
     public void lesson_detailUpdates_preserveIdentityAndPayment() {
         Lesson original = new Lesson(new Subject("Math"), new Cost("30"), new LessonTiming("Monday1800-1930"),
                 PaymentStatus.PAID);

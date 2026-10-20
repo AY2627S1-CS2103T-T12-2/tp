@@ -19,6 +19,7 @@ public class CliSyntax {
     public static final Prefix PREFIX_GUARDIAN_NAME = new Prefix("gn/");
     public static final Prefix PREFIX_GUARDIAN_PHONE = new Prefix("gp/");
     public static final Prefix PREFIX_GUARDIAN_EMAIL = new Prefix("ge/");
+    public static final Prefix PREFIX_MODE = new Prefix("mode/");
     public static final Prefix PREFIX_LINK = new Prefix("link/");
     public static final Prefix PREFIX_LOCATION = new Prefix("location/");
     public static final Prefix PREFIX_NOTES = new Prefix("notes/");

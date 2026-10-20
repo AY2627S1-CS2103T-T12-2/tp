@@ -1,7 +1,6 @@
 package seedu.address.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -86,8 +85,9 @@ public class TimetableEntryCardTest {
             assertTrue(detailsLabel.isManaged());
             TimetableEntryCard emptyCard = new TimetableEntryCard(new TimetableEntry(lesson, List.of()));
             Label emptyLabel = (Label) emptyCard.getRoot().lookup("#details");
-            assertFalse(emptyLabel.isVisible());
-            assertFalse(emptyLabel.isManaged());
+            assertTrue(emptyLabel.isVisible());
+            assertEquals("Mode: Offline", emptyLabel.getText());
+            assertTrue(emptyLabel.isManaged());
         });
     }
 

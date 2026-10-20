@@ -101,7 +101,7 @@ public class PersonCard extends UiPart<Region> {
                 .map(enrolledClass -> createClassGroup(enrolledClass, classColorPalette))
                 .forEach(classes.getChildren()::add);
         person.getLessons().stream().sorted(LESSON_COMPARATOR)
-                .filter(enrolledClass -> !enrolledClass.getDetails().isEmpty()).forEach(enrolledClass -> {
+                .forEach(enrolledClass -> {
                     Label details = new Label(formatClassBadge(enrolledClass) + "\n" + enrolledClass.getDetails());
                     details.setWrapText(true);
                     details.getStyleClass().add("cell_small_label");

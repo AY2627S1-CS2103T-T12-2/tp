@@ -246,26 +246,34 @@ validation rules. `add` accepts `gn/`, `gp/`, and `ge/`; `edit` distinguishes om
 from present empty values (clear). Guardian details participate in `Person#equals` and `hashCode`, while
 `isSamePerson` retains the existing identity rules. All person-copy operations preserve the contact.
 
-`ClassDetails` is an immutable value containing a meeting link, location, and notes. Empty strings
-represent missing values. Links are validated as absolute HTTP(S) URIs with a host and no credentials;
-location and notes are single-line values limited to 500 characters each.
+`ClassDetails` is an immutable value containing `ClassMode` (`ONLINE` or `OFFLINE`), a meeting
+link, location, and notes. Offline classes cannot have a meeting link. Online classes may omit the link.
+Links are validated as absolute HTTP(S) URIs with a host and no credentials; location and notes are
+single-line values limited to 500 characters each.
 
-`class details` resolves an existing logical class by subject and complete timing and updates every
-matching enrolment in the address book, rather than just the filtered list. Omitted fields retain their
-values and empty fields clear them. The command uses immutable lesson and person copies and retains each
-student's individual payment status and guardian contact. `add` and `class enrol` inherit an existing
-class's details. Timetable projection copies details while grouping by logical class identity.
-`Lesson#equals` includes details so updates are observable; `isSameClass` excludes details and payment status.
+`add`, `class enrol`, and `edit` accept the inline prefixes `mode/`, `link/`, `location/`, and `notes/`.
+`ClassDetailsUpdate` represents optional fields, distinguishing omission from an explicit empty value.
+Switching to offline clears a retained link; an explicitly supplied non-empty link with offline mode fails.
+For new classes, absent fields default to offline and empty details. For existing classes, enrolment
+inherits omitted details and rejects conflicting explicit values.
+
+`edit` requires subject and complete timing whenever class fields are supplied, selecting one existing
+enrolment of the displayed student. It validates the entire update before changing data, then updates
+all classmates using immutable lesson and person copies. Guardian edits apply only to the selected
+student. Payment status, class identity, and unrelated enrolments are preserved.
+Timetable projection groups by logical class identity and displays the shared mode and details.
+`Lesson#equals` includes details so changes are observable; `isSameClass` excludes them and payment status.
 
 `JsonAdaptedPerson` stores flat `guardianName`, `guardianPhone`, and `guardianEmail` properties;
-`JsonAdaptedLesson` stores `meetingLink`, `location`, and `notes`. Missing or null new properties default
-to empty strings for compatibility. Invalid new values fail loading with `IllegalValueException`.
-`JsonSerializableAddressBook` rejects conflicting details for the same logical class across students.
-Details exist only while at least one enrolment exists, consistent with the current class model.
+`JsonAdaptedLesson` stores `mode`, `meetingLink`, `location`, and `notes`. Missing or null contact/text
+properties default to empty strings. Older lessons without a mode are inferred as offline when the
+link is empty, or online when a link was already saved. Invalid modes and offline/link combinations
+fail loading with `IllegalValueException`. `JsonSerializableAddressBook` rejects conflicting shared
+class details across students. Details exist only while at least one enrolment exists.
 
-Automated coverage includes parser-to-model integration, filtered updates, field clearing, invalid input,
-existing command regressions, real file persistence, legacy data, invalid stored values, timetable grouping,
-and JavaFX display/hiding. See [the v1.4 manual checklist](ManualTests-v1.4.md) for interactive verification.
+Automated coverage includes inline add/edit/enrol flows, mode transitions, filtered updates, field
+clearing, invalid input without partial mutation, enrolment inheritance/conflicts, legacy data, file
+persistence, timetable grouping, and JavaFX display. See [the v1.4 manual checklist](ManualTests-v1.4.md).
 
 ### Subject search
 

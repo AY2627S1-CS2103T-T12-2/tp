@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /** Shared details for a recurring class. Empty fields mean not provided. */
-public record ClassDetails(String meetingLink, String location, String notes) {
+public record ClassDetails(ClassMode mode, String meetingLink, String location, String notes) {
 
     public static final ClassDetails EMPTY = new ClassDetails("", "", "");
     public static final String MESSAGE_LINK_CONSTRAINTS =
@@ -17,10 +17,18 @@ public record ClassDetails(String meetingLink, String location, String notes) {
     public static final String MESSAGE_TEXT_CONSTRAINTS =
             "Class location and notes must be single-line text of at most 500 characters each.";
 
+    public static final String MESSAGE_OFFLINE_LINK = "Only online classes can have a meeting link.";
+
+    /** Retains compatibility with details saved before class modes were introduced. */
+    public ClassDetails(String meetingLink, String location, String notes) {
+        this(meetingLink.isEmpty() ? ClassMode.OFFLINE : ClassMode.ONLINE, meetingLink, location, notes);
+    }
+
     /** Creates validated class details. */
     public ClassDetails {
-        requireAllNonNull(meetingLink, location, notes);
+        requireAllNonNull(mode, meetingLink, location, notes);
         checkArgument(isValidMeetingLink(meetingLink), MESSAGE_LINK_CONSTRAINTS);
+        checkArgument(mode == ClassMode.ONLINE || meetingLink.isEmpty(), MESSAGE_OFFLINE_LINK);
         checkArgument(isValidText(location) && isValidText(notes), MESSAGE_TEXT_CONSTRAINTS);
     }
 
@@ -45,12 +53,12 @@ public record ClassDetails(String meetingLink, String location, String notes) {
 
     /** Returns whether this class has no extra details. */
     public boolean isEmpty() {
-        return meetingLink.isEmpty() && location.isEmpty() && notes.isEmpty();
+        return mode == ClassMode.OFFLINE && meetingLink.isEmpty() && location.isEmpty() && notes.isEmpty();
     }
 
     @Override
     public String toString() {
-        return Stream.of(meetingLink.isEmpty() ? "" : "Link: " + meetingLink,
+        return Stream.of("Mode: " + mode.toDisplayString(), meetingLink.isEmpty() ? "" : "Link: " + meetingLink,
                 location.isEmpty() ? "" : "Location: " + location,
                 notes.isEmpty() ? "" : "Notes: " + notes)
                 .filter(value -> !value.isEmpty()).collect(Collectors.joining(" | "));
