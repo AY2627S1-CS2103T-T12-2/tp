@@ -12,7 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /** A weekly lesson slot with a start and end time on the same day. */
-public class LessonTiming implements Comparable<LessonTiming> {
+public class LessonTiming implements LessonSchedule, Comparable<LessonTiming> {
 
     public static final String MESSAGE_CONSTRAINTS =
             "Lesson timing should use DAYHHmm-HHmm (for example, Monday1800-1930), with end after start.";
@@ -52,6 +52,12 @@ public class LessonTiming implements Comparable<LessonTiming> {
         }
     }
 
+    @Override
+    public ScheduleType getType() {
+        return ScheduleType.WEEKLY;
+    }
+
+    @Override
     public DayOfWeek getDay() {
         return day;
     }
@@ -62,6 +68,12 @@ public class LessonTiming implements Comparable<LessonTiming> {
 
     public LocalTime getEndTime() {
         return endTime;
+    }
+
+    @Override
+    public boolean occursOn(java.time.LocalDate date) {
+        requireNonNull(date);
+        return date.getDayOfWeek() == day;
     }
 
     public boolean startsAt(DayOfWeek expectedDay, LocalTime expectedTime) {
@@ -93,6 +105,7 @@ public class LessonTiming implements Comparable<LessonTiming> {
     }
 
     /** Returns the compact form used in JSON and commands. */
+    @Override
     public String toStorageString() {
         String displayDay = day.toString().substring(0, 1)
                 + day.toString().substring(1).toLowerCase(Locale.ROOT);
