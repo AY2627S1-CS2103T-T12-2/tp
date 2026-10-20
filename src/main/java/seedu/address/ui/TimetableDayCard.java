@@ -25,8 +25,11 @@ public class TimetableDayCard extends UiPart<Region> {
     private Label emptyMessage;
 
     /** Creates a card for the supplied timetable day. */
-    public TimetableDayCard(TimetableDay timetableDay) {
+    public TimetableDayCard(TimetableDay timetableDay, boolean isToday) {
         super(FXML);
+        if (isToday) {
+            getRoot().getStyleClass().add("timetable-today");
+        }
         dayHeading.setText(formatDate(timetableDay.getDate()));
         timetableDay.getEntries().stream()
                 .map(TimetableEntryCard::new)

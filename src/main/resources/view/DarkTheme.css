@@ -471,6 +471,12 @@
     -fx-background-color: transparent;
 }
 
+.timetable-day-card.timetable-today {
+    -fx-background-color: derive(#3e7b91, -20%);
+    -fx-border-color: #6fb3ca;
+    -fx-border-width: 1 0 1 4;
+}
+
 .timetable-navigation-header {
     -fx-background-color: derive(#1d1d1d, 25%);
     -fx-padding: 8;

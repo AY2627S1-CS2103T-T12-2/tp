@@ -21,10 +21,12 @@ import org.junit.jupiter.api.Test;
 
 import javafx.application.Platform;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.ScrollToEvent;
 import javafx.scene.layout.HBox;
 import seedu.address.model.timetable.TimetableDay;
 import seedu.address.model.timetable.WeekRange;
@@ -172,6 +174,50 @@ public class TimetablePanelTest {
             assertTrue(((Button) latestPanel.getRoot().lookup("#nextWeekButton")).isDisabled());
             assertFalse(((Button) latestPanel.getRoot().lookup("#todayButton")).isDisabled());
         });
+    }
+
+    @Test
+    public void currentAndOtherWeeks_scrollToTodayAndSunday() throws Exception {
+        AtomicReference<LocalDate> suppliedDate = new AtomicReference<>(LocalDate.of(2026, 10, 20));
+        AtomicReference<TimetablePanel> panelReference = new AtomicReference<>();
+        AtomicInteger scrollTarget = new AtomicInteger(-1);
+
+        runOnFxThread(() -> {
+            TimetablePanel panel = new TimetablePanel(suppliedDate::get, TimetablePanelTest::daysForWeek);
+            panelReference.set(panel);
+            new Scene(panel.getRoot());
+            panel.getRoot().applyCss();
+            panel.getRoot().layout();
+            @SuppressWarnings("unchecked")
+            ListView<TimetableDay> listView = (ListView<TimetableDay>) panel.getRoot()
+                    .lookup("#timetableDayListView");
+            listView.addEventHandler(ScrollToEvent.scrollToTopIndex(),
+                    event -> scrollTarget.set(event.getScrollTarget()));
+        });
+        runOnFxThread(() -> assertEquals(2, scrollTarget.get()));
+
+        runOnFxThread(() -> {
+            scrollTarget.set(-1);
+            Button previous = (Button) panelReference.get().getRoot().lookup("#previousWeekButton");
+            previous.fire();
+        });
+        runOnFxThread(() -> assertEquals(0, scrollTarget.get()));
+
+        runOnFxThread(() -> {
+            scrollTarget.set(-1);
+            suppliedDate.set(LocalDate.of(2026, 10, 22));
+            Button today = (Button) panelReference.get().getRoot().lookup("#todayButton");
+            today.fire();
+        });
+        runOnFxThread(() -> assertEquals(4, scrollTarget.get()));
+    }
+
+    @Test
+    public void isToday_matchingAndDifferentDates_returnsExpectedResult() {
+        TimetableDay tuesday = new TimetableDay(LocalDate.of(2026, 10, 20), List.of());
+
+        assertTrue(TimetablePanel.isToday(tuesday, LocalDate.of(2026, 10, 20)));
+        assertFalse(TimetablePanel.isToday(tuesday, LocalDate.of(2026, 10, 27)));
     }
 
     private static List<TimetableDay> loadWeek(LocalDate anchorDate, List<LocalDate> requestedDates) {

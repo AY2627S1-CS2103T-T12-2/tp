@@ -8,7 +8,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.IntStream;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -83,6 +85,26 @@ public class TimetablePanel extends UiPart<Region> {
         previousWeekButton.setDisable(week.previous().isEmpty());
         nextWeekButton.setDisable(week.next().isEmpty());
         todayButton.setDisable(false);
+        timetableDayListView.refresh();
+        scheduleScroll(week);
+    }
+
+    private void scheduleScroll(WeekRange week) {
+        int targetIndex = week.equals(WeekRange.containing(currentDate))
+                ? indexOfDate(currentDate)
+                : 0;
+        Platform.runLater(() -> timetableDayListView.scrollTo(Math.max(targetIndex, 0)));
+    }
+
+    private int indexOfDate(LocalDate date) {
+        return IntStream.range(0, timetableDayListView.getItems().size())
+                .filter(index -> timetableDayListView.getItems().get(index).getDate().equals(date))
+                .findFirst()
+                .orElse(-1);
+    }
+
+    static boolean isToday(TimetableDay timetableDay, LocalDate currentDate) {
+        return timetableDay.getDate().equals(currentDate);
     }
 
     static String formatDateRange(WeekRange week) {
@@ -98,7 +120,7 @@ public class TimetablePanel extends UiPart<Region> {
     }
 
     /** A cell that displays one complete timetable day. */
-    private static class TimetableDayListViewCell extends ListCell<TimetableDay> {
+    private class TimetableDayListViewCell extends ListCell<TimetableDay> {
         @Override
         protected void updateItem(TimetableDay timetableDay, boolean empty) {
             super.updateItem(timetableDay, empty);
@@ -106,7 +128,7 @@ public class TimetablePanel extends UiPart<Region> {
                 setGraphic(null);
                 setText(null);
             } else {
-                setGraphic(new TimetableDayCard(timetableDay).getRoot());
+                setGraphic(new TimetableDayCard(timetableDay, isToday(timetableDay, currentDate)).getRoot());
             }
         }
     }

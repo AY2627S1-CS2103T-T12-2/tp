@@ -60,9 +60,9 @@ public class TimetableDayCardTest {
 
         runOnFxThread(() -> {
             TimetableDayCard emptyCard = new TimetableDayCard(
-                    new TimetableDay(LocalDate.of(2026, 10, 19), List.of()));
+                    new TimetableDay(LocalDate.of(2026, 10, 19), List.of()), false);
             TimetableDayCard populatedCard = new TimetableDayCard(
-                    new TimetableDay(LocalDate.of(2026, 10, 19), List.of(entry)));
+                    new TimetableDay(LocalDate.of(2026, 10, 19), List.of(entry)), false);
 
             Label dayHeading = (Label) emptyCard.getRoot().lookup("#dayHeading");
             Label emptyMessage = (Label) emptyCard.getRoot().lookup("#emptyMessage");
@@ -76,6 +76,19 @@ public class TimetableDayCardTest {
             assertEquals(1, entriesContainer.getChildren().size());
             assertFalse(populatedMessage.isVisible());
             assertFalse(populatedMessage.isManaged());
+        });
+    }
+
+    @Test
+    public void constructor_todayAndOtherDay_appliesHighlightOnlyToToday() throws Exception {
+        TimetableDay day = new TimetableDay(LocalDate.of(2026, 10, 20), List.of());
+
+        runOnFxThread(() -> {
+            TimetableDayCard todayCard = new TimetableDayCard(day, true);
+            TimetableDayCard otherDayCard = new TimetableDayCard(day, false);
+
+            assertTrue(todayCard.getRoot().getStyleClass().contains("timetable-today"));
+            assertFalse(otherDayCard.getRoot().getStyleClass().contains("timetable-today"));
         });
     }
 
