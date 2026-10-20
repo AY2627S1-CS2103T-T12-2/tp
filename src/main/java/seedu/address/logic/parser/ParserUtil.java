@@ -2,8 +2,10 @@ package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import seedu.address.commons.core.index.Index;
@@ -27,6 +29,7 @@ import seedu.address.model.tag.Tag;
 public class ParserUtil {
 
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
+    public static final String MESSAGE_DUPLICATE_INDEXES = "Student indexes must not be repeated.";
 
     /**
      * Parses {@code oneBasedIndex} into an {@code Index} and returns it. Leading and trailing whitespaces will be
@@ -39,6 +42,26 @@ public class ParserUtil {
             throw new ParseException(MESSAGE_INVALID_INDEX);
         }
         return Index.fromOneBased(Integer.parseInt(trimmedIndex));
+    }
+
+    /**
+     * Parses one or more whitespace-separated one-based indexes.
+     *
+     * @throws ParseException if an index is invalid or repeated.
+     */
+    public static List<Index> parseIndexes(String oneBasedIndexes) throws ParseException {
+        requireNonNull(oneBasedIndexes);
+        List<Index> indexes = new ArrayList<>();
+        for (String indexText : oneBasedIndexes.trim().split("\\s+")) {
+            Index index = parseIndex(indexText);
+            boolean isDuplicate = indexes.stream()
+                    .anyMatch(existing -> existing.getZeroBased() == index.getZeroBased());
+            if (isDuplicate) {
+                throw new ParseException(MESSAGE_DUPLICATE_INDEXES);
+            }
+            indexes.add(index);
+        }
+        return List.copyOf(indexes);
     }
 
     /**

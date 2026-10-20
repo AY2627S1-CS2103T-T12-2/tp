@@ -2,6 +2,7 @@ package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.parser.ParserUtil.MESSAGE_DUPLICATE_INDEXES;
 import static seedu.address.logic.parser.ParserUtil.MESSAGE_INVALID_INDEX;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
@@ -11,6 +12,7 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.commons.core.index.Index;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.person.Address;
@@ -53,6 +55,22 @@ public class ParserUtilTest {
 
         // Leading and trailing whitespaces
         assertEquals(INDEX_FIRST_PERSON, ParserUtil.parseIndex("  1  "));
+    }
+
+    @Test
+    public void parseIndexes_validInput_returnsIndexesInInputOrder() throws Exception {
+        assertEquals(List.of(Index.fromOneBased(3), Index.fromOneBased(1), Index.fromOneBased(2)),
+                ParserUtil.parseIndexes("  3   1 2  "));
+    }
+
+    @Test
+    public void parseIndexes_duplicateIndex_throwsParseException() {
+        assertThrows(ParseException.class, MESSAGE_DUPLICATE_INDEXES, () -> ParserUtil.parseIndexes("1 2 1"));
+    }
+
+    @Test
+    public void parseIndexes_invalidIndex_throwsParseException() {
+        assertThrows(ParseException.class, MESSAGE_INVALID_INDEX, () -> ParserUtil.parseIndexes("1 0 2"));
     }
 
     @Test

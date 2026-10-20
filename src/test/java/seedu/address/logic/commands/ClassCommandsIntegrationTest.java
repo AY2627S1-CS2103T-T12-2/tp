@@ -8,6 +8,7 @@ import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
+import java.util.List;
 import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -63,6 +64,95 @@ public class ClassCommandsIntegrationTest {
 
         assertTrue(model.getAddressBook().getPersonList().get(0).getLessons().contains(LESSON));
         assertTrue(model.getAddressBook().getPersonList().get(1).getLessons().contains(LESSON));
+    }
+
+    @Test
+    public void enrolMultiple_existingClass_addsClassWithExistingCostToEverySelectedStudent()
+            throws CommandException {
+        new ClassEnrolCommand(Index.fromOneBased(1), LESSON).execute(model);
+        Person secondStudent = model.getFilteredPersonList().get(1);
+        Person thirdStudent = model.getFilteredPersonList().get(2);
+
+        ClassEnrolCommand command = new ClassEnrolCommand(
+                List.of(Index.fromOneBased(2), Index.fromOneBased(3)),
+                new Subject("mAtH"), LESSON.getTiming());
+        CommandResult result = command.execute(model);
+
+        assertEquals(String.format(ClassEnrolCommand.MESSAGE_BATCH_SUCCESS,
+                secondStudent.getName() + ", " + thirdStudent.getName(),
+                LESSON.getSubject(), LESSON.getTiming()), result.getFeedbackToUser());
+        assertTrue(model.getAddressBook().getPersonList().get(1).getLessons().contains(LESSON));
+        assertTrue(model.getAddressBook().getPersonList().get(2).getLessons().contains(LESSON));
+    }
+
+    @Test
+    public void enrolMultiple_filteredListFindsExistingClassAndUsesDisplayedIndex() throws CommandException {
+        new ClassEnrolCommand(Index.fromOneBased(1), LESSON).execute(model);
+        showPersonAtIndex(model, Index.fromOneBased(2));
+
+        new ClassEnrolCommand(List.of(Index.fromOneBased(1)),
+                LESSON.getSubject(), LESSON.getTiming()).execute(model);
+
+        assertTrue(model.getAddressBook().getPersonList().get(0).getLessons().contains(LESSON));
+        assertTrue(model.getAddressBook().getPersonList().get(1).getLessons().contains(LESSON));
+    }
+
+    @Test
+    public void enrolMultiple_missingClass_failureAndDoesNotModifyStudents() {
+        ClassEnrolCommand command = new ClassEnrolCommand(
+                List.of(Index.fromOneBased(1), Index.fromOneBased(2)),
+                LESSON.getSubject(), LESSON.getTiming());
+
+        assertCommandFailure(command, model, ClassEnrolCommand.MESSAGE_CLASS_NOT_FOUND);
+    }
+
+    @Test
+    public void enrolMultiple_invalidIndex_failureAndDoesNotModifyStudents() throws CommandException {
+        new ClassEnrolCommand(Index.fromOneBased(1), LESSON).execute(model);
+        Index invalidIndex = Index.fromOneBased(model.getFilteredPersonList().size() + 1);
+        ClassEnrolCommand command = new ClassEnrolCommand(
+                List.of(Index.fromOneBased(2), invalidIndex), LESSON.getSubject(), LESSON.getTiming());
+
+        assertCommandFailure(command, model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+    }
+
+    @Test
+    public void enrolMultiple_someStudentsAlreadyEnrolled_skipsThemAndEnrolsRemainingStudents()
+            throws CommandException {
+        new ClassEnrolCommand(Index.fromOneBased(2), LESSON).execute(model);
+        Person studentToEnrol = model.getFilteredPersonList().get(0);
+        Person alreadyEnrolled = model.getFilteredPersonList().get(1);
+        ClassEnrolCommand command = new ClassEnrolCommand(
+                List.of(Index.fromOneBased(1), Index.fromOneBased(2)),
+                LESSON.getSubject(), LESSON.getTiming());
+
+        CommandResult result = command.execute(model);
+
+        assertEquals(String.format(ClassEnrolCommand.MESSAGE_BATCH_PARTIAL_SUCCESS,
+                studentToEnrol.getName(), LESSON.getSubject(), LESSON.getTiming(), alreadyEnrolled.getName()),
+                result.getFeedbackToUser());
+        Person enrolledStudent = model.getAddressBook().getPersonList().get(0);
+        assertTrue(enrolledStudent.getLessons().contains(LESSON));
+        assertEquals(PaymentStatus.UNPAID, getPaymentStatus(enrolledStudent, LESSON));
+        assertEquals(alreadyEnrolled, model.getAddressBook().getPersonList().get(1));
+    }
+
+    @Test
+    public void enrolMultiple_allStudentsAlreadyEnrolled_returnsNoChangeMessage() throws CommandException {
+        enrolStudentsInLesson(LESSON, 1, 2);
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        Person firstStudent = model.getFilteredPersonList().get(0);
+        Person secondStudent = model.getFilteredPersonList().get(1);
+        ClassEnrolCommand command = new ClassEnrolCommand(
+                List.of(Index.fromOneBased(1), Index.fromOneBased(2)),
+                LESSON.getSubject(), LESSON.getTiming());
+
+        CommandResult result = command.execute(model);
+
+        assertEquals(String.format(ClassEnrolCommand.MESSAGE_BATCH_ALL_ALREADY_ENROLLED,
+                LESSON.getSubject(), LESSON.getTiming(), firstStudent.getName() + ", " + secondStudent.getName()),
+                result.getFeedbackToUser());
+        assertEquals(expectedModel, model);
     }
 
     @Test
@@ -131,6 +221,23 @@ public class ClassCommandsIntegrationTest {
         assertEquals(command, new ClassEnrolCommand(Index.fromOneBased(1), LESSON));
         assertNotEquals(command, new ClassEnrolCommand(Index.fromOneBased(2), LESSON));
         assertNotEquals(command, new ClassEnrolCommand(Index.fromOneBased(1), differentLesson));
+        assertNotEquals(command, null);
+    }
+
+    @Test
+    public void enrolMultipleCommand_equals() {
+        List<Index> indexes = List.of(Index.fromOneBased(1), Index.fromOneBased(2));
+        ClassEnrolCommand command = new ClassEnrolCommand(indexes, LESSON.getSubject(), LESSON.getTiming());
+
+        assertEquals(command, command);
+        assertEquals(command, new ClassEnrolCommand(indexes,
+                new Subject("math"), LESSON.getTiming()));
+        assertNotEquals(command, new ClassEnrolCommand(List.of(Index.fromOneBased(2), Index.fromOneBased(1)),
+                LESSON.getSubject(), LESSON.getTiming()));
+        assertNotEquals(command, new ClassEnrolCommand(indexes,
+                OTHER_LESSON.getSubject(), LESSON.getTiming()));
+        assertNotEquals(command, new ClassEnrolCommand(indexes,
+                LESSON.getSubject(), OTHER_LESSON.getTiming()));
         assertNotEquals(command, null);
     }
 

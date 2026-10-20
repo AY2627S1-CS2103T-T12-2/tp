@@ -98,17 +98,33 @@ Examples:
 * `add n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
 * `add n/John Davis p/91234567 e/johndavis@gmail.com a/Clementi t/exam-prep sub/Math cost/30 c/Monday1800-1930`
 
-### Enrolling a student in a class: `class enrol`
+### Enrolling students in a class: `class enrol`
 
-Enrols an existing student in a recurring weekly class. The student is identified by the index shown in the current
-student list.
+Enrols one or more existing students in a recurring weekly class. Students are identified by their indexes in the
+currently displayed student list.
 
-Format: `class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/DAYHHmm-HHmm`
+To enrol one student while supplying the class cost, use:
+
+`class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/DAYHHmm-HHmm`
 
 Example: `class enrol 1 sub/Physics cost/35 c/Wednesday1700-1830`
 
+To enrol one or more students in a class that already exists, omit the cost and provide all student indexes before
+the prefixes:
+
+`class enrol STUDENT_INDEX [STUDENT_INDEX]... sub/SUBJECT c/DAYHHmm-HHmm`
+
+Example: `class enrol 1 3 5 sub/Physics c/Wednesday1700-1830`
+
 The same class can be assigned to multiple students, but its cost must be consistent. A student cannot be enrolled in
-the same class more than once.
+the same class more than once. For an existing class, TutEasy obtains the cost from its current enrolments. The class
+must already exist in the complete address book, even if its enrolled students are not in the filtered list.
+
+Batch enrolment validates every index and the target class before changing any student. Repeated or invalid indexes
+and a missing class cause the command to fail without changing any student. Selected students who are already enrolled
+are skipped while the remaining students are enrolled. The feedback identifies both groups. If all selected students
+are already enrolled, no changes are made and an informative message is shown. `cost/` cannot be supplied when multiple
+indexes are used.
 
 Enrolled classes appear as coloured badges below each student's email. Each badge includes the subject and lesson
 timing, and students enrolled in the same class receive a badge with the same colour. When a student has multiple
@@ -314,7 +330,7 @@ _Details coming soon ..._
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 **Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [sub/SUBJECT cost/COST c/DAYHHmm-HHmm]` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/Clementi t/friend sub/Math cost/30 c/Monday1800-1930`
-**Enrol in class** | `class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/DAYHHmm-HHmm`<br> e.g., `class enrol 1 sub/Physics cost/35 c/Wednesday1700-1830`
+**Enrol in class** | `class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/DAYHHmm-HHmm`<br>or `class enrol STUDENT_INDEX [STUDENT_INDEX]... sub/SUBJECT c/DAYHHmm-HHmm`<br> e.g., `class enrol 1 3 5 sub/Physics c/Wednesday1700-1830`
 **Unenrol from class** | `class unenrol STUDENT_INDEX sub/SUBJECT c/DAYHHmm-HHmm`<br> e.g., `class unenrol 1 sub/Physics c/Wednesday1700-1830`
 **Update payment status** | `class payment STUDENT_INDEX sub/SUBJECT c/DAYHHmm-HHmm status/paid|unpaid`<br> e.g., `class payment 1 sub/Physics c/Wednesday1700-1830 status/paid`
 **Delete class** | `class delete sub/SUBJECT c/DAYHHmm-HHmm`<br> e.g., `class delete sub/Physics c/Wednesday1700-1830`
