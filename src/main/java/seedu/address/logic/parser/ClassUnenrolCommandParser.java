@@ -7,7 +7,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.ClassUnenrolCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
-import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.LessonSchedule;
 import seedu.address.model.lesson.Subject;
 
 /** Parses arguments for the {@code class unenrol} command. */
@@ -25,7 +25,7 @@ public class ClassUnenrolCommandParser implements Parser<ClassUnenrolCommand> {
 
         Index index = ParserUtil.parseIndex(arguments.getPreamble());
         Subject subject = ParserUtil.parseLessonSubject(arguments.getValue(PREFIX_SUBJECT).get());
-        LessonTiming timing = ParserUtil.parseLessonTiming(arguments.getValue(PREFIX_CLASS).get());
-        return new ClassUnenrolCommand(index, subject, timing);
+        LessonSchedule schedule = ParserUtil.parseLessonSchedule(arguments.getValue(PREFIX_CLASS).get());
+        return new ClassUnenrolCommand(index, subject, schedule);
     }
 }

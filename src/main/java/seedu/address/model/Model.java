@@ -11,6 +11,7 @@ import java.util.function.Predicate;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.lesson.Lesson;
+import seedu.address.model.lesson.LessonScheduleComparator;
 import seedu.address.model.person.Person;
 import seedu.address.model.timetable.TimetableDay;
 
@@ -103,15 +104,13 @@ public interface Model {
     default List<Lesson> findOverlappingClasses(Lesson candidate) {
         requireNonNull(candidate);
         Comparator<Lesson> classOrder = Comparator
-                .comparingInt((Lesson lesson) -> lesson.getTiming().getDay().getValue())
-                .thenComparing(lesson -> lesson.getTiming().getStartTime())
-                .thenComparing(lesson -> lesson.getTiming().getEndTime())
+                .comparing(Lesson::getSchedule, LessonScheduleComparator.INSTANCE)
                 .thenComparing(lesson -> lesson.getSubject().toString(), String.CASE_INSENSITIVE_ORDER);
 
         List<Lesson> overlappingLessons = getAddressBook().getPersonList().stream()
                 .flatMap(person -> person.getLessons().stream())
                 .filter(existing -> !existing.isSameClass(candidate))
-                .filter(existing -> existing.getTiming().overlapsWith(candidate.getTiming()))
+                .filter(existing -> existing.getSchedule().overlapsWith(candidate.getSchedule()))
                 .sorted(classOrder)
                 .toList();
         List<Lesson> distinctClasses = new ArrayList<>();

@@ -16,14 +16,14 @@ import seedu.address.model.Model;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.person.Person;
 
-/** Enrols an existing student in a recurring weekly class. */
+/** Enrols an existing student in a scheduled class. */
 public class ClassEnrolCommand extends ClassCommand {
 
     public static final String SUBCOMMAND_WORD = "enrol";
     public static final String MESSAGE_USAGE = COMMAND_WORD + " " + SUBCOMMAND_WORD
             + ": Enrols the indexed student in a class.\n"
             + "Parameters: STUDENT_INDEX " + PREFIX_SUBJECT + "SUBJECT " + PREFIX_COST + "COST "
-            + PREFIX_CLASS + "DAYHHmm-HHmm\n"
+            + PREFIX_CLASS + "SCHEDULE\n"
             + "Example: " + COMMAND_WORD + " " + SUBCOMMAND_WORD
             + " 1 sub/Math cost/30 c/Monday1800-1930";
     public static final String MESSAGE_SUCCESS = "Enrolled %1$s in class: %2$s";

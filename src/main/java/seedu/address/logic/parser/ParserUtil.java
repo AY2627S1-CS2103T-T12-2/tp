@@ -9,8 +9,10 @@ import java.util.Set;
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.lesson.LessonSchedule;
 import seedu.address.model.lesson.LessonStart;
 import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.OneOffLessonSchedule;
 import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Cost;
@@ -201,6 +203,19 @@ public class ParserUtil {
             throw new ParseException(LessonTiming.MESSAGE_CONSTRAINTS);
         }
         return new LessonTiming(trimmedTiming);
+    }
+
+    /** Parses a weekly or one-off lesson schedule. */
+    public static LessonSchedule parseLessonSchedule(String schedule) throws ParseException {
+        requireNonNull(schedule);
+        String trimmedSchedule = schedule.trim();
+        if (!trimmedSchedule.isEmpty() && Character.isDigit(trimmedSchedule.charAt(0))) {
+            if (!OneOffLessonSchedule.isValidOneOffLessonSchedule(trimmedSchedule)) {
+                throw new ParseException(OneOffLessonSchedule.MESSAGE_CONSTRAINTS);
+            }
+            return new OneOffLessonSchedule(trimmedSchedule);
+        }
+        return parseLessonTiming(trimmedSchedule);
     }
 
     /** Parses a payment status. */

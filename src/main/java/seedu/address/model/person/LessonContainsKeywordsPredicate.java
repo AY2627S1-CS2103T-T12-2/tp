@@ -1,13 +1,14 @@
 package seedu.address.model.person;
 
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
 import seedu.address.commons.util.ToStringBuilder;
-import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.LessonSchedule;
 
 /**
  * Tests that a {@code Person}'s lessons match the given day and/or time keywords.
@@ -17,6 +18,7 @@ public class LessonContainsKeywordsPredicate implements ScoredPersonPredicate {
 
     private final Optional<String> dayKeyword;
     private final Optional<String> timeKeyword;
+    private final Optional<LocalDate> dateKeyword;
 
     /**
      * Creates a predicate from a single lesson-search input.
@@ -36,12 +38,18 @@ public class LessonContainsKeywordsPredicate implements ScoredPersonPredicate {
      * Creates a predicate that matches lesson timings by optional day and time keywords.
      */
     public LessonContainsKeywordsPredicate(Optional<String> dayKeyword, Optional<String> timeKeyword) {
+        this(dayKeyword, timeKeyword, Optional.empty());
+    }
+
+    private LessonContainsKeywordsPredicate(Optional<String> dayKeyword, Optional<String> timeKeyword,
+            Optional<LocalDate> dateKeyword) {
         this.dayKeyword = dayKeyword.map(keyword -> keyword.toLowerCase(Locale.ROOT));
         this.timeKeyword = timeKeyword;
+        this.dateKeyword = dateKeyword;
     }
 
     private LessonContainsKeywordsPredicate(LessonSearchParts lessonSearchParts) {
-        this(lessonSearchParts.dayKeyword, lessonSearchParts.timeKeyword);
+        this(lessonSearchParts.dayKeyword, lessonSearchParts.timeKeyword, lessonSearchParts.dateKeyword);
     }
 
     @Override
@@ -65,15 +73,17 @@ public class LessonContainsKeywordsPredicate implements ScoredPersonPredicate {
     }
 
     private int scoreLesson(seedu.address.model.lesson.Lesson lesson) {
-        LessonTiming timing = lesson.getTiming();
-        boolean dayMatches = dayKeyword.map(keyword -> dayMatches(timing.getDay(), keyword)).orElse(true);
-        boolean timeMatches = timeKeyword.map(keyword -> timeMatches(timing, keyword)).orElse(true);
+        LessonSchedule schedule = lesson.getSchedule();
+        boolean dayMatches = dayKeyword.map(keyword -> dayMatches(schedule.getDay(), keyword)).orElse(true);
+        boolean timeMatches = timeKeyword.map(keyword -> timeMatches(schedule, keyword)).orElse(true);
+        boolean dateMatches = dateKeyword.map(date -> schedule.getDate().filter(date::equals).isPresent()).orElse(true);
 
-        if (!dayMatches || !timeMatches) {
+        if (!dayMatches || !timeMatches || !dateMatches) {
             return 0;
         }
 
-        return (int) dayKeyword.stream().count() + (int) timeKeyword.stream().count();
+        return (int) dayKeyword.stream().count() + (int) timeKeyword.stream().count()
+                + (int) dateKeyword.stream().count();
     }
 
     private boolean dayMatches(DayOfWeek day, String keyword) {
@@ -81,9 +91,9 @@ public class LessonContainsKeywordsPredicate implements ScoredPersonPredicate {
         return dayName.startsWith(keyword);
     }
 
-    private boolean timeMatches(LessonTiming timing, String keyword) {
-        return timing.getStartTime().format(TIME_FORMAT).contains(keyword)
-                || timing.getEndTime().format(TIME_FORMAT).contains(keyword);
+    private boolean timeMatches(LessonSchedule schedule, String keyword) {
+        return schedule.getStartTime().format(TIME_FORMAT).contains(keyword)
+                || schedule.getEndTime().format(TIME_FORMAT).contains(keyword);
     }
 
     private int scoreLegacyLesson(String lesson) {
@@ -110,7 +120,8 @@ public class LessonContainsKeywordsPredicate implements ScoredPersonPredicate {
         }
 
         return dayKeyword.equals(otherLessonContainsKeywordsPredicate.dayKeyword)
-                && timeKeyword.equals(otherLessonContainsKeywordsPredicate.timeKeyword);
+                && timeKeyword.equals(otherLessonContainsKeywordsPredicate.timeKeyword)
+                && dateKeyword.equals(otherLessonContainsKeywordsPredicate.dateKeyword);
     }
 
     @Override
@@ -118,24 +129,36 @@ public class LessonContainsKeywordsPredicate implements ScoredPersonPredicate {
         return new ToStringBuilder(this)
                 .add("dayKeyword", dayKeyword)
                 .add("timeKeyword", timeKeyword)
+                .add("dateKeyword", dateKeyword)
                 .toString();
     }
 
     private static class LessonSearchParts {
         private final Optional<String> dayKeyword;
         private final Optional<String> timeKeyword;
+        private final Optional<LocalDate> dateKeyword;
 
-        LessonSearchParts(Optional<String> dayKeyword, Optional<String> timeKeyword) {
+        LessonSearchParts(Optional<String> dayKeyword, Optional<String> timeKeyword, Optional<LocalDate> dateKeyword) {
             this.dayKeyword = dayKeyword;
             this.timeKeyword = timeKeyword;
+            this.dateKeyword = dateKeyword;
         }
 
         private static LessonSearchParts from(String lessonSearchInput) {
             String[] tokens = lessonSearchInput.trim().split("\\s+");
             String day = null;
             String time = null;
+            LocalDate date = null;
 
             for (String token : tokens) {
+                if (token.matches("\\d{4}-\\d{2}-\\d{2}")) {
+                    try {
+                        date = LocalDate.parse(token);
+                    } catch (java.time.format.DateTimeParseException exception) {
+                        time = token;
+                    }
+                    continue;
+                }
                 int splitIndex = firstDigitIndex(token);
                 String dayPart = splitIndex == -1 ? token : token.substring(0, splitIndex);
                 String timePart = splitIndex == -1 ? "" : token.substring(splitIndex);
@@ -148,7 +171,8 @@ public class LessonContainsKeywordsPredicate implements ScoredPersonPredicate {
                 }
             }
 
-            return new LessonSearchParts(Optional.ofNullable(day), Optional.ofNullable(time));
+            return new LessonSearchParts(
+                    Optional.ofNullable(day), Optional.ofNullable(time), Optional.ofNullable(date));
         }
 
         private static int firstDigitIndex(String token) {

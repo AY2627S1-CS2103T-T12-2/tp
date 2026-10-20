@@ -25,7 +25,7 @@ public class ClassEnrolCommandParser implements Parser<ClassEnrolCommand> {
         Index index = ParserUtil.parseIndex(arguments.getPreamble());
         Lesson lesson = new Lesson(ParserUtil.parseLessonSubject(arguments.getValue(PREFIX_SUBJECT).get()),
                 ParserUtil.parseLessonCost(arguments.getValue(PREFIX_COST).get()),
-                ParserUtil.parseLessonTiming(arguments.getValue(PREFIX_CLASS).get()));
+                ParserUtil.parseLessonSchedule(arguments.getValue(PREFIX_CLASS).get()));
         return new ClassEnrolCommand(index, lesson);
     }
 }

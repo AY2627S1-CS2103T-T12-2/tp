@@ -16,7 +16,7 @@ public class LessonTest {
 
     @Test
     public void isSameClass_lessonWithSameIdentity_returnsTrue() {
-        Lesson differentCost = new Lesson(new Subject("math"), new Cost("40"), MATH.getTiming());
+        Lesson differentCost = new Lesson(new Subject("math"), new Cost("40"), MATH.getSchedule());
         Lesson differentPaymentStatus = MATH.withPaymentStatus(PaymentStatus.PAID);
 
         assertTrue(MATH.isSameClass(MATH));
@@ -26,18 +26,20 @@ public class LessonTest {
 
     @Test
     public void isSameClass_lessonWithDifferentIdentity_returnsFalse() {
-        Lesson differentSubject = new Lesson(new Subject("Physics"), new Cost("30"), MATH.getTiming());
+        Lesson differentSubject = new Lesson(new Subject("Physics"), new Cost("30"), MATH.getSchedule());
         Lesson differentTiming = new Lesson(MATH.getSubject(), new Cost("30"), DIFFERENT_TIMING);
 
         assertFalse(MATH.isSameClass((Lesson) null));
         assertFalse(MATH.isSameClass(differentSubject));
         assertFalse(MATH.isSameClass(differentTiming));
+        assertFalse(MATH.isSameClass(new Lesson(MATH.getSubject(), MATH.getCost(),
+                new OneOffLessonSchedule("2026-10-19T1800-1930"))));
     }
 
     @Test
     public void isSameClass_subjectAndTiming_returnsExpectedResult() {
-        assertTrue(MATH.isSameClass(new Subject("math"), MATH.getTiming()));
-        assertFalse(MATH.isSameClass(new Subject("Physics"), MATH.getTiming()));
+        assertTrue(MATH.isSameClass(new Subject("math"), MATH.getSchedule()));
+        assertFalse(MATH.isSameClass(new Subject("Physics"), MATH.getSchedule()));
         assertFalse(MATH.isSameClass(MATH.getSubject(), DIFFERENT_TIMING));
     }
 
@@ -53,8 +55,8 @@ public class LessonTest {
 
     @Test
     public void equals_differentPropertyOrType_returnsFalse() {
-        Lesson differentSubject = new Lesson(new Subject("Physics"), new Cost("30"), MATH.getTiming());
-        Lesson differentCost = new Lesson(MATH.getSubject(), new Cost("40"), MATH.getTiming());
+        Lesson differentSubject = new Lesson(new Subject("Physics"), new Cost("30"), MATH.getSchedule());
+        Lesson differentCost = new Lesson(MATH.getSubject(), new Cost("40"), MATH.getSchedule());
         Lesson differentTiming = new Lesson(MATH.getSubject(), MATH.getCost(), DIFFERENT_TIMING);
         Lesson differentPaymentStatus = MATH.withPaymentStatus(PaymentStatus.PAID);
 

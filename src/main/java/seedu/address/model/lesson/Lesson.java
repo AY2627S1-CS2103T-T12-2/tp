@@ -40,16 +40,6 @@ public class Lesson {
         return schedule;
     }
 
-    /**
-     * Returns the legacy weekly timing.
-     *
-     * @deprecated use {@link #getSchedule()} so one-off schedules are supported.
-     */
-    @Deprecated
-    public LessonTiming getTiming() {
-        return (LessonTiming) schedule;
-    }
-
     public PaymentStatus getPaymentStatus() {
         return paymentStatus;
     }
