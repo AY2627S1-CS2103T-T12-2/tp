@@ -82,7 +82,7 @@ Format: `help`
 
 Adds a person to the address book.
 
-Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [sub/SUBJECT cost/COST c/DAYHHmm-HHmm]`
+Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [sub/SUBJECT cost/COST c/SCHEDULE]`
 
 <box type="tip" seamless>
 
@@ -90,22 +90,28 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [sub/SUBJECT cos
 and use only lowercase letters, numbers, and single hyphens between characters.
 </box>
 
-* `sub/SUBJECT`, `cost/COST`, and `c/DAYHHmm-HHmm` must be supplied together when adding a class.
+* `sub/SUBJECT`, `cost/COST`, and `c/SCHEDULE` must be supplied together when adding a class.
 * Times use the 24-hour range `0000`–`2359`, and the end time must be later than the start time.
+* A weekly schedule uses `DAYHHmm-HHmm`, for example `Monday1800-1930`.
+* A one-off schedule uses `yyyy-MM-ddTHHmm-HHmm`, for example `2026-10-20T1800-1930`.
 
 Examples:
 * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
 * `add n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
 * `add n/John Davis p/91234567 e/johndavis@gmail.com a/Clementi t/exam-prep sub/Math cost/30 c/Monday1800-1930`
+* `add n/Jane Tan p/92345678 e/jane@example.com a/Bishan sub/Math cost/30 c/2026-10-20T1800-1930`
 
 ### Enrolling a student in a class: `class enrol`
 
-Enrols an existing student in a recurring weekly class. The student is identified by the index shown in the current
-student list.
+Enrols an existing student in a weekly or one-off class. The student is identified by the index shown in the current
+student list. Weekly classes recur on their specified weekday; one-off classes occur only on their specified date.
 
-Format: `class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/DAYHHmm-HHmm`
+Format: `class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/SCHEDULE`
 
-Example: `class enrol 1 sub/Physics cost/35 c/Wednesday1700-1830`
+Examples:
+
+* `class enrol 1 sub/Physics cost/35 c/Wednesday1700-1830`
+* `class enrol 1 sub/Physics cost/35 c/2026-10-20T1700-1830`
 
 The same class can be assigned to multiple students, but its cost must be consistent. A student cannot be enrolled in
 the same class more than once.
@@ -121,16 +127,16 @@ Paid enrolments are excluded. The badge remains visible as `Balance: 0` when the
 
 Removes one class from one student without affecting other students enrolled in that class.
 
-Format: `class unenrol STUDENT_INDEX sub/SUBJECT c/DAYHHmm-HHmm`
+Format: `class unenrol STUDENT_INDEX sub/SUBJECT c/SCHEDULE`
 
 Example: `class unenrol 1 sub/Physics c/Wednesday1700-1830`
 
 ### Updating an enrolment's payment status: `class payment`
 
-Marks one student's enrolment in a recurring weekly class as paid or unpaid. The student is identified by the index
-shown in the current student list, while the subject and complete lesson timing identify the enrolment.
+Marks one student's enrolment in a weekly or one-off class as paid or unpaid. The student is identified by the index
+shown in the current student list, while the subject and complete schedule identify the enrolment.
 
-Format: `class payment STUDENT_INDEX sub/SUBJECT c/DAYHHmm-HHmm status/paid|unpaid`
+Format: `class payment STUDENT_INDEX sub/SUBJECT c/SCHEDULE status/paid|unpaid`
 
 Examples:
 
@@ -143,16 +149,16 @@ stay together on one row, keeping the status associated with the correct class. 
 does not affect other students enrolled in the same class. If the specified student is not enrolled in that class, no
 data is changed.
 
-Payment status describes the current recurring enrolment as a whole; it is not a payment history for individual weekly
-sessions or billing months. Correspondingly, the displayed balance is the sum of the current unpaid enrolments rather
-than a history of accumulated charges.
+Payment status describes the current enrolment as a whole; it is not a payment history for individual weekly sessions
+or billing months. Correspondingly, the displayed balance is the sum of the current unpaid enrolments rather than a
+history of accumulated charges.
 
 ### Deleting a class: `class delete`
 
 Deletes a class globally by removing it from every enrolled student. Students and their other information are not
 deleted. The command searches the complete address book even when the displayed student list is filtered.
 
-Format: `class delete sub/SUBJECT c/DAYHHmm-HHmm`
+Format: `class delete sub/SUBJECT c/SCHEDULE`
 
 Example: `class delete sub/Physics c/Wednesday1700-1830`
 
@@ -164,6 +170,9 @@ even when it has no classes.
 
 Each class entry shows its start and end time, subject, and all attending students. Classes are ordered by start time,
 then subject.
+
+Weekly classes appear on their matching weekday. One-off classes appear only when their exact date falls within the
+visible range.
 
 Format: `timetable`
 
@@ -313,11 +322,11 @@ _Details coming soon ..._
 
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [sub/SUBJECT cost/COST c/DAYHHmm-HHmm]` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/Clementi t/friend sub/Math cost/30 c/Monday1800-1930`
-**Enrol in class** | `class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/DAYHHmm-HHmm`<br> e.g., `class enrol 1 sub/Physics cost/35 c/Wednesday1700-1830`
-**Unenrol from class** | `class unenrol STUDENT_INDEX sub/SUBJECT c/DAYHHmm-HHmm`<br> e.g., `class unenrol 1 sub/Physics c/Wednesday1700-1830`
-**Update payment status** | `class payment STUDENT_INDEX sub/SUBJECT c/DAYHHmm-HHmm status/paid|unpaid`<br> e.g., `class payment 1 sub/Physics c/Wednesday1700-1830 status/paid`
-**Delete class** | `class delete sub/SUBJECT c/DAYHHmm-HHmm`<br> e.g., `class delete sub/Physics c/Wednesday1700-1830`
+**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [sub/SUBJECT cost/COST c/SCHEDULE]` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/Clementi t/friend sub/Math cost/30 c/Monday1800-1930`
+**Enrol in class** | `class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/SCHEDULE`<br> e.g., `class enrol 1 sub/Physics cost/35 c/2026-10-20T1700-1830`
+**Unenrol from class** | `class unenrol STUDENT_INDEX sub/SUBJECT c/SCHEDULE`<br> e.g., `class unenrol 1 sub/Physics c/Wednesday1700-1830`
+**Update payment status** | `class payment STUDENT_INDEX sub/SUBJECT c/SCHEDULE status/paid|unpaid`<br> e.g., `class payment 1 sub/Physics c/Wednesday1700-1830 status/paid`
+**Delete class** | `class delete sub/SUBJECT c/SCHEDULE`<br> e.g., `class delete sub/Physics c/2026-10-20T1700-1830`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
