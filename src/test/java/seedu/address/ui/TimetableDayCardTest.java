@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.FutureTask;
@@ -60,9 +61,9 @@ public class TimetableDayCardTest {
 
         runOnFxThread(() -> {
             TimetableDayCard emptyCard = new TimetableDayCard(
-                    new TimetableDay(DayOfWeek.MONDAY, List.of()));
+                    new TimetableDay(LocalDate.of(2026, 10, 19), List.of()));
             TimetableDayCard populatedCard = new TimetableDayCard(
-                    new TimetableDay(DayOfWeek.MONDAY, List.of(entry)));
+                    new TimetableDay(LocalDate.of(2026, 10, 19), List.of(entry)));
 
             Label dayHeading = (Label) emptyCard.getRoot().lookup("#dayHeading");
             Label emptyMessage = (Label) emptyCard.getRoot().lookup("#emptyMessage");

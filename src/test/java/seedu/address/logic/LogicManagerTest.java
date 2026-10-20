@@ -186,8 +186,8 @@ public class LogicManagerTest {
         Clock thursdayClock = Clock.fixed(Instant.parse("2026-10-08T04:00:00Z"), ZoneOffset.UTC);
         logic = new LogicManager(model, storage, thursdayClock);
 
-        assertEquals(3, logic.getTimetable().size());
-        assertEquals(1, logic.getTimetable().get(1).getEntries().size());
+        assertEquals(7, logic.getTimetable().size());
+        assertEquals(1, logic.getTimetable().get(5).getEntries().size());
     }
 
     /**

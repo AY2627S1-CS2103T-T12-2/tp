@@ -3,7 +3,7 @@ package seedu.address.ui;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.FutureTask;
@@ -38,7 +38,7 @@ public class TimetablePanelTest {
 
     @Test
     public void constructor_timetableDays_populatesListAndCellFactory() throws Exception {
-        TimetableDay monday = new TimetableDay(DayOfWeek.MONDAY, List.of());
+        TimetableDay monday = new TimetableDay(LocalDate.of(2026, 10, 19), List.of());
 
         runOnFxThread(() -> {
             TimetablePanel panel = new TimetablePanel(List.of(monday));

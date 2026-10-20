@@ -3,23 +3,28 @@ package seedu.address.model.timetable;
 import static java.util.Objects.requireNonNull;
 
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 
 /** An immutable day group displayed in the timetable. */
 public class TimetableDay {
 
-    private final DayOfWeek day;
+    private final LocalDate date;
     private final List<TimetableEntry> entries;
 
     /** Creates a day group, which may contain no entries. */
-    public TimetableDay(DayOfWeek day, List<TimetableEntry> entries) {
-        this.day = requireNonNull(day);
+    public TimetableDay(LocalDate date, List<TimetableEntry> entries) {
+        this.date = requireNonNull(date);
         this.entries = List.copyOf(requireNonNull(entries));
     }
 
+    public LocalDate getDate() {
+        return date;
+    }
+
     public DayOfWeek getDay() {
-        return day;
+        return date.getDayOfWeek();
     }
 
     public List<TimetableEntry> getEntries() {
@@ -29,11 +34,11 @@ public class TimetableDay {
     @Override
     public boolean equals(Object other) {
         return other == this || other instanceof TimetableDay otherDay
-                && day == otherDay.day && entries.equals(otherDay.entries);
+                && date.equals(otherDay.date) && entries.equals(otherDay.entries);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(day, entries);
+        return Objects.hash(date, entries);
     }
 }
