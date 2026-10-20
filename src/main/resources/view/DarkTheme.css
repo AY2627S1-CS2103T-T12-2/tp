@@ -246,6 +246,14 @@
     -fx-pref-height: 30px;
 }
 
+.status-bar .privacy-status {
+    -fx-background-color: #8b642b;
+    -fx-background-radius: 4;
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-padding: 3px 8px;
+    -fx-text-fill: white;
+}
+
 .status-bar-with-border {
     -fx-background-color: derive(#1d1d1d, 30%);
     -fx-border-color: derive(#1d1d1d, 25%);

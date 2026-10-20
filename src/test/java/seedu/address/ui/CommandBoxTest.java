@@ -56,6 +56,16 @@ public class CommandBoxTest {
     }
 
     @Test
+    public void getCommandSuggestion_privacyInputs_returnsExpectedSuggestion() {
+        assertEquals("privacy", CommandBox.getCommandSuggestion("pri"));
+        assertEquals("privacy on | privacy off", CommandBox.getCommandSuggestion("privacy"));
+        assertEquals("privacy on | privacy off", CommandBox.getCommandSuggestion("privacy "));
+        assertEquals("privacy on | privacy off", CommandBox.getCommandSuggestion("privacy o"));
+        assertEquals("", CommandBox.getCommandSuggestion("privacy on"));
+        assertEquals("", CommandBox.getCommandSuggestion("privacy off"));
+    }
+
+    @Test
     public void isFindCommand() {
         assertTrue(CommandBox.isFindCommand("find"));
         assertTrue(CommandBox.isFindCommand(" find Alex "));
@@ -77,6 +87,9 @@ public class CommandBoxTest {
 
             commandTextField.setText("find t/");
             assertEquals("find t/TAG (e.g. priority)", commandSuggestionTextField.getText());
+
+            commandTextField.setText("privacy ");
+            assertEquals("privacy on | privacy off", commandSuggestionTextField.getText());
         });
     }
 

@@ -167,8 +167,8 @@ then subject.
 
 Format: `timetable`
 
-While the timetable is open, only `list`, `help`, and `exit` are available. Use `list` to return to the student list and
-re-enable the other commands.
+While the timetable is open, only `list`, `privacy`, `help`, and `exit` are available. Use `list` to return to the
+student list and re-enable the other commands.
 
 ### Listing all persons: `list`
 
@@ -268,6 +268,22 @@ Clears all entries from the address book.
 
 Format: `clear`
 
+### Hiding contact details: `privacy`
+
+Privacy mode replaces the phone, email, and address values on every student card with a fixed seven-asterisk mask,
+such as `Address: *******`. The underlying contact details are not changed or deleted.
+
+Formats:
+
+* `privacy on` masks all displayed contact details immediately.
+* `privacy off` restores the original contact details immediately.
+
+While privacy mode is active, the status bar displays `Privacy mode enabled`. The selected mode is saved and restored
+when TutEasy restarts. Privacy mode is disabled by default for existing preference files that do not contain this
+setting.
+
+The command box suggests both valid modes after you type `privacy`.
+
 ### Exiting the program: `exit`
 
 Exits the program.
@@ -327,3 +343,4 @@ Action     | Format, Examples
 **List**   | `list`
 **Help**   | `help`
 **Timetable** | `timetable`
+**Privacy mode** | `privacy on` or `privacy off`

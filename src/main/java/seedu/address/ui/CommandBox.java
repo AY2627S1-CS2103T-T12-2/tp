@@ -21,6 +21,8 @@ public class CommandBox extends UiPart<Region> {
     private static final String FIND_TAG_HINT = "find t/TAG (e.g. priority)";
     private static final String FIND_LESSON_HINT = "find c/DAY TIME (e.g. Monday 1800; time uses HHmm)";
     private static final String FIND_HOME_HINT = "Type 'list' to return to the home page.";
+    private static final String PRIVACY_COMMAND = "privacy";
+    private static final String PRIVACY_FORMAT_HINT = "privacy on | privacy off";
 
     private final CommandExecutor commandExecutor;
 
@@ -96,8 +98,17 @@ public class CommandBox extends UiPart<Region> {
             return "find";
         }
 
+        if (PRIVACY_COMMAND.startsWith(commandText) && commandText.length() < PRIVACY_COMMAND.length()) {
+            return PRIVACY_COMMAND;
+        }
+
         if (commandText.equals("find") || commandText.equals("find ")) {
             return FIND_FORMAT_HINT;
+        }
+
+        if (commandText.equals(PRIVACY_COMMAND) || commandText.equals(PRIVACY_COMMAND + " ")
+                || commandText.equals(PRIVACY_COMMAND + " o")) {
+            return PRIVACY_FORMAT_HINT;
         }
 
         if (commandText.equals("find t/")) {

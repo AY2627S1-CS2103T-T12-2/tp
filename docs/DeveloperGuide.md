@@ -93,6 +93,13 @@ the same colour across students. The palette identifies a class using its case-i
 lesson timing, matching `Lesson#isSameClass`; cost and payment status are not part of the colour identity. A muted
 balance badge beside the student's name always displays `Person#getOutstandingBalance`, including when it is zero.
 
+`MainWindow` passes the privacy preference from `Logic` to `PersonListPanel` and `StatusBarFooter`. The panel owns an
+observable privacy state shared by its `PersonCard` instances. Each card binds its phone, email, and address labels to
+that state, so toggling privacy mode replaces each value with a fixed seven-asterisk mask without modifying the
+underlying `Person`. The panel also refreshes its `ListView` to ensure newly created and currently displayed cells use
+the same state. `StatusBarFooter` keeps a visible privacy indicator active across both the student-list and timetable
+views.
+
 ### Logic component
 
 **API** : [`Logic.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/logic/Logic.java)
@@ -120,8 +127,8 @@ How the `Logic` component works:
 1. The result of the command execution is encapsulated as a `CommandResult` object which is returned from `Logic`.
 
 `LogicManager` also tracks whether the person list or timetable is active. In timetable mode it rejects every command
-except `list`, `help`, and `exit` before execution. `timetable` and `list` return view-change instructions that keep this
-state synchronized with `MainWindow`.
+except `list`, `privacy`, `help`, and `exit` before execution. `timetable` and `list` return view-change instructions
+that keep this state synchronized with `MainWindow`.
 
 Here are the other classes in `Logic` (omitted from the class diagram above) that are used for parsing a user command:
 
@@ -141,7 +148,8 @@ The `Model` component,
 
 * stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
-* stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
+* stores a `UserPrefs` object that represents the user’s GUI settings and privacy preference. This is exposed to the
+  outside as a `ReadOnlyUserPrefs` object.
 * derives immutable timetable day and class entries from every person's lessons. The timetable is not stored separately,
   and it uses the complete address book rather than the filtered person list.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
@@ -197,9 +205,20 @@ numeric fragments such as `18` are accepted for partial matching.
 `ScoredPersonPredicate` also provide a relevance score, so `FindCommand` requests a sorted filtered list with stronger
 matches first and preserves original address-book order for ties.
 
-`CommandBox` provides light-grey input-bar hints for common `find` inputs. After a successful `find`, it keeps the
-suggestion overlay visible with `Type 'list' to return to the home page.`; the hint clears when the user starts typing
-or when a non-`find` command succeeds.
+`CommandBox` provides light-grey input-bar hints for common `find` inputs and the available `privacy` modes. After a
+successful `find`, it keeps the suggestion overlay visible with `Type 'list' to return to the home page.`; the hint
+clears when the user starts typing or when a non-`find` command succeeds.
+
+### Privacy mode
+
+`privacy on` and `privacy off` update `UserPrefs#privacyModeEnabled` through the model. `LogicManager` saves the updated
+preferences using the existing user-preferences storage, so the selection survives an application restart. A missing
+JSON field maps to Java's default `false` value, keeping older preference files compatible.
+
+After any successful command, `MainWindow` reads the privacy state from `Logic` and updates both `PersonListPanel` and
+`StatusBarFooter`. Existing `PersonCard` contact-label bindings react immediately, while a list refresh ensures all
+cells are rendered consistently. Disabling privacy mode binds the labels back to the original values held by `Person`;
+neither command changes address-book data.
 
 ### Timetable view
 
