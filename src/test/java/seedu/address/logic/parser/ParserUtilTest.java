@@ -12,6 +12,7 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
@@ -215,6 +216,8 @@ public class ParserUtilTest {
                 ParserUtil.parseLessonTiming("  Monday1800-1930  "));
         assertEquals(new seedu.address.model.lesson.LessonStart("Monday1800"),
                 ParserUtil.parseLessonStart("  Monday1800  "));
+        assertEquals(PaymentStatus.PAID, ParserUtil.parsePaymentStatus("  paid  "));
+        assertEquals(PaymentStatus.UNPAID, ParserUtil.parsePaymentStatus("UNPAID"));
     }
 
     @Test
@@ -223,5 +226,6 @@ public class ParserUtilTest {
         assertThrows(ParseException.class, () -> ParserUtil.parseLessonCost("-1"));
         assertThrows(ParseException.class, () -> ParserUtil.parseLessonTiming("Monday2400-0100"));
         assertThrows(ParseException.class, () -> ParserUtil.parseLessonStart("Monday2400"));
+        assertThrows(ParseException.class, () -> ParserUtil.parsePaymentStatus("pending"));
     }
 }

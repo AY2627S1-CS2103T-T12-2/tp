@@ -23,6 +23,7 @@ import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonStart;
 import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.lesson.Subject;
 import seedu.address.model.person.Person;
 
@@ -204,6 +205,102 @@ public class ClassCommandsIntegrationTest {
     }
 
     @Test
+    public void payment_existingEnrolment_updatesOnlySelectedStudentAndClass() throws CommandException {
+        enrolStudentsInLesson(LESSON, 1, 2);
+        enrolStudentsInLesson(OTHER_LESSON, 1);
+
+        CommandResult result = new ClassPaymentCommand(Index.fromOneBased(1),
+                LESSON.getSubject(), LESSON.getTiming(), PaymentStatus.PAID).execute(model);
+
+        Person firstStudent = model.getAddressBook().getPersonList().get(0);
+        Person secondStudent = model.getAddressBook().getPersonList().get(1);
+        assertEquals(String.format(ClassPaymentCommand.MESSAGE_SUCCESS, firstStudent.getName(),
+                LESSON.getSubject(), LESSON.getTiming(), "paid"), result.getFeedbackToUser());
+        assertEquals(PaymentStatus.PAID, getPaymentStatus(firstStudent, LESSON));
+        assertEquals(PaymentStatus.UNPAID, getPaymentStatus(firstStudent, OTHER_LESSON));
+        assertEquals(PaymentStatus.UNPAID, getPaymentStatus(secondStudent, LESSON));
+    }
+
+    @Test
+    public void payment_paidEnrolment_canBeMarkedUnpaid() throws CommandException {
+        enrolStudentsInLesson(LESSON, 1);
+        new ClassPaymentCommand(Index.fromOneBased(1), LESSON.getSubject(), LESSON.getTiming(),
+                PaymentStatus.PAID).execute(model);
+
+        new ClassPaymentCommand(Index.fromOneBased(1), LESSON.getSubject(), LESSON.getTiming(),
+                PaymentStatus.UNPAID).execute(model);
+
+        assertEquals(PaymentStatus.UNPAID,
+                getPaymentStatus(model.getAddressBook().getPersonList().get(0), LESSON));
+    }
+
+    @Test
+    public void payment_filteredList_usesDisplayedIndex() throws CommandException {
+        enrolStudentsInLesson(LESSON, 1, 2);
+        showPersonAtIndex(model, Index.fromOneBased(2));
+
+        new ClassPaymentCommand(Index.fromOneBased(1), LESSON.getSubject(), LESSON.getTiming(),
+                PaymentStatus.PAID).execute(model);
+
+        assertEquals(PaymentStatus.UNPAID,
+                getPaymentStatus(model.getAddressBook().getPersonList().get(0), LESSON));
+        assertEquals(PaymentStatus.PAID,
+                getPaymentStatus(model.getAddressBook().getPersonList().get(1), LESSON));
+    }
+
+    @Test
+    public void payment_invalidPersonIndex_failure() {
+        Index invalidIndex = Index.fromOneBased(model.getFilteredPersonList().size() + 1);
+        assertCommandFailure(new ClassPaymentCommand(invalidIndex, LESSON.getSubject(),
+                LESSON.getTiming(), PaymentStatus.PAID), model,
+                Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+    }
+
+    @Test
+    public void payment_missingEnrolment_failureAndDoesNotChangeModel() {
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        ClassPaymentCommand command = new ClassPaymentCommand(Index.fromOneBased(1),
+                LESSON.getSubject(), LESSON.getTiming(), PaymentStatus.PAID);
+
+        assertCommandFailure(command, model, String.format(ClassPaymentCommand.MESSAGE_NOT_ENROLLED,
+                LESSON.getSubject(), LESSON.getTiming()));
+        assertEquals(expectedModel, model);
+    }
+
+    @Test
+    public void payment_statusAlreadySet_returnsNoOpMessage() throws CommandException {
+        enrolStudentsInLesson(LESSON, 1);
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        Person person = model.getFilteredPersonList().get(0);
+
+        CommandResult result = new ClassPaymentCommand(Index.fromOneBased(1),
+                LESSON.getSubject(), LESSON.getTiming(), PaymentStatus.UNPAID).execute(model);
+
+        assertEquals(String.format(ClassPaymentCommand.MESSAGE_ALREADY_MARKED, person.getName(),
+                LESSON.getSubject(), LESSON.getTiming(), "unpaid"), result.getFeedbackToUser());
+        assertEquals(expectedModel, model);
+    }
+
+    @Test
+    public void paymentCommand_equals() {
+        ClassPaymentCommand command = new ClassPaymentCommand(Index.fromOneBased(1),
+                LESSON.getSubject(), LESSON.getTiming(), PaymentStatus.PAID);
+
+        assertEquals(command, command);
+        assertEquals(command, new ClassPaymentCommand(Index.fromOneBased(1),
+                new Subject("math"), LESSON.getTiming(), PaymentStatus.PAID));
+        assertNotEquals(command, new ClassPaymentCommand(Index.fromOneBased(2),
+                LESSON.getSubject(), LESSON.getTiming(), PaymentStatus.PAID));
+        assertNotEquals(command, new ClassPaymentCommand(Index.fromOneBased(1),
+                OTHER_LESSON.getSubject(), LESSON.getTiming(), PaymentStatus.PAID));
+        assertNotEquals(command, new ClassPaymentCommand(Index.fromOneBased(1),
+                LESSON.getSubject(), OTHER_LESSON.getTiming(), PaymentStatus.PAID));
+        assertNotEquals(command, new ClassPaymentCommand(Index.fromOneBased(1),
+                LESSON.getSubject(), LESSON.getTiming(), PaymentStatus.UNPAID));
+        assertNotEquals(command, null);
+    }
+
+    @Test
     public void delete_existingClass_removesEveryEnrolmentIncludingFilteredOutStudents() throws CommandException {
         enrolStudentsInLesson(LESSON, 1, 2);
         showPersonAtIndex(model, Index.fromOneBased(1));
@@ -265,5 +362,13 @@ public class ClassCommandsIntegrationTest {
         for (int oneBasedIndex : oneBasedIndexes) {
             new ClassEnrolCommand(Index.fromOneBased(oneBasedIndex), lesson).execute(model);
         }
+    }
+
+    private static PaymentStatus getPaymentStatus(Person person, Lesson targetClass) {
+        return person.getLessons().stream()
+                .filter(lesson -> lesson.isSameClass(targetClass))
+                .findFirst()
+                .orElseThrow()
+                .getPaymentStatus();
     }
 }

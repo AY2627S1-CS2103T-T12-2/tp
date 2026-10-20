@@ -9,10 +9,12 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Subject;
@@ -23,7 +25,9 @@ import seedu.address.model.person.Subject;
 public class PersonCard extends UiPart<Region> {
 
     private static final String FXML = "PersonListCard.fxml";
+    private static final String ENROLLED_CLASS_GROUP_STYLE_CLASS = "enrolled-class-group";
     private static final String ENROLLED_CLASS_BADGE_STYLE_CLASS = "enrolled-class-badge";
+    private static final String PAYMENT_STATUS_STYLE_CLASS = "payment-status";
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
     private static final Comparator<Lesson> LESSON_COMPARATOR = Comparator
             .comparingInt((Lesson enrolledClass) -> enrolledClass.getTiming().getDay().getValue())
@@ -49,7 +53,7 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private FlowPane tags;
     @FXML
-    private FlowPane classes;
+    private VBox classes;
     @FXML
     private Label subjects;
     @FXML
@@ -84,7 +88,7 @@ public class PersonCard extends UiPart<Region> {
 
         person.getLessons().stream()
                 .sorted(LESSON_COMPARATOR)
-                .map(enrolledClass -> createClassBadge(enrolledClass, classColorPalette))
+                .map(enrolledClass -> createClassGroup(enrolledClass, classColorPalette))
                 .forEach(classes.getChildren()::add);
         boolean hasEnrolledClasses = !classes.getChildren().isEmpty();
         classes.setVisible(hasEnrolledClasses);
@@ -112,11 +116,18 @@ public class PersonCard extends UiPart<Region> {
         lesson.setManaged(lesson.isVisible());
     }
 
-    private static Label createClassBadge(Lesson enrolledClass, ClassColorPalette classColorPalette) {
-        Label badge = new Label(formatClassBadge(enrolledClass));
-        badge.getStyleClass().addAll(ENROLLED_CLASS_BADGE_STYLE_CLASS,
+    private static HBox createClassGroup(Lesson enrolledClass, ClassColorPalette classColorPalette) {
+        HBox classGroup = new HBox(5);
+        classGroup.setAlignment(Pos.CENTER_LEFT);
+        classGroup.getStyleClass().add(ENROLLED_CLASS_GROUP_STYLE_CLASS);
+        Label classBadge = new Label(formatClassBadge(enrolledClass));
+        classBadge.getStyleClass().addAll(ENROLLED_CLASS_BADGE_STYLE_CLASS,
                 classColorPalette.getStyleClass(enrolledClass));
-        return badge;
+        Label paymentStatus = new Label(enrolledClass.getPaymentStatus().toDisplayString());
+        paymentStatus.getStyleClass().addAll(PAYMENT_STATUS_STYLE_CLASS,
+                PAYMENT_STATUS_STYLE_CLASS + "-" + enrolledClass.getPaymentStatus().toString());
+        classGroup.getChildren().addAll(classBadge, paymentStatus);
+        return classGroup;
     }
 
     static String formatClassBadge(Lesson enrolledClass) {

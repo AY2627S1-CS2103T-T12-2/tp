@@ -28,13 +28,12 @@
           </Label>
           <Label fx:id="name" text="\$first" styleClass="cell_big_label" />
         </HBox>
-        <FlowPane fx:id="classes" hgap="5" vgap="3" minWidth="0" HBox.hgrow="ALWAYS"
-                  styleClass="enrolled-class-container" />
       </HBox>
       <FlowPane fx:id="tags" hgap="5" vgap="3" styleClass="tag-container" />
       <Label fx:id="phone" styleClass="cell_small_label" text="\$phone" />
       <Label fx:id="address" styleClass="cell_small_label" text="\$address" />
       <Label fx:id="email" styleClass="cell_small_label" text="\$email" />
+      <VBox fx:id="classes" spacing="3" styleClass="enrolled-class-container" />
       <Label fx:id="subjects" styleClass="cell_small_label" wrapText="true" />
       <Label fx:id="cost" styleClass="cell_small_label" />
       <Label fx:id="lesson" styleClass="cell_small_label" />

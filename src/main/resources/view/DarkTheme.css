@@ -151,6 +151,24 @@
     -fx-opacity: 1;
 }
 
+.list-cell .enrolled-class-group .payment-status {
+    -fx-background-radius: 3;
+    -fx-padding: 1 4 1 4;
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 9px;
+    -fx-opacity: 0.82;
+}
+
+.list-cell .enrolled-class-group .payment-status-paid {
+    -fx-background-color: #536159;
+    -fx-text-fill: #e1e8e3;
+}
+
+.list-cell .enrolled-class-group .payment-status-unpaid {
+    -fx-background-color: #665e56;
+    -fx-text-fill: #e8e2dc;
+}
+
 .list-cell .enrolled-class-color-0 {
     -fx-background-color: #79c2ff;
 }

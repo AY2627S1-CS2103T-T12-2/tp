@@ -3,6 +3,7 @@ package seedu.address.model;
 import static java.util.Objects.requireNonNull;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
@@ -107,13 +108,19 @@ public interface Model {
                 .thenComparing(lesson -> lesson.getTiming().getEndTime())
                 .thenComparing(lesson -> lesson.getSubject().toString(), String.CASE_INSENSITIVE_ORDER);
 
-        return getAddressBook().getPersonList().stream()
+        List<Lesson> overlappingLessons = getAddressBook().getPersonList().stream()
                 .flatMap(person -> person.getLessons().stream())
                 .filter(existing -> !existing.isSameClass(candidate))
                 .filter(existing -> existing.getTiming().overlapsWith(candidate.getTiming()))
-                .distinct()
                 .sorted(classOrder)
                 .toList();
+        List<Lesson> distinctClasses = new ArrayList<>();
+        for (Lesson lesson : overlappingLessons) {
+            if (distinctClasses.stream().noneMatch(existing -> existing.isSameClass(lesson))) {
+                distinctClasses.add(lesson);
+            }
+        }
+        return List.copyOf(distinctClasses);
     }
 
 }

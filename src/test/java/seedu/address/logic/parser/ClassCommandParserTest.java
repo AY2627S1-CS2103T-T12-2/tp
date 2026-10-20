@@ -2,6 +2,7 @@ package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_STATUS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
@@ -13,10 +14,12 @@ import seedu.address.logic.Messages;
 import seedu.address.logic.commands.ClassCommand;
 import seedu.address.logic.commands.ClassDeleteCommand;
 import seedu.address.logic.commands.ClassEnrolCommand;
+import seedu.address.logic.commands.ClassPaymentCommand;
 import seedu.address.logic.commands.ClassUnenrolCommand;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.lesson.Subject;
 
 public class ClassCommandParserTest {
@@ -49,6 +52,36 @@ public class ClassCommandParserTest {
     public void parse_deleteAllFieldsPresent_success() {
         assertParseSuccess(parser, " delete sub/Math c/Monday1800-1930",
                 new ClassDeleteCommand(SUBJECT, TIMING));
+    }
+
+    @Test
+    public void parse_paymentAllFieldsPresent_success() {
+        assertParseSuccess(parser, " payment 1 sub/Math c/Monday1800-1930 status/paid",
+                new ClassPaymentCommand(Index.fromOneBased(1), SUBJECT, TIMING, PaymentStatus.PAID));
+        assertParseSuccess(parser, " payment 1 sub/Math c/Monday1800-1930 status/UNPAID",
+                new ClassPaymentCommand(Index.fromOneBased(1), SUBJECT, TIMING, PaymentStatus.UNPAID));
+    }
+
+    @Test
+    public void parse_paymentMissingField_failure() {
+        String expected = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ClassPaymentCommand.MESSAGE_USAGE);
+        assertParseFailure(parser, " payment 1 sub/Math c/Monday1800-1930", expected);
+        assertParseFailure(parser, " payment 1 sub/Math status/paid", expected);
+        assertParseFailure(parser, " payment 1 c/Monday1800-1930 status/paid", expected);
+        assertParseFailure(parser, " payment sub/Math c/Monday1800-1930 status/paid", expected);
+    }
+
+    @Test
+    public void parse_paymentInvalidStatus_failure() {
+        assertParseFailure(parser, " payment 1 sub/Math c/Monday1800-1930 status/pending",
+                PaymentStatus.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
+    public void parse_paymentDuplicateStatus_failure() {
+        assertParseFailure(parser,
+                " payment 1 sub/Math c/Monday1800-1930 status/paid status/unpaid",
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_STATUS));
     }
 
     @Test
