@@ -7,7 +7,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_COST;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -117,7 +117,7 @@ public class ClassEnrolCommand extends ClassCommand {
         }
 
         for (Person person : personsToEnrol) {
-            Set<Lesson> updatedLessons = new HashSet<>(person.getLessons());
+            Set<Lesson> updatedLessons = new LinkedHashSet<>(person.getLessons());
             updatedLessons.add(lesson);
             model.setPerson(person, person.withLessons(updatedLessons));
         }

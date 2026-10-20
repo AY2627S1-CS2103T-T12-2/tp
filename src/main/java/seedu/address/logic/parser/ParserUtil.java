@@ -52,11 +52,10 @@ public class ParserUtil {
     public static List<Index> parseIndexes(String oneBasedIndexes) throws ParseException {
         requireNonNull(oneBasedIndexes);
         List<Index> indexes = new ArrayList<>();
+        Set<Integer> seenZeroBasedIndexes = new LinkedHashSet<>();
         for (String indexText : oneBasedIndexes.trim().split("\\s+")) {
             Index index = parseIndex(indexText);
-            boolean isDuplicate = indexes.stream()
-                    .anyMatch(existing -> existing.getZeroBased() == index.getZeroBased());
-            if (isDuplicate) {
+            if (!seenZeroBasedIndexes.add(index.getZeroBased())) {
                 throw new ParseException(MESSAGE_DUPLICATE_INDEXES);
             }
             indexes.add(index);

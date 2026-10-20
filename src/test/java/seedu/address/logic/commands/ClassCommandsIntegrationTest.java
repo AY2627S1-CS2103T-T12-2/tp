@@ -9,6 +9,7 @@ import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -84,6 +85,23 @@ public class ClassCommandsIntegrationTest {
                 LESSON.getSubject(), LESSON.getTiming()), result.getFeedbackToUser());
         assertTrue(model.getAddressBook().getPersonList().get(1).getLessons().contains(LESSON));
         assertTrue(model.getAddressBook().getPersonList().get(2).getLessons().contains(LESSON));
+    }
+
+    @Test
+    public void enrolMultiple_studentWithExistingLessons_preservesLessonOrder() throws CommandException {
+        Lesson secondExistingLesson = new Lesson(new Subject("Science"), new Cost("35"),
+                new LessonTiming("Thursday1400-1530"));
+        Person originalStudent = model.getFilteredPersonList().get(0);
+        Set<Lesson> existingLessons = new LinkedHashSet<>(List.of(OTHER_LESSON, secondExistingLesson));
+        model.setPerson(originalStudent, originalStudent.withLessons(existingLessons));
+        new ClassEnrolCommand(Index.fromOneBased(2), LESSON).execute(model);
+
+        new ClassEnrolCommand(List.of(Index.fromOneBased(1)),
+                LESSON.getSubject(), LESSON.getTiming()).execute(model);
+
+        Person enrolledStudent = model.getAddressBook().getPersonList().get(0);
+        assertEquals(List.of(OTHER_LESSON, secondExistingLesson, LESSON),
+                enrolledStudent.getLessons().stream().toList());
     }
 
     @Test
