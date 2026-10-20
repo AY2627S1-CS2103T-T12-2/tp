@@ -6,6 +6,7 @@ import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
+import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 
 import java.util.List;
 import java.util.Set;
@@ -137,6 +138,12 @@ public class AddressBookParserTest {
     public void parseCommand_tag() throws Exception {
         TagCommand command = (TagCommand) parser.parseCommand("tag 1 exam-prep");
         assertEquals(new TagCommand(INDEX_FIRST_PERSON, Set.of(new Tag("exam-prep"))), command);
+    }
+
+    @Test
+    public void parseCommand_tagMultipleStudents() throws Exception {
+        TagCommand command = (TagCommand) parser.parseCommand("tag 1 2 t/math-2026");
+        assertEquals(new TagCommand(List.of(INDEX_FIRST_PERSON, INDEX_SECOND_PERSON), new Tag("math-2026")), command);
     }
 
     @Test

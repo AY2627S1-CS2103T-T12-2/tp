@@ -259,6 +259,18 @@ successful command, so searching does not remove students or enrolments from sto
 The [subject search guide](SubjectSearch.md) documents examples and input constraints.
 The [testing guide](Testing.md#subject-search-tests) lists automated coverage and commands for this feature.
 
+### Batch tag assignment
+
+`TagCommandParser` selects the legacy single-student mode when no `t/` prefix is present. When `t/` is present, it
+parses the whitespace-separated preamble as one or more unique displayed student indexes and parses exactly one tag
+from the prefix value. This distinction preserves `tag INDEX TAG [MORE_TAGS]` while allowing numeric batch tags to be
+separated unambiguously from indexes.
+
+Before changing the model, `TagCommand` validates every displayed index and categorizes all selected students. A
+student who already has the tag is skipped. A student with 10 or more tags is reported as being at the tag limit.
+Only the remaining students receive immutable replacement `Person` objects containing the new tag. The command result
+lists all three outcome groups, or reports that no changes were made when every selected student is skipped.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
@@ -789,6 +801,22 @@ followed by a separate, muted `Unpaid` label, and each balance badge should init
 
 Mark one student as paid, exit the app, and relaunch it. The paid status should still appear, while the other student's
 status remains unpaid. Open the timetable and verify that both students still appear together in one Math class.
+
+### Assigning a tag to multiple students
+
+Use a disposable data file with at least three displayed students and reset it between test cases. Unless a row states
+otherwise, selected students do not have the target tag and have fewer than 10 tags.
+
+| Test input | Expected result |
+| --- | --- |
+| `tag 1 2 3 t/exam-prep` | All three students receive `exam-prep`; feedback lists them under the added group. |
+| Give student 1 `math-2026` and student 2 ten other tags, then run `tag 1 2 3 t/math-2026` | Student 1 is skipped as already tagged, student 2 is skipped at the tag limit, and student 3 receives the tag; feedback identifies each outcome. |
+| Give student 1 `math-2026` and student 2 ten other tags, then run `tag 1 2 t/math-2026` | No student changes; feedback identifies student 1 as already tagged and student 2 as being at the tag limit. |
+| `tag 1 1 3 t/exam-prep` | Duplicate-index error; no student changes. |
+| `tag 1 999 t/exam-prep` | Invalid-index error; no student changes. |
+| `tag 1 3 t/ExamPrep` | Invalid-tag error under the existing lowercase tag rules; no student changes. |
+| `tag 1 3 t/2026` | Both students receive the numeric tag `2026`. |
+| `tag 3 exam-prep needs-follow-up` | The legacy format still adds both tags to student 3. |
 
 ### Saving data
 
