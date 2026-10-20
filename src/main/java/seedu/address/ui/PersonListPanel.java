@@ -47,8 +47,11 @@ public class PersonListPanel extends UiPart<Region> {
      */
     public void setPrivacyModeEnabled(boolean privacyModeEnabled) {
         if (this.privacyModeEnabled.get() == privacyModeEnabled) {
+            logger.finer("Privacy mode display state is unchanged");
             return;
         }
+        logger.fine("Updating person cards for privacy mode: "
+                + (privacyModeEnabled ? "enabled" : "disabled"));
         this.privacyModeEnabled.set(privacyModeEnabled);
         personListView.refresh();
     }
