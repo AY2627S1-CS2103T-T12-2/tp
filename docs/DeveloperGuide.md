@@ -203,7 +203,8 @@ Supported modes are mutually exclusive:
 
 * `find KEYWORD [MORE_KEYWORDS]` -> `NameContainsKeywordsPredicate`
 * `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]` -> `TagContainsKeywordsPredicate`
-* `find c/DAY [TIME_HHmm]` or `find c/TIME_HHmm` -> `LessonContainsKeywordsPredicate`
+* `find c/DAY [TIME_HHmm]`, `find c/TIME_HHmm`, or `find c/DATE [TIME_HHmm]`
+  -> `LessonContainsKeywordsPredicate`
 
 `FindCommandParser` selects the mode from the prefix immediately after `find`. It rejects mixed modes, duplicate search
 prefixes, empty prefixed values, and invalid tag or lesson keywords before constructing the corresponding predicate.
