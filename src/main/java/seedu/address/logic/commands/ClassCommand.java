@@ -10,5 +10,6 @@ public abstract class ClassCommand extends Command {
             + "  class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/DAYHHmm-HHmm\n"
             + "  class unenrol STUDENT_INDEX sub/SUBJECT c/DAYHHmm-HHmm\n"
             + "  class delete sub/SUBJECT c/DAYHHmm-HHmm\n"
-            + "  class payment STUDENT_INDEX sub/SUBJECT c/DAYHHmm-HHmm status/paid|unpaid";
+            + "  class payment STUDENT_INDEX sub/SUBJECT c/DAYHHmm-HHmm status/paid|unpaid\n"
+            + "  class details sub/SUBJECT c/DAYHHmm-HHmm [link/URL] [location/LOCATION] [notes/NOTES]";
 }

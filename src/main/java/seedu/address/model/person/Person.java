@@ -28,6 +28,7 @@ public class Person {
     private final Email email;
 
     // Data fields
+    private final GuardianContact guardianContact;
     private final Address address;
     private final Set<Tag> tags = new LinkedHashSet<>();
     private final Set<Lesson> lessons = new LinkedHashSet<>();
@@ -56,8 +57,17 @@ public class Person {
     public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags, Set<Lesson> lessons,
             Set<Subject> legacySubjects, Optional<Cost> legacyCost,
             Optional<seedu.address.model.person.Lesson> legacyLesson) {
+        this(name, phone, email, address, tags, lessons, legacySubjects, legacyCost, legacyLesson,
+                GuardianContact.EMPTY);
+    }
+
+    /** Creates a person with optional guardian details and retained legacy fields. */
+    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags, Set<Lesson> lessons,
+            Set<Subject> legacySubjects, Optional<Cost> legacyCost,
+            Optional<seedu.address.model.person.Lesson> legacyLesson, GuardianContact guardianContact) {
         requireAllNonNull(name, phone, email, address, tags, lessons,
-                legacySubjects, legacyCost, legacyLesson);
+                legacySubjects, legacyCost, legacyLesson, guardianContact);
+        this.guardianContact = guardianContact;
         this.name = name;
         this.phone = phone;
         this.email = email;
@@ -107,6 +117,16 @@ public class Person {
         return migrated;
     }
 
+    public GuardianContact getGuardianContact() {
+        return guardianContact;
+    }
+
+    /** Returns a copy with only its guardian details replaced. */
+    public Person withGuardianContact(GuardianContact updatedContact) {
+        return new Person(name, phone, email, address, tags, lessons,
+                legacySubjects, legacyCost, legacyLesson, updatedContact);
+    }
+
     public Name getName() {
         return name;
     }
@@ -137,7 +157,7 @@ public class Person {
     public Person withTags(Set<Tag> updatedTags) {
         requireAllNonNull(updatedTags);
         return new Person(name, phone, email, address, updatedTags, lessons,
-                legacySubjects, legacyCost, legacyLesson);
+                legacySubjects, legacyCost, legacyLesson, guardianContact);
     }
 
     /** Returns the immutable set of lessons in which this person is enrolled. */
@@ -157,7 +177,7 @@ public class Person {
     /** Returns a copy of this person with {@code updatedLessons} replacing the current lessons. */
     public Person withLessons(Set<Lesson> updatedLessons) {
         return new Person(name, phone, email, address, tags, updatedLessons,
-                legacySubjects, legacyCost, legacyLesson);
+                legacySubjects, legacyCost, legacyLesson, guardianContact);
     }
 
     /** Returns subjects retained from the previous student model. */
@@ -211,14 +231,15 @@ public class Person {
                 && lessons.equals(otherPerson.lessons)
                 && legacySubjects.equals(otherPerson.legacySubjects)
                 && legacyCost.equals(otherPerson.legacyCost)
-                && legacyLesson.equals(otherPerson.legacyLesson);
+                && legacyLesson.equals(otherPerson.legacyLesson)
+                && guardianContact.equals(otherPerson.guardianContact);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
         return Objects.hash(name, phone, email, address, tags, lessons,
-                legacySubjects, legacyCost, legacyLesson);
+                legacySubjects, legacyCost, legacyLesson, guardianContact);
     }
 
     @Override
@@ -235,6 +256,9 @@ public class Person {
         builder.add("subjects", legacySubjects)
                 .add("cost", legacyCost)
                 .add("lesson", legacyLesson);
+        if (!guardianContact.isEmpty()) {
+            builder.add("guardian", guardianContact);
+        }
         return builder.toString();
     }
 

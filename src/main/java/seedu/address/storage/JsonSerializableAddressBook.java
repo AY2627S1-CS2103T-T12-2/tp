@@ -24,6 +24,8 @@ class JsonSerializableAddressBook {
             "A student has duplicate enrolments for the same class.";
     public static final String MESSAGE_CLASS_COST_CONFLICT = "Students in the same class have different costs.";
 
+    public static final String MESSAGE_CLASS_DETAILS_CONFLICT = "Students in the same class have different details.";
+
     private final List<JsonAdaptedPerson> persons = new ArrayList<>();
 
     /**
@@ -75,6 +77,14 @@ class JsonSerializableAddressBook {
                                     && !existingLesson.getCost().equals(candidateLesson.getCost())));
             if (hasCostConflict) {
                 throw new IllegalValueException(MESSAGE_CLASS_COST_CONFLICT);
+            }
+            boolean hasDetailsConflict = addressBook.getPersonList().stream()
+                    .flatMap(existingPerson -> existingPerson.getLessons().stream())
+                    .anyMatch(existingLesson -> person.getLessons().stream().anyMatch(candidateLesson ->
+                            existingLesson.isSameClass(candidateLesson)
+                                    && !existingLesson.getDetails().equals(candidateLesson.getDetails())));
+            if (hasDetailsConflict) {
+                throw new IllegalValueException(MESSAGE_CLASS_DETAILS_CONFLICT);
             }
             addressBook.addPerson(person);
         }

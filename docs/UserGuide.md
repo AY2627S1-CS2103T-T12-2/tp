@@ -82,7 +82,7 @@ Format: `help`
 
 Adds a person to the address book.
 
-Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [sub/SUBJECT cost/COST c/DAYHHmm-HHmm]`
+Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [gn/GUARDIAN_NAME] [gp/GUARDIAN_PHONE] [ge/GUARDIAN_EMAIL] [sub/SUBJECT cost/COST c/DAYHHmm-HHmm]`
 
 <box type="tip" seamless>
 
@@ -97,6 +97,22 @@ Examples:
 * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
 * `add n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
 * `add n/John Davis p/91234567 e/johndavis@gmail.com a/Clementi t/exam-prep sub/Math cost/30 c/Monday1800-1930`
+
+### Guardian or parent contact details
+
+Each student can have one optional guardian or parent contact with a name (`gn/`), phone (`gp/`),
+and email (`ge/`). Supply any combination when adding a student or editing an existing student.
+The fields are independent: you can store just a phone number if the other details are unknown.
+Guardian details appear on the student's card and are saved with the student.
+
+Examples:
+
+* `add n/Alice Tan p/91234567 e/alice@example.com a/Clementi gn/Mary Tan gp/98765432 ge/mary@example.com`
+* `edit 1 gp/88888888` changes only the guardian's phone, preserving their name and email.
+* `edit 1 gn/ gp/ ge/` clears all guardian details. Omit a prefix to retain its current value.
+
+Guardian names, phones, and emails follow the same validation rules as student contact fields when supplied.
+Guardian details do not affect student identity, class membership, or payment status.
 
 ### Enrolling a student in a class: `class enrol`
 
@@ -147,6 +163,27 @@ Payment status describes the current recurring enrolment as a whole; it is not a
 sessions or billing months. Correspondingly, the displayed balance is the sum of the current unpaid enrolments rather
 than a history of accumulated charges.
 
+### Storing class details: `class details`
+
+Stores a meeting link, location, and notes for an existing recurring class. Subject and complete timing
+identify the class; the subject matches without regard to case. At least one student must already be enrolled.
+
+Format: `class details sub/SUBJECT c/DAYHHmm-HHmm [link/MEETING_URL] [location/LOCATION] [notes/NOTES]`
+
+Example: `class details sub/Math c/Monday1800-1930 link/https://meet.example.com/math location/Room 2 notes/Bring calculator`
+
+* Supply at least one of `link/`, `location/`, or `notes/`. Each prefix can appear only once.
+* Omitted fields retain their values. An empty prefix clears that field, for example
+  `class details sub/Math c/Monday1800-1930 link/` removes only the meeting link.
+* Links must start with `http://` or `https://` and contain a valid host. Spaces and embedded credentials are rejected.
+* Location and notes each accept up to 500 characters of single-line text, including spaces and punctuation.
+* Details are shared by **all** students in this class, including students hidden by an active search.
+  Later enrolments inherit the existing class details. Payment status remains specific to each student.
+* Details are displayed on student cards and in timetable entries, and are saved across restarts.
+  Links are displayed as text that you can select and copy from the command feedback; they are not opened automatically.
+* Class details follow the existing enrolment-based class lifecycle: deleting a class or removing its last
+  enrolment removes its details. Re-enrolling after that creates a class with empty details.
+
 ### Deleting a class: `class delete`
 
 Deletes a class globally by removing it from every enrolled student. Students and their other information are not
@@ -180,7 +217,7 @@ Format: `list`
 
 Edits an existing person in the address book.
 
-Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]... `
+Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]... [gn/GUARDIAN_NAME] [gp/GUARDIAN_PHONE] [ge/GUARDIAN_EMAIL]`
 
 * Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
@@ -313,14 +350,15 @@ _Details coming soon ..._
 
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [sub/SUBJECT cost/COST c/DAYHHmm-HHmm]` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/Clementi t/friend sub/Math cost/30 c/Monday1800-1930`
+**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [gn/GUARDIAN_NAME] [gp/GUARDIAN_PHONE] [ge/GUARDIAN_EMAIL] [sub/SUBJECT cost/COST c/DAYHHmm-HHmm]` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/Clementi t/friend sub/Math cost/30 c/Monday1800-1930`
 **Enrol in class** | `class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/DAYHHmm-HHmm`<br> e.g., `class enrol 1 sub/Physics cost/35 c/Wednesday1700-1830`
 **Unenrol from class** | `class unenrol STUDENT_INDEX sub/SUBJECT c/DAYHHmm-HHmm`<br> e.g., `class unenrol 1 sub/Physics c/Wednesday1700-1830`
 **Update payment status** | `class payment STUDENT_INDEX sub/SUBJECT c/DAYHHmm-HHmm status/paid|unpaid`<br> e.g., `class payment 1 sub/Physics c/Wednesday1700-1830 status/paid`
+**Class details** | `class details sub/SUBJECT c/DAYHHmm-HHmm [link/URL] [location/LOCATION] [notes/NOTES]`<br> e.g., `class details sub/Math c/Monday1800-1930 notes/Bring calculator`
 **Delete class** | `class delete sub/SUBJECT c/DAYHHmm-HHmm`<br> e.g., `class delete sub/Physics c/Wednesday1700-1830`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
-**Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
+**Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... [gn/GUARDIAN_NAME] [gp/GUARDIAN_PHONE] [ge/GUARDIAN_EMAIL]`<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Tag**    | `tag INDEX TAG [MORE_TAGS]`<br> e.g., `tag 3 exam-prep needs-follow-up`
 **Untag**  | `untag INDEX TAG [MORE_TAGS]` or `untag INDEX -all`<br> e.g., `untag 2 parent-follow-up`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`, `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]`, `find c/DAY [TIME_HHmm]`, or `find c/TIME_HHmm`<br> e.g., `find Jam`, `find t/fri`, `find c/Mon 1800`

@@ -15,6 +15,7 @@ import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Cost;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.GuardianContact;
 import seedu.address.model.person.Lesson;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
@@ -201,6 +202,15 @@ public class ParserUtil {
             throw new ParseException(LessonTiming.MESSAGE_CONSTRAINTS);
         }
         return new LessonTiming(trimmedTiming);
+    }
+
+    /** Parses optional guardian details, allowing empty fields to clear them. */
+    public static GuardianContact parseGuardianContact(String name, String phone, String email) throws ParseException {
+        try {
+            return new GuardianContact(name.trim(), phone.trim(), email.trim());
+        } catch (IllegalArgumentException e) {
+            throw new ParseException(e.getMessage(), e);
+        }
     }
 
     /** Parses a payment status. */

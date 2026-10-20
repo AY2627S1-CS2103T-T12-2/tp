@@ -20,6 +20,8 @@ public class TimetableEntryCard extends UiPart<Region> {
     private Label subject;
     @FXML
     private Label students;
+    @FXML
+    private Label details;
 
     /** Creates a card that displays the supplied timetable entry. */
     public TimetableEntryCard(TimetableEntry entry) {
@@ -27,6 +29,9 @@ public class TimetableEntryCard extends UiPart<Region> {
         time.setText(formatTimeRange(entry));
         subject.setText(entry.getLesson().getSubject().toString());
         students.setText(formatStudents(entry));
+        details.setText(entry.getLesson().getDetails().toString());
+        details.setVisible(!entry.getLesson().getDetails().isEmpty());
+        details.setManaged(details.isVisible());
     }
 
     static String formatTimeRange(TimetableEntry entry) {

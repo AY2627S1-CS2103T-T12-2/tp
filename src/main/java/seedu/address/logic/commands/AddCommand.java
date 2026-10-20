@@ -11,6 +11,8 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
@@ -32,7 +34,7 @@ public class AddCommand extends Command {
             + PREFIX_PHONE + "PHONE "
             + PREFIX_EMAIL + "EMAIL "
             + PREFIX_ADDRESS + "ADDRESS "
-            + "[" + PREFIX_TAG + "TAG]... "
+            + "[" + PREFIX_TAG + "TAG]... [gn/GUARDIAN_NAME] [gp/GUARDIAN_PHONE] [ge/GUARDIAN_EMAIL] "
             + "[" + PREFIX_SUBJECT + "SUBJECT " + PREFIX_COST + "COST "
             + PREFIX_CLASS + "DAYHHmm-HHmm]\n"
             + "Example: " + COMMAND_WORD + " "
@@ -76,8 +78,11 @@ public class AddCommand extends Command {
             }
         }
 
-        model.addPerson(toAdd);
-        return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.format(toAdd)));
+        Set<Lesson> lessons = toAdd.getLessons().stream().map(model::withExistingClassDetails)
+                .collect(Collectors.toSet());
+        Person student = toAdd.withLessons(lessons);
+        model.addPerson(student);
+        return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.format(student)));
     }
 
     @Override

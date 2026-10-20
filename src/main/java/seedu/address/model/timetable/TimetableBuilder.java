@@ -83,7 +83,8 @@ public final class TimetableBuilder {
         private final Set<Person> students = new LinkedHashSet<>();
 
         ClassGroup(Lesson enrolment) {
-            lesson = new Lesson(enrolment.getSubject(), enrolment.getCost(), enrolment.getTiming());
+            lesson = new Lesson(enrolment.getSubject(), enrolment.getCost(), enrolment.getTiming())
+                    .withDetails(enrolment.getDetails());
         }
     }
 }

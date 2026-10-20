@@ -9,6 +9,7 @@ import seedu.address.commons.util.ToStringBuilder;
 /** Represents a recurring weekly tuition lesson. */
 public class Lesson {
 
+    private final ClassDetails details;
     private final Subject subject;
     private final Cost cost;
     private final LessonTiming timing;
@@ -21,11 +22,26 @@ public class Lesson {
 
     /** Creates a lesson enrolment with the supplied payment status. */
     public Lesson(Subject subject, Cost cost, LessonTiming timing, PaymentStatus paymentStatus) {
-        requireAllNonNull(subject, cost, timing, paymentStatus);
+        this(subject, cost, timing, paymentStatus, ClassDetails.EMPTY);
+    }
+
+    /** Creates an enrolment with shared class details and individual payment status. */
+    public Lesson(Subject subject, Cost cost, LessonTiming timing, PaymentStatus paymentStatus, ClassDetails details) {
+        requireAllNonNull(subject, cost, timing, paymentStatus, details);
+        this.details = details;
         this.subject = subject;
         this.cost = cost;
         this.timing = timing;
         this.paymentStatus = paymentStatus;
+    }
+
+    public ClassDetails getDetails() {
+        return details;
+    }
+
+    /** Returns a copy with updated shared class details, retaining its payment status. */
+    public Lesson withDetails(ClassDetails updatedDetails) {
+        return new Lesson(subject, cost, timing, paymentStatus, updatedDetails);
     }
 
     public Subject getSubject() {
@@ -47,7 +63,7 @@ public class Lesson {
     /** Returns a copy of this lesson enrolment with {@code updatedPaymentStatus}. */
     public Lesson withPaymentStatus(PaymentStatus updatedPaymentStatus) {
         requireAllNonNull(updatedPaymentStatus);
-        return new Lesson(subject, cost, timing, updatedPaymentStatus);
+        return new Lesson(subject, cost, timing, updatedPaymentStatus, details);
     }
 
     /**
@@ -75,17 +91,18 @@ public class Lesson {
             return false;
         }
         return subject.equals(otherLesson.subject) && cost.equals(otherLesson.cost)
-                && timing.equals(otherLesson.timing) && paymentStatus == otherLesson.paymentStatus;
+                && timing.equals(otherLesson.timing) && paymentStatus == otherLesson.paymentStatus
+                && details.equals(otherLesson.details);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(subject, cost, timing, paymentStatus);
+        return Objects.hash(subject, cost, timing, paymentStatus, details);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this).add("subject", subject).add("cost", cost)
-                .add("timing", timing).add("paymentStatus", paymentStatus).toString();
+                .add("timing", timing).add("paymentStatus", paymentStatus).add("details", details).toString();
     }
 }

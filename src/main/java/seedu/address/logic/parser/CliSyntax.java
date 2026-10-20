@@ -16,5 +16,11 @@ public class CliSyntax {
     public static final Prefix PREFIX_CLASS = new Prefix("c/");
     public static final Prefix PREFIX_STATUS = new Prefix("status/");
     public static final Prefix PREFIX_LESSON = PREFIX_CLASS;
+    public static final Prefix PREFIX_GUARDIAN_NAME = new Prefix("gn/");
+    public static final Prefix PREFIX_GUARDIAN_PHONE = new Prefix("gp/");
+    public static final Prefix PREFIX_GUARDIAN_EMAIL = new Prefix("ge/");
+    public static final Prefix PREFIX_LINK = new Prefix("link/");
+    public static final Prefix PREFIX_LOCATION = new Prefix("location/");
+    public static final Prefix PREFIX_NOTES = new Prefix("notes/");
 
 }

@@ -5,6 +5,9 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_COST;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_GUARDIAN_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_GUARDIAN_NAME;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_GUARDIAN_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
@@ -37,7 +40,8 @@ public class AddCommandParser implements Parser<AddCommand> {
     public AddCommand parse(String args) throws ParseException {
         ArgumentMultimap argMultimap =
                 ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS, PREFIX_TAG,
-                        PREFIX_SUBJECT, PREFIX_COST, PREFIX_CLASS);
+                        PREFIX_SUBJECT, PREFIX_COST, PREFIX_CLASS,
+                        PREFIX_GUARDIAN_NAME, PREFIX_GUARDIAN_PHONE, PREFIX_GUARDIAN_EMAIL);
 
         if (!arePrefixesPresent(argMultimap, PREFIX_NAME, PREFIX_ADDRESS, PREFIX_PHONE, PREFIX_EMAIL)
                 || !argMultimap.getPreamble().isEmpty()) {
@@ -45,7 +49,7 @@ public class AddCommandParser implements Parser<AddCommand> {
         }
 
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS,
-                PREFIX_COST, PREFIX_CLASS);
+                PREFIX_COST, PREFIX_CLASS, PREFIX_GUARDIAN_NAME, PREFIX_GUARDIAN_PHONE, PREFIX_GUARDIAN_EMAIL);
         boolean hasSubject = argMultimap.getValue(PREFIX_SUBJECT).isPresent();
         boolean hasCost = argMultimap.getValue(PREFIX_COST).isPresent();
         boolean hasClass = argMultimap.getValue(PREFIX_CLASS).isPresent();
@@ -78,6 +82,10 @@ public class AddCommandParser implements Parser<AddCommand> {
             person = new Person(name, phone, email, address, tagList, subjects, cost, lesson);
         }
 
+        person = person.withGuardianContact(ParserUtil.parseGuardianContact(
+                argMultimap.getValue(PREFIX_GUARDIAN_NAME).orElse(""),
+                argMultimap.getValue(PREFIX_GUARDIAN_PHONE).orElse(""),
+                argMultimap.getValue(PREFIX_GUARDIAN_EMAIL).orElse("")));
         return new AddCommand(person);
     }
 

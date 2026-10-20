@@ -60,9 +60,10 @@ public class ClassEnrolCommand extends ClassCommand {
             throw new CommandException(Messages.getClassOverlapMessage(lesson, overlappingClasses));
         }
         Set<Lesson> updatedLessons = new HashSet<>(person.getLessons());
-        updatedLessons.add(lesson);
+        Lesson enrolment = model.withExistingClassDetails(lesson);
+        updatedLessons.add(enrolment);
         model.setPerson(person, person.withLessons(updatedLessons));
-        return new CommandResult(String.format(MESSAGE_SUCCESS, person.getName(), lesson));
+        return new CommandResult(String.format(MESSAGE_SUCCESS, person.getName(), enrolment));
     }
 
     @Override

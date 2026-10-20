@@ -238,6 +238,35 @@ The outstanding balance is derived rather than stored. `Person#getOutstandingBal
 whose status is `UNPAID`, excluding paid enrolments. Recomputing it from the immutable lesson values prevents a stored
 balance from becoming stale after `class payment`, enrolment, unenrolment, or class deletion operations.
 
+### Class details and guardian contacts
+
+`GuardianContact` is an immutable value containing independently optional name, phone, and email strings.
+Empty strings represent missing values. Non-empty values use the existing `Name`, `Phone`, and `Email`
+validation rules. `add` accepts `gn/`, `gp/`, and `ge/`; `edit` distinguishes omitted prefixes (retain)
+from present empty values (clear). Guardian details participate in `Person#equals` and `hashCode`, while
+`isSamePerson` retains the existing identity rules. All person-copy operations preserve the contact.
+
+`ClassDetails` is an immutable value containing a meeting link, location, and notes. Empty strings
+represent missing values. Links are validated as absolute HTTP(S) URIs with a host and no credentials;
+location and notes are single-line values limited to 500 characters each.
+
+`class details` resolves an existing logical class by subject and complete timing and updates every
+matching enrolment in the address book, rather than just the filtered list. Omitted fields retain their
+values and empty fields clear them. The command uses immutable lesson and person copies and retains each
+student's individual payment status and guardian contact. `add` and `class enrol` inherit an existing
+class's details. Timetable projection copies details while grouping by logical class identity.
+`Lesson#equals` includes details so updates are observable; `isSameClass` excludes details and payment status.
+
+`JsonAdaptedPerson` stores flat `guardianName`, `guardianPhone`, and `guardianEmail` properties;
+`JsonAdaptedLesson` stores `meetingLink`, `location`, and `notes`. Missing or null new properties default
+to empty strings for compatibility. Invalid new values fail loading with `IllegalValueException`.
+`JsonSerializableAddressBook` rejects conflicting details for the same logical class across students.
+Details exist only while at least one enrolment exists, consistent with the current class model.
+
+Automated coverage includes parser-to-model integration, filtered updates, field clearing, invalid input,
+existing command regressions, real file persistence, legacy data, invalid stored values, timetable grouping,
+and JavaFX display/hiding. See [the v1.4 manual checklist](ManualTests-v1.4.md) for interactive verification.
+
 ### Subject search
 
 `AddressBookParser` routes `find` to `SubjectFindCommandParser`. The parser handles the `sub/` mode and delegates

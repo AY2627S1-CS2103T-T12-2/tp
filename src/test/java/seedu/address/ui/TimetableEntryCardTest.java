@@ -1,7 +1,9 @@
 package seedu.address.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -13,6 +15,7 @@ import org.junit.jupiter.api.Test;
 
 import javafx.application.Platform;
 import javafx.scene.control.Label;
+import seedu.address.model.lesson.ClassDetails;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
@@ -66,6 +69,25 @@ public class TimetableEntryCardTest {
             assertLabel(card, "time", "18:00-19:30");
             assertLabel(card, "subject", "Math");
             assertLabel(card, "students", "Alice Tan");
+        });
+    }
+
+    @Test
+    public void constructor_sharedDetails_displaysOrHidesOptionalText() throws Exception {
+        runOnFxThread(() -> {
+            Lesson lesson = new Lesson(new Subject("Math"), new Cost("30"),
+                    new LessonTiming("Monday1800-1930"));
+            ClassDetails details = new ClassDetails("https://example.com/math", "Room 2", "Bring notes");
+            TimetableEntryCard card = new TimetableEntryCard(new TimetableEntry(
+                    lesson.withDetails(details), List.of(new PersonBuilder().build())));
+            assertLabel(card, "details", details.toString());
+            Label detailsLabel = (Label) card.getRoot().lookup("#details");
+            assertTrue(detailsLabel.isVisible());
+            assertTrue(detailsLabel.isManaged());
+            TimetableEntryCard emptyCard = new TimetableEntryCard(new TimetableEntry(lesson, List.of()));
+            Label emptyLabel = (Label) emptyCard.getRoot().lookup("#details");
+            assertFalse(emptyLabel.isVisible());
+            assertFalse(emptyLabel.isManaged());
         });
     }
 

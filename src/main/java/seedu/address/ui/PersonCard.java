@@ -55,6 +55,10 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private FlowPane tags;
     @FXML
+    private Label guardian;
+    @FXML
+    private VBox classDetails;
+    @FXML
     private VBox classes;
     @FXML
     private Label subjects;
@@ -84,6 +88,9 @@ public class PersonCard extends UiPart<Region> {
         phone.setText(person.getPhone().value);
         address.setText(person.getAddress().value);
         email.setText(person.getEmail().value);
+        guardian.setText(person.getGuardianContact().isEmpty() ? "" : "Guardian: " + person.getGuardianContact());
+        guardian.setVisible(!person.getGuardianContact().isEmpty());
+        guardian.setManaged(guardian.isVisible());
 
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
@@ -93,6 +100,15 @@ public class PersonCard extends UiPart<Region> {
                 .sorted(LESSON_COMPARATOR)
                 .map(enrolledClass -> createClassGroup(enrolledClass, classColorPalette))
                 .forEach(classes.getChildren()::add);
+        person.getLessons().stream().sorted(LESSON_COMPARATOR)
+                .filter(enrolledClass -> !enrolledClass.getDetails().isEmpty()).forEach(enrolledClass -> {
+                    Label details = new Label(formatClassBadge(enrolledClass) + "\n" + enrolledClass.getDetails());
+                    details.setWrapText(true);
+                    details.getStyleClass().add("cell_small_label");
+                    classDetails.getChildren().add(details);
+                });
+        classDetails.setVisible(!classDetails.getChildren().isEmpty());
+        classDetails.setManaged(classDetails.isVisible());
         boolean hasEnrolledClasses = !classes.getChildren().isEmpty();
         classes.setVisible(hasEnrolledClasses);
         classes.setManaged(hasEnrolledClasses);
