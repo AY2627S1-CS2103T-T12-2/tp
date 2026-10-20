@@ -98,28 +98,44 @@ Examples:
 * `add n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
 * `add n/John Davis p/91234567 e/johndavis@gmail.com a/Clementi t/exam-prep sub/Math cost/30 c/Monday1800-1930`
 
-### Guardian or parent contact details
+### Adding guardian and class details to a contact
 
-Each student can have one optional guardian or parent contact with a name (`gn/`), phone (`gp/`),
-and email (`ge/`). Supply any combination when adding a student or editing an existing student.
-The fields are independent: you can store just a phone number if the other details are unknown.
-Guardian details appear on the student's card and are saved with the student.
+The `add` command accepts optional guardian name (`gn/`), phone (`gp/`), and email (`ge/`) fields.
+These are independent: for example, supply just `gp/` when only a parent's phone is known.
+Non-empty guardian values follow the same validation rules as student contact fields.
+The details appear on the student card and are saved across restarts.
+
+When adding a contact with a class (`sub/`, `cost/`, and complete `c/DAYHHmm-HHmm`), also supply
+`mode/online` or `mode/offline`. An online class may optionally have an HTTP(S) meeting URL in `link/`.
+Offline classes cannot store a non-empty link. New classes default to offline when the mode is omitted.
+Mode values are case-insensitive. Optional `location/` and `notes/` each accept up to 500 characters
+of single-line text. Class fields require a complete class in the same `add` command.
 
 Examples:
 
-* `add n/Alice Tan p/91234567 e/alice@example.com a/Clementi gn/Mary Tan gp/98765432 ge/mary@example.com`
-* `edit 1 gp/88888888` changes only the guardian's phone, preserving their name and email.
-* `edit 1 gn/ gp/ ge/` clears all guardian details. Omit a prefix to retain its current value.
+* `add n/Alice Tan p/91234567 e/alice@example.com a/Clementi gn/Mary Tan gp/98765432 ge/mary@example.com sub/Math cost/30 c/Saturday1800-1930 mode/online link/https://meet.example.com/math`
+* `add n/Bob Tan p/81234567 e/bob@example.com a/Jurong gp/89999999`
+* `add n/Cara Tan p/71234567 e/cara@example.com a/Tampines sub/Physics cost/40 c/Saturday1600-1730 mode/offline location/Room 2 notes/Bring calculator`
 
-Guardian names, phones, and emails follow the same validation rules as student contact fields when supplied.
-Guardian details do not affect student identity, class membership, or payment status.
+Each prefix may be supplied once. Links must contain a valid host and cannot contain spaces or
+embedded credentials. A link is allowed only when the class is online.
+
+Students in the same logical class share its details. When adding another contact to an existing
+class, omitted fields inherit the existing values; explicitly supplied values must agree with them.
+Existing classmates, guardian contacts, and payment statuses are not changed by adding a contact.
+Mode and details appear on student cards and timetable entries and are saved with the enrolments.
+Older saved classes without a mode default to offline, or online if they already contain a link.
+
+The new field-entry scope is `add` only. `edit` and `class enrol` retain their existing syntax;
+ordinary contact edits and enrolments preserve stored attributes. Guardian/class-field editing is
+not provided in this change.
 
 ### Enrolling a student in a class: `class enrol`
 
 Enrols an existing student in a recurring weekly class. The student is identified by the index shown in the current
 student list.
 
-Format: `class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/DAYHHmm-HHmm [mode/online|offline] [link/URL] [location/LOCATION] [notes/NOTES]`
+Format: `class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/DAYHHmm-HHmm`
 
 Example: `class enrol 1 sub/Physics cost/35 c/Wednesday1700-1830`
 
@@ -163,45 +179,6 @@ Payment status describes the current recurring enrolment as a whole; it is not a
 sessions or billing months. Correspondingly, the displayed balance is the sum of the current unpaid enrolments rather
 than a history of accumulated charges.
 
-### Online and offline class fields
-
-Class fields are supplied inline with `add`, `class enrol`, and `edit`, like guardian contact fields.
-Use `mode/online` or `mode/offline`. An online class can optionally have a meeting URL in `link/`.
-Classes without a supplied mode default to offline, and offline classes cannot store a meeting link.
-Mode values are case-insensitive. Location (`location/`) and notes (`notes/`) are also optional inline fields.
-
-Examples:
-
-* `add n/Alice Tan p/91234567 e/alice@example.com a/Clementi gn/Mary Tan gp/98765432 sub/Math cost/30 c/Monday1800-1930 mode/online link/https://meet.example.com/math`
-* `class enrol 2 sub/Physics cost/35 c/Wednesday1700-1830 mode/offline location/Room 2`
-* `edit 1 sub/Math c/Monday1800-1930 mode/online link/https://meet.example.com/newmath`
-* `edit 1 sub/Math c/Monday1800-1930 mode/offline` switches the class to offline and removes its meeting link.
-
-When editing, both `sub/` and the complete `c/DAYHHmm-HHmm` identify one of the selected student's
-existing classes. Include at least one class field (`mode/`, `link/`, `location/`, or `notes/`).
-Student and guardian fields can be edited in the same command. A student must already be enrolled in
-the selected class; an error leaves all fields unchanged.
-
-* Omitted fields retain their values. Empty `link/`, `location/`, or `notes/` clears that field.
-  `mode/` must always contain online or offline.
-* On an online class, `edit 1 sub/Math c/Monday1800-1930 link/NEW_URL` replaces only the link;
-  `link/` clears it while keeping the class online. On an offline class, include `mode/online`
-  before supplying a non-empty link.
-* Switching to offline automatically clears an existing link. Explicitly combining `mode/offline`
-  with a non-empty `link/` is rejected.
-* Links must be absolute HTTP(S) URLs with a valid host, without spaces or embedded credentials.
-  Location and notes each accept up to 500 characters of single-line text.
-* Class fields are shared by all enrolled students, including classmates hidden by a search.
-  Editing an enrolment updates its classmates' class fields while preserving each student's
-  payment status and guardian contacts.
-* Later enrolments inherit existing class fields when omitted. Explicit fields must agree with
-  the existing class; use `edit` to change the shared mode or link.
-* Mode and details appear on student cards and timetable entries and survive restarts.
-  Older saved classes without a mode are treated as offline unless they already have a link,
-  in which case they are treated as online.
-* Removing the last enrolment or deleting the class removes its stored details. Re-enrolling
-  after that creates an offline class unless inline fields specify otherwise.
-
 ### Deleting a class: `class delete`
 
 Deletes a class globally by removing it from every enrolled student. Students and their other information are not
@@ -235,7 +212,7 @@ Format: `list`
 
 Edits an existing person in the address book.
 
-Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]... [gn/GUARDIAN_NAME] [gp/GUARDIAN_PHONE] [ge/GUARDIAN_EMAIL] [sub/SUBJECT c/DAYHHmm-HHmm [mode/online|offline] [link/URL] [location/LOCATION] [notes/NOTES]]`
+Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]... `
 
 * Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
@@ -369,13 +346,13 @@ _Details coming soon ..._
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 **Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [gn/GUARDIAN_NAME] [gp/GUARDIAN_PHONE] [ge/GUARDIAN_EMAIL] [sub/SUBJECT cost/COST c/DAYHHmm-HHmm [mode/online\|offline] [link/URL] [location/LOCATION] [notes/NOTES]]` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/Clementi t/friend sub/Math cost/30 c/Monday1800-1930`
-**Enrol in class** | `class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/DAYHHmm-HHmm [mode/online\|offline] [link/URL]`<br> e.g., `class enrol 1 sub/Physics cost/35 c/Wednesday1700-1830`
+**Enrol in class** | `class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/DAYHHmm-HHmm`<br> e.g., `class enrol 1 sub/Physics cost/35 c/Wednesday1700-1830`
 **Unenrol from class** | `class unenrol STUDENT_INDEX sub/SUBJECT c/DAYHHmm-HHmm`<br> e.g., `class unenrol 1 sub/Physics c/Wednesday1700-1830`
 **Update payment status** | `class payment STUDENT_INDEX sub/SUBJECT c/DAYHHmm-HHmm status/paid|unpaid`<br> e.g., `class payment 1 sub/Physics c/Wednesday1700-1830 status/paid`
 **Delete class** | `class delete sub/SUBJECT c/DAYHHmm-HHmm`<br> e.g., `class delete sub/Physics c/Wednesday1700-1830`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
-**Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... [gn/GUARDIAN_NAME] [gp/GUARDIAN_PHONE] [ge/GUARDIAN_EMAIL] [sub/SUBJECT c/DAYHHmm-HHmm [mode/online\|offline] [link/URL] [location/LOCATION] [notes/NOTES]]`<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
+**Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Tag**    | `tag INDEX TAG [MORE_TAGS]`<br> e.g., `tag 3 exam-prep needs-follow-up`
 **Untag**  | `untag INDEX TAG [MORE_TAGS]` or `untag INDEX -all`<br> e.g., `untag 2 parent-follow-up`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`, `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]`, `find c/DAY [TIME_HHmm]`, or `find c/TIME_HHmm`<br> e.g., `find Jam`, `find t/fri`, `find c/Mon 1800`

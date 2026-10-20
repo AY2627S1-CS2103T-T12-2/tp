@@ -32,8 +32,7 @@ public class AttributesStorageTest {
         storage.saveAddressBook(model.getAddressBook());
         assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
         ModelManager restored = new ModelManager(storage.readAddressBook().orElseThrow(), model.getUserPrefs());
-        new AddressBookParser().parseCommand("edit 1 gp/").execute(restored);
-        new AddressBookParser().parseCommand("edit 1 sub/Math c/Monday1800-1930 link/").execute(restored);
+        new AddressBookParser().parseCommand("tag 1 exam-prep").execute(restored);
         storage.saveAddressBook(restored.getAddressBook());
         assertEquals(restored.getAddressBook(), storage.readAddressBook().orElseThrow());
     }
@@ -83,12 +82,10 @@ public class AttributesStorageTest {
         ModelManager model = new ModelManager();
         AddressBookParser parser = new AddressBookParser();
         for (String command : List.of(
-                "add n/Alice p/91234567 e/alice@example.com a/One gn/Mary Tan gp/98765432 ge/mary@example.com",
-                "add n/Bob p/81234567 e/bob@example.com a/Two",
-                "class enrol 1 sub/Math cost/30 c/Monday1800-1930",
-                "class enrol 2 sub/Math cost/30 c/Monday1800-1930",
-                "edit 1 sub/Math c/Monday1800-1930 mode/online link/https://example.com/math"
+                "add n/Alice p/91234567 e/alice@example.com a/One gn/Mary Tan gp/98765432 ge/mary@example.com"
+                        + " sub/Math cost/30 c/Monday1800-1930 mode/online link/https://example.com/math"
                         + " location/Room 2 notes/Bring notes",
+                "add n/Bob p/81234567 e/bob@example.com a/Two sub/Math cost/30 c/Monday1800-1930",
                 "class payment 1 sub/Math c/Monday1800-1930 status/paid")) {
             parser.parseCommand(command).execute(model);
         }

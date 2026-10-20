@@ -238,42 +238,36 @@ The outstanding balance is derived rather than stored. `Person#getOutstandingBal
 whose status is `UNPAID`, excluding paid enrolments. Recomputing it from the immutable lesson values prevents a stored
 balance from becoming stale after `class payment`, enrolment, unenrolment, or class deletion operations.
 
-### Class details and guardian contacts
+### Adding class and guardian attributes
 
-`GuardianContact` is an immutable value containing independently optional name, phone, and email strings.
-Empty strings represent missing values. Non-empty values use the existing `Name`, `Phone`, and `Email`
-validation rules. `add` accepts `gn/`, `gp/`, and `ge/`; `edit` distinguishes omitted prefixes (retain)
-from present empty values (clear). Guardian details participate in `Person#equals` and `hashCode`, while
-`isSamePerson` retains the existing identity rules. All person-copy operations preserve the contact.
+`add` accepts optional `gn/`, `gp/`, and `ge/` guardian contact fields. `GuardianContact` validates
+non-empty values with the existing name, phone, and email rules. Contact fields are independent,
+with empty strings representing missing values. They participate in `Person#equals` and `hashCode`,
+while student identity retains its existing rules. Person-copy operations preserve the contact.
 
-`ClassDetails` is an immutable value containing `ClassMode` (`ONLINE` or `OFFLINE`), a meeting
-link, location, and notes. Offline classes cannot have a meeting link. Online classes may omit the link.
-Links are validated as absolute HTTP(S) URIs with a host and no credentials; location and notes are
-single-line values limited to 500 characters each.
+A contact added with a complete lesson can include `mode/online|offline`, `link/`, `location/`, and
+`notes/`. `ClassDetails` stores an immutable `ClassMode`, meeting link, location, and notes. Online
+classes may omit the link; offline classes reject non-empty links. Links must be absolute HTTP(S)
+URIs with a host and no credentials. Location and notes are limited to 500 single-line characters.
 
-`add`, `class enrol`, and `edit` accept the inline prefixes `mode/`, `link/`, `location/`, and `notes/`.
-`ClassDetailsUpdate` represents optional fields, distinguishing omission from an explicit empty value.
-Switching to offline clears a retained link; an explicitly supplied non-empty link with offline mode fails.
-For new classes, absent fields default to offline and empty details. For existing classes, enrolment
-inherits omitted details and rejects conflicting explicit values.
+`ClassDetailsUpdate` represents optional input for adding a contact. New classes default to offline;
+adding a contact to an existing logical class inherits omitted details and rejects conflicting
+explicit values before adding any data. Existing classmates and their payment statuses are untouched.
+Logical class identity excludes these details, while lesson equality includes them for UI updates.
 
-`edit` requires subject and complete timing whenever class fields are supplied, selecting one existing
-enrolment of the displayed student. It validates the entire update before changing data, then updates
-all classmates using immutable lesson and person copies. Guardian edits apply only to the selected
-student. Payment status, class identity, and unrelated enrolments are preserved.
-Timetable projection groups by logical class identity and displays the shared mode and details.
-`Lesson#equals` includes details so changes are observable; `isSameClass` excludes them and payment status.
+No new attribute input is added to `edit` or `class enrol`. Their original parsers, descriptors, and
+public syntax are retained. Minimal integration preserves guardian data during ordinary contact
+edits and inherits stored class details during ordinary enrolments, preventing data loss or
+inconsistent saved classes. Timetable projection retains shared details while grouping classmates.
 
-`JsonAdaptedPerson` stores flat `guardianName`, `guardianPhone`, and `guardianEmail` properties;
-`JsonAdaptedLesson` stores `mode`, `meetingLink`, `location`, and `notes`. Missing or null contact/text
-properties default to empty strings. Older lessons without a mode are inferred as offline when the
-link is empty, or online when a link was already saved. Invalid modes and offline/link combinations
-fail loading with `IllegalValueException`. `JsonSerializableAddressBook` rejects conflicting shared
-class details across students. Details exist only while at least one enrolment exists.
+`JsonAdaptedPerson` stores `guardianName`, `guardianPhone`, and `guardianEmail`;
+`JsonAdaptedLesson` stores `mode`, `meetingLink`, `location`, and `notes`. Missing contact/text values
+default to empty strings. Missing modes are inferred as online when a link already exists, otherwise
+offline. Invalid stored fields and inconsistent details across classmates fail loading.
 
-Automated coverage includes inline add/edit/enrol flows, mode transitions, filtered updates, field
-clearing, invalid input without partial mutation, enrolment inheritance/conflicts, legacy data, file
-persistence, timetable grouping, and JavaFX display. See [the v1.4 manual checklist](ManualTests-v1.4.md).
+Automated coverage focuses on add parsing/execution, optional fields, invalid inputs without partial
+mutation, class inheritance/conflicts, JSON compatibility and persistence, UI display, and preservation
+through existing commands. See [the manual checklist](ManualTests-v1.4.md).
 
 ### Subject search
 

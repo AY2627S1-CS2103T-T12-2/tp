@@ -23,7 +23,7 @@ public class ClassEnrolCommand extends ClassCommand {
     public static final String MESSAGE_USAGE = COMMAND_WORD + " " + SUBCOMMAND_WORD
             + ": Enrols the indexed student in a class.\n"
             + "Parameters: STUDENT_INDEX " + PREFIX_SUBJECT + "SUBJECT " + PREFIX_COST + "COST "
-            + PREFIX_CLASS + "DAYHHmm-HHmm [mode/online|offline] [link/URL] [location/LOCATION] [notes/NOTES]\n"
+            + PREFIX_CLASS + "DAYHHmm-HHmm\n"
             + "Example: " + COMMAND_WORD + " " + SUBCOMMAND_WORD
             + " 1 sub/Math cost/30 c/Monday1800-1930";
     public static final String MESSAGE_SUCCESS = "Enrolled %1$s in class: %2$s";
@@ -33,16 +33,9 @@ public class ClassEnrolCommand extends ClassCommand {
 
     private final Index personIndex;
     private final Lesson lesson;
-    private final ClassDetailsUpdate detailsUpdate;
 
     /** Creates a command that enrols the indexed student in {@code lesson}. */
     public ClassEnrolCommand(Index personIndex, Lesson lesson) {
-        this(personIndex, lesson, ClassDetailsUpdate.NONE);
-    }
-
-    /** Creates an enrolment with optional inline class fields. */
-    public ClassEnrolCommand(Index personIndex, Lesson lesson, ClassDetailsUpdate detailsUpdate) {
-        this.detailsUpdate = requireNonNull(detailsUpdate);
         this.personIndex = requireNonNull(personIndex);
         this.lesson = requireNonNull(lesson);
     }
@@ -67,16 +60,14 @@ public class ClassEnrolCommand extends ClassCommand {
             throw new CommandException(Messages.getClassOverlapMessage(lesson, overlappingClasses));
         }
         Set<Lesson> updatedLessons = new HashSet<>(person.getLessons());
-        Lesson enrolment = detailsUpdate.forEnrolment(model, lesson);
-        updatedLessons.add(enrolment);
+        updatedLessons.add(ClassDetailsUpdate.NONE.forEnrolment(model, lesson));
         model.setPerson(person, person.withLessons(updatedLessons));
-        return new CommandResult(String.format(MESSAGE_SUCCESS, person.getName(), enrolment));
+        return new CommandResult(String.format(MESSAGE_SUCCESS, person.getName(), lesson));
     }
 
     @Override
     public boolean equals(Object other) {
         return other == this || other instanceof ClassEnrolCommand otherCommand
-                && personIndex.equals(otherCommand.personIndex) && lesson.equals(otherCommand.lesson)
-                && detailsUpdate.equals(otherCommand.detailsUpdate);
+                && personIndex.equals(otherCommand.personIndex) && lesson.equals(otherCommand.lesson);
     }
 }

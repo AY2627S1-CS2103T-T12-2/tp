@@ -1,7 +1,10 @@
-# v1.4 manual tests: inline class fields and guardian contacts
+# v1.4 manual tests: add contact details
 
-Use a separate test-data folder so the commands below do not change real students.
-From the repository, build with `./gradlew shadowJar`. Close any existing TutEasy window, then run:
+This change adds guardian and class attributes through `add` only. Use a separate test-data folder:
+
+1. From the repository, build with `./gradlew shadowJar` and close any existing TutEasy window.
+2. Launch the built app in a fresh folder using the commands below.
+3. Only in that isolated instance, enter `clear` to remove sample data.
 
 ```sh
 TEST_DIR=$(mktemp -d /tmp/tuteasy-v14.XXXXXX)
@@ -9,120 +12,82 @@ cd "$TEST_DIR"
 java -jar /Users/Laxshan/Documents/tp/build/libs/tuteasy.jar
 ```
 
-Keep the terminal open for the restart test. Only in this isolated instance, enter `clear` to remove sample data.
-
-## 1. Add online and offline classes inline
-
-Enter the commands one at a time:
+## 1. Add a contact with all details
 
 ```text
-add n/Alice Tan p/91234567 e/alice@example.com a/Clementi gn/Mary Tan gp/98765432 ge/mary@example.com sub/Math cost/30 c/Saturday1800-1930 mode/online link/https://meet.example.com/math?room=1&code=123
-add n/Bob Tan p/81234567 e/bob@example.com a/Jurong
-class enrol 2 sub/Math cost/30 c/Saturday1800-1930
-class enrol 1 sub/Physics cost/40 c/Saturday1600-1730 mode/offline location/Room 2
+add n/Alice Tan p/91234567 e/alice@example.com a/Clementi gn/Mary Tan gp/98765432 ge/mary@example.com sub/Math cost/30 c/Saturday1800-1930 mode/online link/https://meet.example.com/math?room=1&code=123 notes/Bring calculator
+```
+
+Expected: Alice has the guardian name, phone, and email. Math shows Online, the full meeting URL,
+and the note. Her balance is 30 and the enrolment is Unpaid.
+
+## 2. Add optional contacts and offline classes
+
+```text
+add n/Bob Tan p/81234567 e/bob@example.com a/Jurong gp/89999999
+add n/Cara Tan p/71234567 e/cara@example.com a/Tampines sub/Physics cost/40 c/Saturday1600-1730 mode/offline location/Room 2
+add n/Dan Tan p/61234567 e/dan@example.com a/Bedok sub/English cost/20 c/Saturday1400-1530
+add n/Eve Tan p/51111111 e/eve@example.com a/Woodlands sub/Art cost/10 c/Saturday1200-1330 mode/online
 ```
 
 Expected:
 
-- Alice shows her guardian's name, phone, and email; Bob has none.
-- Both students' Math shows Online and the same meeting URL. Bob inherits the existing class fields.
-- Alice's Physics shows Offline, Room 2, and no link. Alice's balance is 70 and Bob's is 30.
-- The existing `add` and `class enrol` commands accept these fields; no separate details command is needed.
+- Bob stores only a guardian phone, with no class.
+- Cara has no guardian and an Offline Physics class with Room 2 and no link.
+- Dan's class defaults to Offline without a link.
+- Eve's Art class is Online with no link, because links are optional for online classes.
 
-Enter `timetable`: Saturday shows one Math class with both students, its online mode and URL,
-and a separate offline Physics class. Enter `list` before continuing.
-
-## 2. Edit guardian fields independently
-
-| Command | Expected result |
-| --- | --- |
-| `edit 1 gp/88888888` | Changes only Alice's guardian phone. |
-| `edit 1 ge/` | Clears only guardian email. |
-| `edit 1 ge/newmary@example.com p/91111111` | Changes guardian email and student phone, preserves class fields. |
-| `tag 1 exam-prep` | Adds a tag without removing guardian or class fields. |
-| `find Bob` then `edit 1 gn/Ben Tan gp/89999999` then `list` | Edits Bob's guardian using the displayed index; Alice stays unchanged. |
-
-## 3. Edit online fields and switch modes
-
-| Command | Expected result |
-| --- | --- |
-| `edit 1 sub/Math c/Saturday1800-1930 link/https://meet.example.com/newmath` | Replaces the link for both Math students; mode remains Online. |
-| `edit 1 sub/Math c/Saturday1800-1930 link/` | Clears only the link; class stays Online. |
-| `edit 1 sub/Math c/Saturday1800-1930 link/https://meet.example.com/math notes/Bring calculator` | Saves the new URL and notes. |
-| `edit 1 sub/Math c/Saturday1800-1930 mode/offline` | Both students' Math switches to Offline and its link is cleared. Physics and guardian details stay unchanged. |
-| `edit 1 sub/Math c/Saturday1800-1930 mode/online` | Both students' Math switches to Online with no link; a link is optional. |
-| `find Alice` then `edit 1 sub/Math c/Saturday1800-1930 link/https://meet.example.com/finalmath` then `list` | Both Alice and hidden classmate Bob get the link. |
-
-## 4. Preserve payments and inherit shared details
+## 3. Add another contact to the existing class
 
 ```text
 class payment 1 sub/Math c/Saturday1800-1930 status/paid
-edit 1 sub/Math c/Saturday1800-1930 mode/offline
-edit 1 sub/Math c/Saturday1800-1930 mode/online link/https://meet.example.com/finalmath
-add n/Cara Tan p/71234567 e/cara@example.com a/Tampines gp/77777777
-class enrol 3 sub/Math cost/30 c/Saturday1800-1930
-add n/Dan Tan p/61234567 e/dan@example.com a/Bedok sub/Math cost/30 c/Saturday1800-1930
+add n/Fay Tan p/41111111 e/fay@example.com a/Pasir Ris sub/Math cost/30 c/Saturday1800-1930
 ```
 
-Expected: Alice's Math remains Paid and her balance is 40. Everyone else's Math is Unpaid, with balance 30.
-All four students share the Online mode and meeting link. Cara can store only a guardian phone.
-The timetable still has one Math entry with all four students.
+Expected: Fay inherits Math's Online mode, URL, and note. Alice's guardian stays unchanged.
+Alice remains Paid with balance 0; Fay is Unpaid with balance 30.
+Enter `timetable`: Saturday has one Math entry with both students and its online details.
+Enter `list` before continuing.
 
-## 5. Reject invalid input without changing any data
+## 4. Reject invalid attributes without adding a contact
 
-Run these separately. Each should show an error and leave all student and class fields unchanged:
+Run each command separately. Each should show an error and leave the six contacts above unchanged:
 
 ```text
-edit 1 gp/abc
-edit 1 ge/not-an-email
-edit 1 gn/@Mary
-edit 99 gn/Mary
-edit 1 gp/123 gp/456
-edit 1 mode/online
-edit 1 sub/Math c/Saturday1800-1930
-edit 1 sub/Unknown c/Saturday1800-1930 mode/online
-edit 1 sub/Math c/Saturday1800-1930 mode/hybrid
-edit 1 sub/Math c/Saturday1800-1930 mode/
-edit 1 sub/Math c/Saturday1800-1930 mode/online mode/offline
-edit 1 sub/Math c/Saturday1800-1930 mode/offline link/https://example.com
-edit 1 n/Should Not Change sub/Physics c/Saturday1600-1730 link/https://example.com
-edit 1 sub/Math c/Saturday1800-1930 link/not-a-url
-edit 1 sub/Math c/Saturday1800-1930 link/javascript:alert(1)
-add n/Eve Tan p/51111111 e/eve@example.com a/Woodlands mode/online
-add n/Eve Tan p/51111111 e/eve@example.com a/Woodlands sub/Math cost/30 c/Saturday1800-1930 mode/offline
-class details sub/Math c/Saturday1800-1930 link/https://example.com
+add n/Invalid p/31111111 e/invalid@example.com a/Nowhere gp/abc
+add n/Invalid p/31111111 e/invalid@example.com a/Nowhere ge/not-an-email
+add n/Invalid p/31111111 e/invalid@example.com a/Nowhere gn/@Mary
+add n/Invalid p/31111111 e/invalid@example.com a/Nowhere gp/123 gp/456
+add n/Invalid p/31111111 e/invalid@example.com a/Nowhere mode/online
+add n/Invalid p/31111111 e/invalid@example.com a/Nowhere sub/Music cost/10 c/Saturday1000-1100 mode/hybrid
+add n/Invalid p/31111111 e/invalid@example.com a/Nowhere sub/Music cost/10 c/Saturday1000-1100 mode/offline link/https://example.com
+add n/Invalid p/31111111 e/invalid@example.com a/Nowhere sub/Music cost/10 c/Saturday1000-1100 mode/online link/not-a-url
+add n/Invalid p/31111111 e/invalid@example.com a/Nowhere sub/Math cost/30 c/Saturday1800-1930 mode/offline
 ```
 
-The Physics link error must also leave Alice's name unchanged: an invalid class edit cannot partially apply contact edits.
-The final command is intentionally invalid because the standalone command has been removed.
+Also try a duplicate `link/`, an empty `mode/`, a 501-character note, and a link without `mode/online`
+on a new offline class. All should be rejected. Exactly 500 note characters should be accepted on a new valid class.
 
-Also verify an offline class rejects a non-empty link unless `mode/online` is supplied in the same command.
-Try duplicate `link/` fields and a 501-character note: both should be rejected.
+## 5. Existing commands preserve data
 
-## 6. Restart and check saved data
+Enter `edit 1 p/91111111` and `tag 1 exam-prep`.
+Expected: Alice's student phone and tag change while her guardian, online details, and payment status remain.
+The new guardian/class prefixes are not supported by `edit` or `class enrol` in this change.
 
-Enter `exit` and relaunch from the same isolated terminal folder:
+## 6. Restart and inspect the UI
+
+Enter `exit`, then relaunch from the same isolated terminal folder:
 
 ```sh
 java -jar /Users/Laxshan/Documents/tp/build/libs/tuteasy.jar
 ```
 
-Expected: mode, meeting link, location, notes, guardian edits, payment statuses, tags, and balances survive.
-Alice's Math is Paid and the other students' Math is Unpaid. Physics remains Offline without a link.
-Resize and scroll the app: mode/link text should wrap and remain associated with its class.
-
-## 7. Clear contacts and verify class lifecycle
-
-| Command | Expected result |
-| --- | --- |
-| `edit 1 gn/ gp/ ge/` | Clears Alice's guardian only. |
-| `edit 1 sub/Math c/Saturday1800-1930 mode/offline location/ notes/` | Math becomes Offline with no optional details, preserving payment status. |
-| `class unenrol 1 sub/Math c/Saturday1800-1930` | Removes Alice from Math; Physics and contacts remain. |
-| `class delete sub/Math c/Saturday1800-1930` | Removes Math for everyone while preserving guardians. |
-| `class enrol 2 sub/Math cost/30 c/Saturday1800-1930` | Recreates Math as Offline and Unpaid, without a link. |
+Expected: all successfully added contacts, guardian values, modes, links, notes, location, payment statuses,
+and balances survive.
+Resize and scroll: the additional text should wrap and remain associated with the correct contact/class.
 
 ## Automated verification
 
 From the repository, run `./gradlew check`.
-The tests cover inline fields, mode transitions, offline link rejection, guardian contacts, filtered edits,
-shared inheritance/conflicts, no partial updates, saved-data compatibility, and UI labels.
+Tests cover adding the new attributes, optional fields, invalid input, shared class inheritance/conflicts,
+save/load compatibility, UI display, and preservation during existing commands.

@@ -10,14 +10,14 @@ import seedu.address.model.lesson.ClassDetails;
 import seedu.address.model.lesson.ClassMode;
 import seedu.address.model.lesson.Lesson;
 
-/** Optional inline fields; omitted fields retain their current values. */
+/** Optional class fields supplied when adding a contact; omitted fields inherit existing class values. */
 public record ClassDetailsUpdate(Optional<ClassMode> mode, Optional<String> meetingLink,
         Optional<String> location, Optional<String> notes) {
 
     public static final ClassDetailsUpdate NONE = new ClassDetailsUpdate(
             Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
     public static final String MESSAGE_CONFLICT = "This class already has different details. "
-            + "Omit the class detail fields to inherit them, or use edit with sub/ and c/ to update the class.";
+            + "Omit the class detail fields to inherit the existing class values.";
 
     /** Validates explicitly supplied fields before any model changes. */
     public ClassDetailsUpdate {
