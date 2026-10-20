@@ -3,6 +3,7 @@ package seedu.address.logic.commands;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
@@ -221,6 +222,8 @@ public class ClassCommandsIntegrationTest {
         assertEquals(command, new ClassEnrolCommand(Index.fromOneBased(1), LESSON));
         assertNotEquals(command, new ClassEnrolCommand(Index.fromOneBased(2), LESSON));
         assertNotEquals(command, new ClassEnrolCommand(Index.fromOneBased(1), differentLesson));
+        assertNotEquals(command, new ClassEnrolCommand(List.of(Index.fromOneBased(1)),
+                LESSON.getSubject(), LESSON.getTiming()));
         assertNotEquals(command, null);
     }
 
@@ -239,6 +242,20 @@ public class ClassCommandsIntegrationTest {
         assertNotEquals(command, new ClassEnrolCommand(indexes,
                 LESSON.getSubject(), OTHER_LESSON.getTiming()));
         assertNotEquals(command, null);
+    }
+
+    @Test
+    public void enrolMultipleCommand_emptyIndexes_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> new ClassEnrolCommand(
+                List.of(), LESSON.getSubject(), LESSON.getTiming()));
+    }
+
+    @Test
+    public void enrolMultipleCommand_duplicateIndexes_throwsIllegalArgumentException() {
+        Index repeatedIndex = Index.fromOneBased(1);
+
+        assertThrows(IllegalArgumentException.class, () -> new ClassEnrolCommand(
+                List.of(repeatedIndex, repeatedIndex), LESSON.getSubject(), LESSON.getTiming()));
     }
 
     @Test
