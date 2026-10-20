@@ -53,6 +53,8 @@
         "implementation": "Implementation",
         "find-feature": "Find feature",
         "timetable-view": "Timetable view",
+        "payment-status": "Payment status",
+        "subject-search": "Subject search",
         "proposed-undo-redo-feature": "[Proposed] Undo/redo feature",
         "proposed-data-archiving": "[Proposed] Data archiving",
         "documentation-logging-testing-dev-ops": "Documentation, logging, testing, dev-ops",
@@ -65,6 +67,8 @@
         "appendix-instructions-for-manual-testing": "Appendix: Instructions for manual testing",
         "launch-and-shutdown": "Launch and shutdown",
         "deleting-a-person": "Deleting a person",
+        "searching-by-subject": "Searching by subject",
+        "updating-payment-status": "Updating payment status",
         "saving-data": "Saving data"
       },
       "headingKeywords": {}
@@ -96,12 +100,21 @@
       "headingKeywords": {}
     },
     {
+      "src": "SubjectSearch.md",
+      "title": "Subject search",
+      "headings": {
+        "searching-students-by-subject": "Searching students by subject"
+      },
+      "headingKeywords": {}
+    },
+    {
       "src": "Testing.md",
       "title": "Testing guide",
       "headings": {
         "testing-guide": "Testing guide",
         "running-tests": "Running tests",
-        "types-of-tests": "Types of tests"
+        "types-of-tests": "Types of tests",
+        "subject-search-tests": "Subject search tests"
       },
       "headingKeywords": {}
     },
@@ -116,6 +129,7 @@
         "adding-a-person-add": "Adding a person: add",
         "enrolling-a-student-in-a-class-class-enrol": "Enrolling a student in a class: class enrol",
         "unenrolling-a-student-from-a-class-class-unenrol": "Unenrolling a student from a class: class unenrol",
+        "updating-an-enrolment-s-payment-status-class-payment": "Updating an enrolment's payment status: class payment",
         "deleting-a-class-class-delete": "Deleting a class: class delete",
         "viewing-the-weekly-timetable-timetable": "Viewing the weekly timetable: timetable",
         "listing-all-persons-list": "Listing all persons: list",
