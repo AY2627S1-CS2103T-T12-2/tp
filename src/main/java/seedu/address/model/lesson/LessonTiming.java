@@ -85,10 +85,7 @@ public class LessonTiming implements LessonSchedule, Comparable<LessonTiming> {
      * Timings that only meet at an endpoint are not considered overlapping.
      */
     public boolean overlapsWith(LessonTiming other) {
-        requireNonNull(other);
-        return day == other.day
-                && startTime.isBefore(other.endTime)
-                && other.startTime.isBefore(endTime);
+        return LessonSchedule.super.overlapsWith(other);
     }
 
     @Override
