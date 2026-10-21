@@ -88,7 +88,11 @@ public class ClassAttributesIntegrationTest {
         addAlice();
         execute("class unenrol 1 id/C001");
         assertEquals(DETAILS, model.getTuitionClassList().getFirst().getDetails());
-        var saturday = model.getTimetable(LocalDate.of(2026, 10, 24)).getFirst();
+        LocalDate saturdayDate = LocalDate.of(2026, 10, 24);
+        var saturday = model.getTimetable(saturdayDate).stream()
+                .filter(day -> day.getDate().equals(saturdayDate))
+                .findFirst()
+                .orElseThrow();
         assertEquals(1, saturday.getEntries().size());
         assertTrue(saturday.getEntries().getFirst().getStudents().isEmpty());
         assertEquals(DETAILS, saturday.getEntries().getFirst().getLesson().getDetails());
@@ -114,7 +118,12 @@ public class ClassAttributesIntegrationTest {
         assertEquals(PaymentStatus.PAID, firstLesson().getPaymentStatus());
         assertEquals(LINK, firstLesson().getDetails().meetingLink());
         assertEquals("2026-10-24T1900-2030", firstLesson().getSchedule().toStorageString());
-        assertEquals(1, model.getTimetable(LocalDate.of(2026, 10, 24)).getFirst().getEntries().size());
+        LocalDate saturdayDate = LocalDate.of(2026, 10, 24);
+        var saturday = model.getTimetable(saturdayDate).stream()
+                .filter(day -> day.getDate().equals(saturdayDate))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(1, saturday.getEntries().size());
         assertTrue(model.getTimetable(LocalDate.of(2026, 10, 25)).stream()
                 .allMatch(day -> day.getEntries().isEmpty()));
         execute("class delete id/C001");
