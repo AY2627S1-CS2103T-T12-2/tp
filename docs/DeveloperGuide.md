@@ -92,6 +92,8 @@ contained in one `HBox`, while the surrounding `VBox` places every class group o
 the same colour across students. The palette identifies a class using its case-insensitive subject and complete
 lesson timing, matching `Lesson#isSameClass`; cost and payment status are not part of the colour identity. A muted
 balance badge beside the student's name always displays `Person#getOutstandingBalance`, including when it is zero.
+Pinned students also display a `PINNED` badge beside their name. The badge is visible and participates in the layout
+only when `Person#isPinned` is true.
 
 ### Logic component
 
@@ -140,6 +142,10 @@ How the parsing works:
 The `Model` component,
 
 * stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
+* stores independent `TuitionClass` objects in a `UniqueTuitionClassList`. Each class has a stable `ClassId`, subject,
+  cost, and complete lesson timing.
+* represents the student-to-class association using an enrolment value. The enrolment references the class ID and owns
+  the student-specific `PaymentStatus`.
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * derives immutable timetable day and class entries from every person's lessons. The timetable is not stored separately,
@@ -176,6 +182,24 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Pin feature
+
+Each `Person` stores a `pinned` boolean. `JsonAdaptedPerson` writes this value to the address-book data file and treats
+a missing value as `false`, allowing older files to remain compatible. Copy operations such as editing tags or lessons
+retain the existing pin state.
+
+`PinCommand` and `UnpinCommand` resolve their target against the displayed student list and replace that student with
+an immutable copy containing the new pin state. Repeating the existing state is rejected with an actionable error.
+
+`ModelManager` exposes a `SortedList` that places pinned students before unpinned students. This comparator is applied
+both to the complete list and to filtered lists. When a command supplies another comparator, such as the relevance
+comparator used by `find`, pinned state remains the primary key and the supplied comparator orders students within
+each pin group. Filters still control which students are included.
+
+`PersonListPanel` observes this sorted list, so pinning or unpinning immediately reorders the existing list and updates
+displayed indexes. `PersonCard` reads the pin state when rendering and shows the `PINNED` badge for pinned students.
+`CommandBox` suggests the `pin INDEX` and `unpin INDEX` formats while either command is being entered.
+
 ### Find feature
 
 The `find` feature is implemented across `FindCommandParser`, `FindCommand`, the search predicates, and `CommandBox`.
@@ -195,7 +219,8 @@ numeric fragments such as `18` are accepted for partial matching.
 
 `FindCommand` applies the predicate through `Model#updateFilteredPersonList`. Predicates that implement
 `ScoredPersonPredicate` also provide a relevance score, so `FindCommand` requests a sorted filtered list with stronger
-matches first and preserves original address-book order for ties.
+matches first within each pin group and preserves original address-book order for ties. Matching pinned students are
+placed before matching unpinned students.
 
 `CommandBox` provides light-grey input-bar hints for common `find` inputs. After a successful `find`, it keeps the
 suggestion overlay visible with `Type 'list' to return to the home page.`; the hint clears when the user starts typing
@@ -207,24 +232,36 @@ or when a non-`find` command succeeds.
 `MainWindow` responds by requesting a current timetable from `Logic` and replacing `PersonListPanel` with a newly built
 `TimetablePanel`.
 
-`ModelManager#getTimetable(LocalDate)` passes the complete address-book person list to `TimetableBuilder`. The builder
-iterates through each person's `Lesson` values, omits days before the supplied date's weekday, and groups equal lessons
-with their students. It then returns one immutable `TimetableDay` from the current day through Saturday, including empty
-days. Entries within a day are ordered by start time, subject, and end time.
+`ModelManager#getTimetable(LocalDate)` passes the central class list and complete person list to `TimetableBuilder`.
+The builder includes independently created classes even when they have no enrolled students, attaches students through
+their enrolments, and omits days before the supplied date's weekday. Entries are ordered by start time, subject, and
+end time.
 
 The UI renders the projection in three levels: `TimetablePanel` provides the scrolling list, `TimetableDayCard` displays
 a day heading and empty state, and `TimetableEntryCard` displays a class's time, subject, and students. Entering `list`
-restores the existing person panel and normal command availability.
+restores the existing person panel and normal command availability. `class list` returns a `CLASS_LIST` view change;
+`MainWindow` replaces the current panel with `ClassListPanel`, including when the timetable is open.
+
+### Independent class management
+
+`class add` validates subject, cost, timing, duplicates, and schedule overlap before allocating the next persisted class
+ID. IDs use the form `C001`, are case-insensitive at the command boundary, and are never reused. `class edit` resolves a
+class by ID and replaces the immutable central class while updating each associated enrolment without changing its
+payment status. `class delete` removes the central class and cascades to its enrolments.
+
+`JsonSerializableAddressBook` stores central classes and the next ID sequence. When loading an older data file without
+a class collection, it groups existing enrolments by subject and timing, assigns stable IDs, and preserves payment
+statuses. This migration is applied before the model is exposed to commands or UI code.
 
 ### Payment status
 
-Every `Lesson` value stored by a `Person` represents that student's individual enrolment and contains an immutable
+Every enrolment stored by a `Person` references a central class through `ClassId` and contains an immutable
 `PaymentStatus` of `PAID` or `UNPAID`. Constructors that do not specify a status default to `UNPAID`, which also provides
-backwards compatibility for saved enrolments created before payment tracking was introduced.
+backwards compatibility for saved enrolments created before payment tracking or independent classes were introduced.
 
-`class payment` parses a displayed student index, subject, complete class timing, and payment status. During execution,
-`ClassPaymentCommand` resolves the student from the filtered list and locates the enrolment using
-`Lesson#isSameClass`. It replaces only that immutable enrolment and then replaces only the selected `Person`; other
+`class payment` parses a displayed student index, stable class ID, and payment status. During execution,
+`ClassPaymentCommand` resolves the student from the filtered list and locates the enrolment by class ID. It replaces
+only that immutable enrolment and then replaces only the selected `Person`; other
 classes and students are not modified. A missing enrolment causes the command to fail before any model mutation.
 
 Full `Lesson#equals` includes payment status so model and UI updates are observable. Logical class operations use
@@ -438,6 +475,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *`    | tutor deleting a student or class           | see which enrollments and lessons will be affected                | avoid removing related information accidentally                           |
 | `* *`    | tutor                                       | view my next few lessons when the application opens               | prepare without navigating the full timetable                             |
 | `* *`    | tutor with many students                    | sort and filter my students                                        | manage a large contact list easily                                         |
+| `* *`    | tutor with frequently accessed students     | pin important students above the rest                              | access their details quickly                                               |
 | `* *`    | tutor                                       | add notes about each student                                       | remember their learning needs and progress                                 |
 | `* *`    | tutor who conducts in-person lessons        | store a student's home address                                     | travel to their lessons easily                                             |
 | `* *`    | tutor teaching minors                       | record a parent or guardian's contact details                      | contact them when necessary                                                |
@@ -787,17 +825,18 @@ the full student list should be displayed. Repeat `find sub/math` to check that 
 
 ### Updating payment status
 
-Use two students enrolled in `Math` at `Monday1800-1930`. Each student's coloured Math badge should initially be
+Create `Math` at `Monday1800-1930` using `class add`, note its generated ID (for example `C001`), and enrol two
+students using that ID. Each student's coloured Math badge should initially be
 followed by a separate, muted `Unpaid` label, and each balance badge should initially include the Math cost.
 
 | Test input | Expected result |
 | --- | --- |
-| `class payment 1 sub/Math c/Monday1800-1930 status/paid` | The first student's Math badge is followed by `Paid` and its balance decreases by the Math cost; the second student's status and balance remain unchanged. |
+| `class payment 1 id/C001 status/paid` | The first student's Math badge is followed by `Paid` and its balance decreases by the Math cost; the second student's status and balance remain unchanged. |
 | Repeat the previous command | Feedback says the payment is already paid; no other data changes. |
-| `class payment 1 sub/Math c/Monday1800-1930 status/unpaid` | Only the first student's Math status returns to `Unpaid`, and its balance increases by the Math cost. |
-| `class payment 1 sub/Physics c/Monday1800-1930 status/paid` | Error says the student is not enrolled in the specified class; no data changes. |
-| `class payment 0 sub/Math c/Monday1800-1930 status/paid` | Invalid-index error; no data changes. |
-| `class payment 1 sub/Math c/Monday1800-1930 status/pending` | Invalid-status error; no data changes. |
+| `class payment 1 id/C001 status/unpaid` | Only the first student's Math status returns to `Unpaid`, and its balance increases by the Math cost. |
+| `class payment 1 id/C999 status/paid` | Error says the student is not enrolled in the specified class; no data changes. |
+| `class payment 0 id/C001 status/paid` | Invalid-index error; no data changes. |
+| `class payment 1 id/C001 status/pending` | Invalid-status error; no data changes. |
 
 Mark one student as paid, exit the app, and relaunch it. The paid status should still appear, while the other student's
 status remains unpaid. Open the timetable and verify that both students still appear together in one Math class.

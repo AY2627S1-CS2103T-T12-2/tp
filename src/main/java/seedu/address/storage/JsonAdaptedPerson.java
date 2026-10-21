@@ -36,6 +36,7 @@ class JsonAdaptedPerson {
     private final List<String> subjects = new ArrayList<>();
     private final String cost;
     private final String lesson;
+    private final boolean pinned;
 
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details.
@@ -47,13 +48,15 @@ class JsonAdaptedPerson {
             @JsonProperty("lessons") List<JsonAdaptedLesson> lessons,
             @JsonProperty("subjects") List<String> subjects,
             @JsonProperty("cost") String cost,
-            @JsonProperty("lesson") String lesson) {
+            @JsonProperty("lesson") String lesson,
+            @JsonProperty("pinned") Boolean pinned) {
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.address = address;
         this.cost = cost;
         this.lesson = lesson;
+        this.pinned = Boolean.TRUE.equals(pinned);
         if (tags != null) {
             this.tags.addAll(tags);
         }
@@ -67,13 +70,13 @@ class JsonAdaptedPerson {
 
     /** Backwards-compatible constructor for person data without lesson enrolments. */
     public JsonAdaptedPerson(String name, String phone, String email, String address, List<JsonAdaptedTag> tags) {
-        this(name, phone, email, address, tags, null, null, null, null);
+        this(name, phone, email, address, tags, null, null, null, null, null);
     }
 
     /** Constructor for records that use the previous student-detail properties. */
     public JsonAdaptedPerson(String name, String phone, String email, String address,
             List<JsonAdaptedTag> tags, List<String> subjects, String cost, String lesson) {
-        this(name, phone, email, address, tags, null, subjects, cost, lesson);
+        this(name, phone, email, address, tags, null, subjects, cost, lesson, null);
     }
 
     /**
@@ -91,6 +94,7 @@ class JsonAdaptedPerson {
         subjects.addAll(source.getSubjects().stream().map(Subject::toString).sorted().toList());
         cost = source.getCost().map(Object::toString).orElse(null);
         lesson = source.getLesson().map(Object::toString).orElse(null);
+        pinned = source.isPinned();
     }
 
     /**
@@ -169,7 +173,7 @@ class JsonAdaptedPerson {
             modelLessons.addAll(migrated.getLessons());
         }
         return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags, modelLessons,
-                modelSubjects, modelCost, modelLesson);
+                modelSubjects, modelCost, modelLesson, pinned);
     }
 
 }

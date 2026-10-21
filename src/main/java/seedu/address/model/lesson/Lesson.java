@@ -9,6 +9,7 @@ import seedu.address.commons.util.ToStringBuilder;
 /** Represents a recurring weekly tuition lesson. */
 public class Lesson {
 
+    private final ClassId classId;
     private final Subject subject;
     private final Cost cost;
     private final LessonTiming timing;
@@ -21,11 +22,23 @@ public class Lesson {
 
     /** Creates a lesson enrolment with the supplied payment status. */
     public Lesson(Subject subject, Cost cost, LessonTiming timing, PaymentStatus paymentStatus) {
+        this(null, subject, cost, timing, paymentStatus);
+    }
+
+    /** Creates an enrolment linked to an independently stored class. */
+    public Lesson(ClassId classId, Subject subject, Cost cost, LessonTiming timing,
+            PaymentStatus paymentStatus) {
         requireAllNonNull(subject, cost, timing, paymentStatus);
+        this.classId = classId;
         this.subject = subject;
         this.cost = cost;
         this.timing = timing;
         this.paymentStatus = paymentStatus;
+    }
+
+    /** Returns the stable class ID, or {@code null} for a legacy unlinked enrolment. */
+    public ClassId getClassId() {
+        return classId;
     }
 
     public Subject getSubject() {
@@ -47,7 +60,13 @@ public class Lesson {
     /** Returns a copy of this lesson enrolment with {@code updatedPaymentStatus}. */
     public Lesson withPaymentStatus(PaymentStatus updatedPaymentStatus) {
         requireAllNonNull(updatedPaymentStatus);
-        return new Lesson(subject, cost, timing, updatedPaymentStatus);
+        return new Lesson(classId, subject, cost, timing, updatedPaymentStatus);
+    }
+
+    /** Returns a copy linked to the supplied central class while retaining payment status. */
+    public Lesson withTuitionClass(TuitionClass tuitionClass) {
+        requireAllNonNull(tuitionClass);
+        return new Enrollment(tuitionClass, paymentStatus);
     }
 
     /**
@@ -55,8 +74,16 @@ public class Lesson {
      * in the same class must share one cost.
      */
     public boolean isSameClass(Lesson otherLesson) {
-        return otherLesson == this || otherLesson != null
-                && subject.value.equalsIgnoreCase(otherLesson.subject.value)
+        if (otherLesson == this) {
+            return true;
+        }
+        if (otherLesson == null) {
+            return false;
+        }
+        if (classId != null && otherLesson.classId != null) {
+            return classId.equals(otherLesson.classId);
+        }
+        return subject.value.equalsIgnoreCase(otherLesson.subject.value)
                 && timing.equals(otherLesson.timing);
     }
 

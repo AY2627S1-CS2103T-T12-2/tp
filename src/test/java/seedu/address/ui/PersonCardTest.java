@@ -125,10 +125,22 @@ public class PersonCardTest {
             assertTrue(getClassGroups(card).isEmpty());
             assertFalse(getClassPane(card).isVisible());
             assertFalse(getClassPane(card).isManaged());
+            assertLabel(card, "pinned", "PINNED", false);
             assertLabel(card, "balance", "Balance: 0", true);
             assertLabel(card, "subjects", "Subjects: ", false);
             assertLabel(card, "cost", "", false);
             assertLabel(card, "lesson", "", false);
+        });
+    }
+
+    @Test
+    public void constructor_pinnedPerson_displaysPinnedBadge() throws Exception {
+        runOnFxThread(() -> {
+            PersonCard card = new PersonCard(new PersonBuilder().withPinned(true).build(), 1);
+
+            assertLabel(card, "pinned", "PINNED", true);
+            Label pinned = (Label) card.getRoot().lookup("#pinned");
+            assertTrue(pinned.getStyleClass().contains("pinned-badge"));
         });
     }
 

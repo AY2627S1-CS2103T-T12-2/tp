@@ -16,6 +16,10 @@ import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.model.lesson.ClassId;
+import seedu.address.model.lesson.Enrollment;
+import seedu.address.model.lesson.Lesson;
+import seedu.address.model.lesson.TuitionClass;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.exceptions.PersonNotFoundException;
 import seedu.address.model.timetable.TimetableBuilder;
@@ -26,6 +30,8 @@ import seedu.address.model.timetable.TimetableDay;
  */
 public class ModelManager implements Model {
     private static final Logger logger = LogsCenter.getLogger(ModelManager.class);
+    private static final Comparator<Person> PINNED_FIRST_COMPARATOR =
+            Comparator.comparing(Person::isPinned).reversed();
 
     private final AddressBook addressBook;
     private final UserPrefs userPrefs;
@@ -42,8 +48,9 @@ public class ModelManager implements Model {
 
         this.addressBook = new AddressBook(addressBook);
         this.userPrefs = new UserPrefs(userPrefs);
+        normalizeExistingLessons();
         filteredPersons = new FilteredList<>(this.addressBook.getPersonList());
-        sortedFilteredPersons = new SortedList<>(filteredPersons);
+        sortedFilteredPersons = new SortedList<>(filteredPersons, getDefaultPersonComparator());
     }
 
     public ModelManager() {
@@ -93,7 +100,7 @@ public class ModelManager implements Model {
 
     @Override
     public void addPerson(Person person) {
-        addressBook.addPerson(person);
+        addressBook.addPerson(linkLessonsToClasses(person));
         updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
     }
 
@@ -124,6 +131,97 @@ public class ModelManager implements Model {
         addressBook.setPersons(updatedPersons);
     }
 
+    private Person linkLessonsToClasses(Person person) {
+        java.util.Set<Lesson> linkedLessons = new java.util.LinkedHashSet<>();
+        for (Lesson lesson : person.getLessons()) {
+            TuitionClass tuitionClass;
+            if (lesson.getClassId() != null && addressBook.hasTuitionClass(lesson.getClassId())) {
+                tuitionClass = addressBook.getTuitionClass(lesson.getClassId());
+            } else {
+                tuitionClass = addressBook.getTuitionClassList().stream()
+                        .filter(item -> item.getSubject().value.equalsIgnoreCase(lesson.getSubject().value)
+                                && item.getTiming().equals(lesson.getTiming()))
+                        .findFirst().orElseGet(() -> {
+                            TuitionClass created = new TuitionClass(addressBook.allocateClassId(),
+                                    lesson.getSubject(), lesson.getCost(), lesson.getTiming());
+                            addressBook.addTuitionClass(created);
+                            return created;
+                        });
+            }
+            linkedLessons.add(new Enrollment(tuitionClass, lesson.getPaymentStatus()));
+        }
+        return person.withLessons(linkedLessons);
+    }
+
+    private void normalizeExistingLessons() {
+        for (Person person : List.copyOf(addressBook.getPersonList())) {
+            Person linked = linkLessonsToClasses(person);
+            if (!linked.getLessons().equals(person.getLessons())
+                    || linked.getLessons().stream().anyMatch(lesson -> lesson.getClassId() != null
+                    && person.getLessons().stream().noneMatch(original -> lesson.getClassId() != null
+                    && lesson.getClassId().equals(original.getClassId())))) {
+                addressBook.setPerson(person, linked);
+            }
+        }
+    }
+
+    @Override
+    public ClassId allocateClassId() {
+        return addressBook.allocateClassId();
+    }
+
+    @Override
+    public boolean hasTuitionClass(ClassId classId) {
+        return addressBook.hasTuitionClass(classId);
+    }
+
+    @Override
+    public boolean hasTuitionClassWithDetails(TuitionClass tuitionClass) {
+        return addressBook.hasTuitionClassWithDetails(tuitionClass);
+    }
+
+    @Override
+    public TuitionClass getTuitionClass(ClassId classId) {
+        return addressBook.getTuitionClass(classId);
+    }
+
+    @Override
+    public void addTuitionClass(TuitionClass tuitionClass) {
+        addressBook.addTuitionClass(tuitionClass);
+    }
+
+    @Override
+    public void setTuitionClass(TuitionClass target, TuitionClass edited) {
+        addressBook.setTuitionClass(target, edited);
+        for (Person person : List.copyOf(addressBook.getPersonList())) {
+            java.util.Set<Lesson> updated = person.getLessons().stream()
+                    .map(lesson -> target.getClassId().equals(lesson.getClassId())
+                            ? new Enrollment(edited, lesson.getPaymentStatus()) : lesson)
+                    .collect(java.util.stream.Collectors.toCollection(java.util.LinkedHashSet::new));
+            if (!updated.equals(person.getLessons())) {
+                addressBook.setPerson(person, person.withLessons(updated));
+            }
+        }
+    }
+
+    @Override
+    public void deleteTuitionClass(TuitionClass tuitionClass) {
+        for (Person person : List.copyOf(addressBook.getPersonList())) {
+            java.util.Set<Lesson> updated = person.getLessons().stream()
+                    .filter(lesson -> !tuitionClass.getClassId().equals(lesson.getClassId()))
+                    .collect(java.util.stream.Collectors.toCollection(java.util.LinkedHashSet::new));
+            if (updated.size() != person.getLessons().size()) {
+                addressBook.setPerson(person, person.withLessons(updated));
+            }
+        }
+        addressBook.removeTuitionClass(tuitionClass);
+    }
+
+    @Override
+    public ObservableList<TuitionClass> getTuitionClassList() {
+        return addressBook.getTuitionClassList();
+    }
+
     //=========== Filtered Person List Accessors =============================================================
 
     /**
@@ -139,20 +237,25 @@ public class ModelManager implements Model {
     public void updateFilteredPersonList(Predicate<Person> predicate) {
         requireNonNull(predicate);
         filteredPersons.setPredicate(predicate);
-        sortedFilteredPersons.setComparator(null);
+        sortedFilteredPersons.setComparator(getDefaultPersonComparator());
     }
 
     @Override
     public void updateFilteredPersonList(Predicate<Person> predicate, Comparator<Person> comparator) {
         requireAllNonNull(predicate, comparator);
         filteredPersons.setPredicate(predicate);
-        sortedFilteredPersons.setComparator(comparator);
+        sortedFilteredPersons.setComparator(PINNED_FIRST_COMPARATOR.thenComparing(comparator));
+    }
+
+    private Comparator<Person> getDefaultPersonComparator() {
+        List<Person> originalOrder = addressBook.getPersonList();
+        return PINNED_FIRST_COMPARATOR.thenComparingInt(originalOrder::indexOf);
     }
 
     @Override
     public List<TimetableDay> getTimetable(LocalDate today) {
         requireNonNull(today);
-        return TimetableBuilder.build(addressBook.getPersonList(), today);
+        return TimetableBuilder.build(addressBook.getTuitionClassList(), addressBook.getPersonList(), today);
     }
 
     @Override

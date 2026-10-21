@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<HBox fx:id="cardPane" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      spacing="12" styleClass="tuition-class-card">
+  <padding><Insets top="10" right="12" bottom="10" left="12" /></padding>
+  <Label fx:id="classId" styleClass="class-id-badge" minWidth="64" />
+  <VBox spacing="3" HBox.hgrow="ALWAYS">
+    <Label fx:id="subject" styleClass="cell_big_label" />
+    <Label fx:id="schedule" styleClass="cell_small_label" />
+  </VBox>
+  <Label fx:id="cost" styleClass="cell_small_label" />
+</HBox>
