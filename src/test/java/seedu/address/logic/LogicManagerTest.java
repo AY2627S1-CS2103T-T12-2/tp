@@ -36,6 +36,7 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
+import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
@@ -104,6 +105,28 @@ public class LogicManagerTest {
         Logic restartedLogic = new LogicManager(new ModelManager(model.getAddressBook(), reloadedPrefs), storage);
 
         assertTrue(restartedLogic.isPrivacyModeEnabled());
+    }
+
+    @Test
+    public void execute_userPrefsStorageThrowsIoException_nonPrivacyCommandSucceeds() throws Exception {
+        JsonAddressBookStorage addressBookStorage =
+                new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        JsonUserPrefsStorage userPrefsStorage =
+                new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json")) {
+                    @Override
+                    public void saveUserPrefs(ReadOnlyUserPrefs userPrefs) throws IOException {
+                        throw DUMMY_IO_EXCEPTION;
+                    }
+                };
+        logic = new LogicManager(model, new StorageManager(addressBookStorage, userPrefsStorage));
+
+        String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
+                + EMAIL_DESC_AMY + ADDRESS_DESC_AMY;
+        Person expectedPerson = new PersonBuilder(AMY).withTags().build();
+
+        assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(expectedPerson)),
+                logic.execute(addCommand).getFeedbackToUser());
+        assertTrue(model.hasPerson(expectedPerson));
     }
 
     @Test

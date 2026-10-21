@@ -76,7 +76,9 @@ public class LogicManager implements Logic {
 
         try {
             storage.saveAddressBook(model.getAddressBook());
-            storage.saveUserPrefs(model.getUserPrefs());
+            if (command instanceof PrivacyCommand) {
+                storage.saveUserPrefs(model.getUserPrefs());
+            }
         } catch (AccessDeniedException e) {
             throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, e.getMessage()), e);
         } catch (IOException ioe) {
