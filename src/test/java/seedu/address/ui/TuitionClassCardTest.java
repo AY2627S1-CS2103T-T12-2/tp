@@ -12,7 +12,9 @@ import org.junit.jupiter.api.Test;
 
 import javafx.application.Platform;
 import javafx.scene.control.Label;
+import seedu.address.model.lesson.ClassDetails;
 import seedu.address.model.lesson.ClassId;
+import seedu.address.model.lesson.ClassMode;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.LessonTiming;
 import seedu.address.model.lesson.Subject;
@@ -49,6 +51,17 @@ public class TuitionClassCardTest {
             assertLabel(card, "subject", "Math");
             assertLabel(card, "schedule", "Monday 18:00–19:30");
             assertLabel(card, "cost", "Cost: 30");
+        });
+    }
+
+    @Test
+    public void constructor_onlineClass_displaysStoredAttributes() throws Exception {
+        ClassDetails details = new ClassDetails(ClassMode.ONLINE, "https://example.com/math", "Room 2", "Bring notes");
+        TuitionClass tuitionClass = new TuitionClass(new ClassId("C001"), new Subject("Math"),
+                new Cost("30"), new LessonTiming("Monday1800-1930"), details);
+        runOnFxThread(() -> {
+            TuitionClassCard card = new TuitionClassCard(tuitionClass);
+            assertLabel(card, "details", details.toString());
         });
     }
 

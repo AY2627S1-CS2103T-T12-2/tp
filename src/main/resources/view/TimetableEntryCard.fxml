@@ -13,6 +13,7 @@
   <Label fx:id="time" styleClass="timetable-entry-time" minWidth="105" />
   <VBox spacing="2" HBox.hgrow="ALWAYS">
     <Label fx:id="subject" styleClass="timetable-entry-subject" />
+    <Label fx:id="details" styleClass="timetable-entry-students" wrapText="true" />
     <Label fx:id="students" styleClass="timetable-entry-students" wrapText="true" />
   </VBox>
 </HBox>

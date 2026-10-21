@@ -9,6 +9,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,7 @@ import seedu.address.model.lesson.ClassId;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.OneOffLessonSchedule;
 import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.lesson.Subject;
 
@@ -100,6 +102,21 @@ public class ClassCommandParserTest {
     }
 
     @Test
+    public void parse_oneOffSchedules_success() {
+        OneOffLessonSchedule schedule = new OneOffLessonSchedule("2026-10-20T1800-1930");
+        Lesson lesson = new Lesson(SUBJECT, new Cost("30"), schedule);
+
+        assertParseSuccess(parser, " enrol 1 sub/Math cost/30 c/2026-10-20T1800-1930",
+                new ClassEnrolCommand(Index.fromOneBased(1), lesson));
+        assertParseSuccess(parser, " unenrol 1 sub/Math c/2026-10-20T1800-1930",
+                new ClassUnenrolCommand(Index.fromOneBased(1), SUBJECT, schedule));
+        assertParseSuccess(parser, " delete sub/Math c/2026-10-20T1800-1930",
+                new ClassDeleteCommand(SUBJECT, schedule));
+        assertParseSuccess(parser, " payment 1 sub/Math c/2026-10-20T1800-1930 status/paid",
+                new ClassPaymentCommand(Index.fromOneBased(1), SUBJECT, schedule, PaymentStatus.PAID));
+    }
+
+    @Test
     public void parse_enrolExtraWhitespace_success() {
         assertParseSuccess(parser, "  enrol   1   sub/Math   cost/30   c/Monday1800-1930  ",
                 new ClassEnrolCommand(Index.fromOneBased(1), LESSON));
@@ -148,9 +165,28 @@ public class ClassCommandParserTest {
     }
 
     @Test
-    public void parse_enrolMissingCost_failure() {
-        String expected = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ClassEnrolCommand.MESSAGE_USAGE);
-        assertParseFailure(parser, " enrol 1 sub/Math c/Monday1800-1930", expected);
+    public void parse_enrolExistingClassWithoutCost_success() {
+        assertParseSuccess(parser, " enrol 1 sub/Math c/Monday1800-1930",
+                new ClassEnrolCommand(List.of(Index.fromOneBased(1)), SUBJECT, TIMING));
+    }
+
+    @Test
+    public void parse_enrolMultipleStudentsInExistingClass_success() {
+        assertParseSuccess(parser, " enrol 3 1 2 sub/Math c/Monday1800-1930",
+                new ClassEnrolCommand(List.of(Index.fromOneBased(3), Index.fromOneBased(1),
+                        Index.fromOneBased(2)), SUBJECT, TIMING));
+    }
+
+    @Test
+    public void parse_enrolMultipleStudentsWithCost_failure() {
+        assertParseFailure(parser, " enrol 1 2 sub/Math cost/30 c/Monday1800-1930",
+                ClassEnrolCommand.MESSAGE_BATCH_COST_NOT_ALLOWED);
+    }
+
+    @Test
+    public void parse_enrolDuplicateIndexes_failure() {
+        assertParseFailure(parser, " enrol 1 2 1 sub/Math c/Monday1800-1930",
+                ParserUtil.MESSAGE_DUPLICATE_INDEXES);
     }
 
     @Test
@@ -197,6 +233,18 @@ public class ClassCommandParserTest {
     }
 
     @Test
+    public void parse_enrolIdMixedWithLegacyPrefixes_failure() {
+        String expected = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ClassEnrolCommand.MESSAGE_USAGE);
+        assertParseFailure(parser, " enrol 1 id/C001 sub/Math", expected);
+        assertParseFailure(parser, " enrol 1 id/C001 cost/30", expected);
+        assertParseFailure(parser, " enrol 1 id/C001 c/Monday1800-1930", expected);
+        assertParseFailure(parser, " enrol 1 id/C001 sub/Math cost/30", expected);
+        assertParseFailure(parser, " enrol 1 id/C001 sub/Math c/Monday1800-1930", expected);
+        assertParseFailure(parser, " enrol 1 id/C001 cost/30 c/Monday1800-1930", expected);
+        assertParseFailure(parser, " enrol 1 id/C001 sub/Math cost/30 c/Monday1800-1930", expected);
+    }
+
+    @Test
     public void parse_unenrolMissingIndex_failure() {
         String expected = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ClassUnenrolCommand.MESSAGE_USAGE);
         assertParseFailure(parser, " unenrol sub/Math c/Monday1800-1930", expected);
@@ -219,6 +267,23 @@ public class ClassCommandParserTest {
         assertParseFailure(parser,
                 " unenrol 1 sub/Math sub/English c/Monday1800-1930 c/Tuesday1800-1930",
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_SUBJECT, PREFIX_CLASS));
+    }
+
+    @Test
+    public void parse_unenrolIdMixedWithLegacyPrefixes_failure() {
+        String expected = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ClassUnenrolCommand.MESSAGE_USAGE);
+        assertParseFailure(parser, " unenrol 1 id/C001 sub/Math", expected);
+        assertParseFailure(parser, " unenrol 1 id/C001 c/Monday1800-1930", expected);
+        assertParseFailure(parser, " unenrol 1 id/C001 sub/Math c/Monday1800-1930", expected);
+    }
+
+    @Test
+    public void parse_paymentIdMixedWithLegacyPrefixes_failure() {
+        String expected = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ClassPaymentCommand.MESSAGE_USAGE);
+        assertParseFailure(parser, " payment 1 id/C001 sub/Math status/paid", expected);
+        assertParseFailure(parser, " payment 1 id/C001 c/Monday1800-1930 status/paid", expected);
+        assertParseFailure(parser,
+                " payment 1 id/C001 sub/Math c/Monday1800-1930 status/paid", expected);
     }
 
     @Test

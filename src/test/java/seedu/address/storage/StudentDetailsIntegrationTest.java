@@ -189,6 +189,18 @@ public class StudentDetailsIntegrationTest {
                 + "\"email\":\"johndavis@gmail.com\",\"address\":\"Clementi\",\"tags\":[]}";
         Person restored = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class).toModelType();
         assertEquals(addTo(new ModelManager(), BASE), restored);
+        assertFalse(restored.isPinned());
+    }
+
+    @Test
+    public void loadJson_withPinnedState_restoresPinnedState() throws Exception {
+        String json = "{\"name\":\"John Davis\",\"phone\":\"91234567\","
+                + "\"email\":\"johndavis@gmail.com\",\"address\":\"Clementi\",\"tags\":[],"
+                + "\"pinned\":true}";
+
+        Person restored = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class).toModelType();
+
+        assertTrue(restored.isPinned());
     }
 
     @Test

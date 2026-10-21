@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.OneOffLessonSchedule;
 import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.lesson.Subject;
 import seedu.address.model.person.Person;
@@ -26,21 +27,25 @@ public class TimetableBuilderTest {
     private static final LocalDate SATURDAY = LocalDate.of(2026, 10, 10);
 
     @Test
-    public void build_createsTodayThroughSaturdayIncludingEmptyDays() {
+    public void build_createsCompleteSundayThroughSaturdayIncludingEmptyDays() {
         List<TimetableDay> fromSunday = TimetableBuilder.build(List.of(), SUNDAY);
         List<TimetableDay> fromThursday = TimetableBuilder.build(List.of(), THURSDAY);
         List<TimetableDay> fromSaturday = TimetableBuilder.build(List.of(), SATURDAY);
 
         assertEquals(7, fromSunday.size());
-        assertEquals(List.of(DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY),
+        assertEquals(List.of(DayOfWeek.SUNDAY, DayOfWeek.MONDAY, DayOfWeek.TUESDAY,
+                        DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY),
                 fromThursday.stream().map(TimetableDay::getDay).toList());
-        assertEquals(List.of(DayOfWeek.SATURDAY),
+        assertEquals(fromSunday.stream().map(TimetableDay::getDate).toList(),
+                fromSaturday.stream().map(TimetableDay::getDate).toList());
+        assertEquals(List.of(DayOfWeek.SUNDAY, DayOfWeek.MONDAY, DayOfWeek.TUESDAY,
+                        DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY, DayOfWeek.SATURDAY),
                 fromSaturday.stream().map(TimetableDay::getDay).toList());
         assertTrue(fromThursday.stream().allMatch(day -> day.getEntries().isEmpty()));
     }
 
     @Test
-    public void build_excludesEarlierDaysButIncludesAllOfToday() {
+    public void build_midweekAnchor_includesEarlierDays() {
         Lesson wednesdayLesson = lesson("Math", "30", "Wednesday1800-1930");
         Lesson earlyThursdayLesson = lesson("English", "25", "Thursday0800-0900");
         Lesson saturdayLesson = lesson("Physics", "35", "Saturday1500-1630");
@@ -49,10 +54,27 @@ public class TimetableBuilderTest {
 
         List<TimetableDay> timetable = TimetableBuilder.build(List.of(student), THURSDAY);
 
+        assertEquals(List.of(wednesdayLesson),
+                timetable.get(3).getEntries().stream().map(TimetableEntry::getLesson).toList());
         assertEquals(List.of(earlyThursdayLesson),
-                timetable.get(0).getEntries().stream().map(TimetableEntry::getLesson).toList());
+                timetable.get(4).getEntries().stream().map(TimetableEntry::getLesson).toList());
         assertEquals(List.of(saturdayLesson),
-                timetable.get(2).getEntries().stream().map(TimetableEntry::getLesson).toList());
+                timetable.get(6).getEntries().stream().map(TimetableEntry::getLesson).toList());
+    }
+
+    @Test
+    public void build_oneOffLesson_includesOnlyExactVisibleDate() {
+        Lesson visible = new Lesson(new Subject("Math"), new Cost("30"),
+                new OneOffLessonSchedule("2026-10-09T1800-1930"));
+        Lesson laterWeek = new Lesson(new Subject("Physics"), new Cost("35"),
+                new OneOffLessonSchedule("2026-10-16T1800-1930"));
+        Person student = new PersonBuilder().withLessons(visible, laterWeek).build();
+
+        List<TimetableDay> timetable = TimetableBuilder.build(List.of(student), THURSDAY);
+
+        assertEquals(List.of(visible), timetable.get(5).getEntries().stream()
+                .map(TimetableEntry::getLesson).toList());
+        assertEquals(1, timetable.stream().mapToInt(day -> day.getEntries().size()).sum());
     }
 
     @Test
@@ -64,13 +86,13 @@ public class TimetableBuilderTest {
                         sharedLesson.withPaymentStatus(PaymentStatus.PAID)).build();
 
         TimetableEntry entry = TimetableBuilder.build(List.of(zoe, alice, alice), THURSDAY)
-                .get(1).getEntries().get(0);
+                .get(5).getEntries().get(0);
 
         assertEquals(sharedLesson, entry.getLesson());
         assertEquals(List.of("Alice Tan", "Zoe Tan"), entry.getStudents().stream()
                 .map(person -> person.getName().fullName).toList());
         assertEquals(1, TimetableBuilder.build(List.of(zoe, alice), THURSDAY)
-                .get(1).getEntries().size());
+                .get(5).getEntries().size());
     }
 
     @Test
@@ -82,7 +104,7 @@ public class TimetableBuilderTest {
         Person student = new PersonBuilder().withLessons(later, mathLong, english, mathShort).build();
 
         List<Lesson> orderedLessons = TimetableBuilder.build(List.of(student), THURSDAY)
-                .get(1).getEntries().stream().map(TimetableEntry::getLesson).toList();
+                .get(5).getEntries().stream().map(TimetableEntry::getLesson).toList();
 
         assertEquals(List.of(english, mathShort, mathLong, later), orderedLessons);
     }
@@ -100,9 +122,27 @@ public class TimetableBuilderTest {
         assertEquals(2, timetable.stream().mapToInt(day -> day.getEntries().size()).sum());
         assertThrows(UnsupportedOperationException.class, () -> timetable.add(timetable.get(0)));
         assertThrows(UnsupportedOperationException.class, () ->
-                timetable.get(0).getEntries().add(timetable.get(1).getEntries().get(0)));
+                timetable.get(0).getEntries().add(timetable.get(5).getEntries().get(0)));
         assertThrows(UnsupportedOperationException.class, () ->
-                timetable.get(1).getEntries().get(0).getStudents().add(notEnrolled));
+                timetable.get(5).getEntries().get(0).getStudents().add(notEnrolled));
+    }
+
+    @Test
+    public void build_classIdentity_groupsCaseInsensitiveSubjectsAndSeparatesScheduleTypes() {
+        Lesson recurring = lesson("Math", "30", "Tuesday1800-1930");
+        Lesson recurringDifferentCase = lesson("math", "30", "Tuesday1800-1930");
+        Lesson oneOff = new Lesson(new Subject("Math"), new Cost("30"),
+                new OneOffLessonSchedule("2026-10-06T1800-1930"));
+        Person alice = new PersonBuilder().withLessons(recurring, oneOff).build();
+        Person bob = new PersonBuilder().withName("Bob Tan").withEmail("bob@example.com")
+                .withPhone("81234567").withLessons(recurringDifferentCase).build();
+
+        List<TimetableEntry> entries = TimetableBuilder.build(List.of(alice, bob), SUNDAY)
+                .get(2).getEntries();
+
+        assertEquals(2, entries.size());
+        assertEquals(2, entries.stream().filter(entry -> entry.getLesson().getSchedule() instanceof LessonTiming)
+                .findFirst().orElseThrow().getStudents().size());
     }
 
     @Test
@@ -112,8 +152,8 @@ public class TimetableBuilderTest {
         Person student = new PersonBuilder().build();
         TimetableEntry entry = new TimetableEntry(lesson, List.of(student));
         TimetableEntry entryCopy = new TimetableEntry(lesson, List.of(student));
-        TimetableDay day = new TimetableDay(DayOfWeek.FRIDAY, List.of(entry));
-        TimetableDay dayCopy = new TimetableDay(DayOfWeek.FRIDAY, List.of(entryCopy));
+        TimetableDay day = new TimetableDay(LocalDate.of(2026, 10, 9), List.of(entry));
+        TimetableDay dayCopy = new TimetableDay(LocalDate.of(2026, 10, 9), List.of(entryCopy));
 
         assertEquals(entry, entry);
         assertEquals(entry, entryCopy);
@@ -124,7 +164,7 @@ public class TimetableBuilderTest {
         assertEquals(day, day);
         assertEquals(day, dayCopy);
         assertEquals(day.hashCode(), dayCopy.hashCode());
-        assertNotEquals(day, new TimetableDay(DayOfWeek.SATURDAY, List.of(entry)));
+        assertNotEquals(day, new TimetableDay(LocalDate.of(2026, 10, 10), List.of(entry)));
         assertNotEquals(day, "day");
     }
 

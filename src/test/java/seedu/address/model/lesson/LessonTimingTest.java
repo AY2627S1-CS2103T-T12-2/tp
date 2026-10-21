@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalTime;
 
 import org.junit.jupiter.api.Test;
@@ -29,8 +30,11 @@ public class LessonTimingTest {
         LessonTiming timing = new LessonTiming("monday1800-1930");
 
         assertEquals(DayOfWeek.MONDAY, timing.getDay());
+        assertEquals(ScheduleType.WEEKLY, timing.getType());
         assertEquals(LocalTime.of(18, 0), timing.getStartTime());
         assertEquals(LocalTime.of(19, 30), timing.getEndTime());
+        assertTrue(timing.occursOn(LocalDate.of(2026, 10, 19)));
+        assertFalse(timing.occursOn(LocalDate.of(2026, 10, 20)));
         assertTrue(timing.startsAt(DayOfWeek.MONDAY, LocalTime.of(18, 0)));
         assertFalse(timing.startsAt(DayOfWeek.MONDAY, LocalTime.of(18, 30)));
         assertFalse(timing.startsAt(DayOfWeek.TUESDAY, LocalTime.of(18, 0)));
@@ -39,14 +43,15 @@ public class LessonTimingTest {
     }
 
     @Test
-    public void compareTo_ordersByDayThenStartTime() {
+    public void compareTo_ordersByDayStartTimeThenEndTime() {
         LessonTiming mondayMorning = new LessonTiming("Monday0900-1000");
         LessonTiming mondayEvening = new LessonTiming("Monday1800-1930");
         LessonTiming tuesdayMorning = new LessonTiming("Tuesday0900-1000");
 
         assertTrue(mondayMorning.compareTo(mondayEvening) < 0);
         assertTrue(mondayEvening.compareTo(tuesdayMorning) < 0);
-        assertEquals(0, mondayMorning.compareTo(new LessonTiming("Monday0900-1100")));
+        assertTrue(mondayMorning.compareTo(new LessonTiming("Monday0900-1100")) < 0);
+        assertEquals(0, mondayMorning.compareTo(new LessonTiming("Monday0900-1000")));
     }
 
     @Test

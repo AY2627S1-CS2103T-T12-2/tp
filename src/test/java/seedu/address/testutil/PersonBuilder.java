@@ -6,6 +6,7 @@ import java.util.Set;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.GuardianContact;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
@@ -22,12 +23,14 @@ public class PersonBuilder {
     public static final String DEFAULT_EMAIL = "amy@gmail.com";
     public static final String DEFAULT_ADDRESS = "123, Jurong West Ave 6, #08-111";
 
+    private GuardianContact guardianContact = GuardianContact.EMPTY;
     private Name name;
     private Phone phone;
     private Email email;
     private Address address;
     private Set<Tag> tags;
     private Set<Lesson> lessons;
+    private boolean pinned;
 
     /**
      * Creates a {@code PersonBuilder} with the default details.
@@ -39,18 +42,21 @@ public class PersonBuilder {
         address = new Address(DEFAULT_ADDRESS);
         tags = new HashSet<>();
         lessons = new HashSet<>();
+        pinned = false;
     }
 
     /**
      * Initializes the PersonBuilder with the data of {@code personToCopy}.
      */
     public PersonBuilder(Person personToCopy) {
+        guardianContact = personToCopy.getGuardianContact();
         name = personToCopy.getName();
         phone = personToCopy.getPhone();
         email = personToCopy.getEmail();
         address = personToCopy.getAddress();
         tags = new HashSet<>(personToCopy.getTags());
         lessons = new HashSet<>(personToCopy.getLessons());
+        pinned = personToCopy.isPinned();
     }
 
     /**
@@ -99,8 +105,20 @@ public class PersonBuilder {
         return this;
     }
 
+    /** Sets the optional guardian details. */
+    public PersonBuilder withGuardianContact(String name, String phone, String email) {
+        guardianContact = new GuardianContact(name, phone, email);
+        return this;
+    }
+
+    /** Sets whether the person is pinned. */
+    public PersonBuilder withPinned(boolean pinned) {
+        this.pinned = pinned;
+        return this;
+    }
+
     public Person build() {
-        return new Person(name, phone, email, address, tags, lessons);
+        return new Person(name, phone, email, address, tags, lessons, pinned).withGuardianContact(guardianContact);
     }
 
 }

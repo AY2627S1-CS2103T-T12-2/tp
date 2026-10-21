@@ -65,3 +65,21 @@ If tests pass but the separate `jacocoTestReport` task fails, inspect the covera
 To run tests and style checks without generating that report, append `-x jacocoTestReport` to either command.
 
 The [Developer Guide](DeveloperGuide.md#searching-by-subject) provides manual subject-search test scenarios.
+
+## Lesson scheduling tests
+
+| Test class | Coverage |
+| --- | --- |
+| `LessonTimingTest` | Weekly schedule validation, occurrence matching, representations, ordering, and overlaps. |
+| `OneOffLessonScheduleTest` | Date validation, exact-date occurrence matching, representations, ordering, equality, and the mixed-schedule overlap matrix. |
+| `LessonScheduleComparatorTest` | Stable ordering of weekly and one-off schedules. |
+| `JsonAdaptedLessonTest` | Legacy weekly migration, schedule-type validation, and weekly/one-off conversion. |
+| `ClassCommandParserTest` | Weekly and one-off parsing for enrolment, unenrolment, deletion, and payment commands. |
+| `ClassCommandsIntegrationTest` | Schedule-aware identity, cost conflicts, and overlap rejection across class operations. |
+| `TimetableBuilderTest` | Weekly occurrence projection and exact-date placement of one-off classes. |
+
+Run the focused scheduling tests and style checks with:
+
+```sh
+./gradlew test --tests '*Lesson*Test' --tests '*Class*Test' --tests '*Timetable*Test' checkstyleMain checkstyleTest
+```

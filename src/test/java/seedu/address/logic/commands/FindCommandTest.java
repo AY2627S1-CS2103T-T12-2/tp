@@ -19,6 +19,7 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
@@ -116,6 +117,22 @@ public class FindCommandTest {
     }
 
     @Test
+    public void execute_subjectSearch_findsCompleteLegacyRecordWithUnmigratableStart() throws Exception {
+        Person base = new PersonBuilder().build();
+        Person legacy = new Person(base.getName(), base.getPhone(), base.getEmail(), base.getAddress(),
+                base.getTags(), Set.of(new seedu.address.model.person.Subject("Math")),
+                Optional.of(new seedu.address.model.person.Cost("30")), Optional.of(new Lesson("Monday2359")));
+        AddressBook addressBook = new AddressBook();
+        addressBook.addPerson(legacy);
+        Model legacyModel = new ModelManager(addressBook, new UserPrefs());
+
+        CommandResult result = new AddressBookParser().parseCommand("find sub/mAtH").execute(legacyModel);
+
+        assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 1), result.getFeedbackToUser());
+        assertEquals(List.of(legacy), legacyModel.getFilteredPersonList());
+    }
+
+    @Test
     public void execute_multiplePartialNameKeywords_matchingPersonsRankedByScore() {
         AddressBook addressBook = new AddressBook();
         Person oneMatchFirst = new PersonBuilder().withName("Annabelle Tan").build();
@@ -131,6 +148,23 @@ public class FindCommandTest {
 
         command.execute(rankedModel);
         assertEquals(List.of(twoMatches, oneMatchFirst, oneMatchSecond), rankedModel.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_pinnedMatches_placesPinnedFirstAndExcludesNonMatches() {
+        AddressBook addressBook = new AddressBook();
+        Person unpinnedTwoMatches = new PersonBuilder().withName("Ann Marie").build();
+        Person pinnedOneMatch = new PersonBuilder().withName("Annabelle Tan").withPinned(true).build();
+        Person pinnedNonMatch = new PersonBuilder().withName("Zoe Tan").withPinned(true).build();
+        addressBook.addPerson(unpinnedTwoMatches);
+        addressBook.addPerson(pinnedOneMatch);
+        addressBook.addPerson(pinnedNonMatch);
+        Model rankedModel = new ModelManager(addressBook, new UserPrefs());
+        NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of("ann", "mar"));
+
+        new FindCommand(predicate).execute(rankedModel);
+
+        assertEquals(List.of(pinnedOneMatch, unpinnedTwoMatches), rankedModel.getFilteredPersonList());
     }
 
     @Test

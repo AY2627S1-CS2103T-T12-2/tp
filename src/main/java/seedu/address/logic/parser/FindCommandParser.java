@@ -3,6 +3,8 @@ package seedu.address.logic.parser;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -102,13 +104,14 @@ public class FindCommandParser implements Parser<FindCommand> {
 
         LessonSearchParts lessonSearchParts = parseLessonSearchParts(trimmedLessonArguments);
         return new FindCommand(new LessonContainsKeywordsPredicate(
-                lessonSearchParts.dayKeyword, lessonSearchParts.timeKeyword));
+                lessonSearchParts.dayKeyword, lessonSearchParts.timeKeyword, lessonSearchParts.dateKeyword));
     }
 
     private LessonSearchParts parseLessonSearchParts(String lessonArguments) throws ParseException {
         String[] tokens = lessonArguments.split("\\s+");
         Optional<String> dayKeyword = Optional.empty();
         Optional<String> timeKeyword = Optional.empty();
+        Optional<LocalDate> dateKeyword = Optional.empty();
         Set<String> seenComponents = new HashSet<>();
 
         for (String token : tokens) {
@@ -127,12 +130,33 @@ public class FindCommandParser implements Parser<FindCommand> {
                 }
                 timeKeyword = tokenParts.timeKeyword;
             }
+            if (tokenParts.dateKeyword.isPresent()) {
+                if (!seenComponents.add("date")) {
+                    throw new ParseException("Lesson search can include only one date keyword. "
+                            + FindCommand.MESSAGE_INVALID_LESSON);
+                }
+                dateKeyword = tokenParts.dateKeyword;
+            }
         }
 
-        return new LessonSearchParts(dayKeyword, timeKeyword);
+        if (dayKeyword.isPresent() && dateKeyword.isPresent()) {
+            throw new ParseException("Lesson search cannot combine day and date keywords. "
+                    + FindCommand.MESSAGE_INVALID_LESSON);
+        }
+
+        return new LessonSearchParts(dayKeyword, timeKeyword, dateKeyword);
     }
 
     private LessonSearchParts parseLessonToken(String token) throws ParseException {
+        if (token.matches("\\d{4}-\\d{2}-\\d{2}")) {
+            try {
+                return new LessonSearchParts(Optional.empty(), Optional.empty(), Optional.of(LocalDate.parse(token)));
+            } catch (DateTimeParseException exception) {
+                throw new ParseException("Invalid lesson date keyword '" + token + "'. "
+                        + FindCommand.MESSAGE_INVALID_LESSON);
+            }
+        }
+
         int splitIndex = firstDigitIndex(token);
         String dayPart = splitIndex == -1 ? token : token.substring(0, splitIndex);
         String timePart = splitIndex == -1 ? "" : token.substring(splitIndex);
@@ -157,7 +181,7 @@ public class FindCommandParser implements Parser<FindCommand> {
             timeKeyword = Optional.of(timePart);
         }
 
-        return new LessonSearchParts(dayKeyword, timeKeyword);
+        return new LessonSearchParts(dayKeyword, timeKeyword, Optional.empty());
     }
 
     private boolean isValidDayPrefix(String dayKeyword) {
@@ -192,10 +216,13 @@ public class FindCommandParser implements Parser<FindCommand> {
     private static class LessonSearchParts {
         private final Optional<String> dayKeyword;
         private final Optional<String> timeKeyword;
+        private final Optional<LocalDate> dateKeyword;
 
-        LessonSearchParts(Optional<String> dayKeyword, Optional<String> timeKeyword) {
+        LessonSearchParts(Optional<String> dayKeyword, Optional<String> timeKeyword,
+                Optional<LocalDate> dateKeyword) {
             this.dayKeyword = dayKeyword;
             this.timeKeyword = timeKeyword;
+            this.dateKeyword = dateKeyword;
         }
     }
 }
