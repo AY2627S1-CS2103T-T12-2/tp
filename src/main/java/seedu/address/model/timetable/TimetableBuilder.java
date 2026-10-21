@@ -98,7 +98,7 @@ public final class TimetableBuilder {
 
         ClassGroup(Lesson enrolment) {
             lesson = new Lesson(enrolment.getClassId(), enrolment.getSubject(), enrolment.getCost(),
-                    enrolment.getSchedule(), seedu.address.model.lesson.PaymentStatus.UNPAID);
+                    enrolment.getSchedule(), seedu.address.model.lesson.PaymentStatus.UNPAID, enrolment.getDetails());
         }
     }
 }

@@ -1,6 +1,8 @@
 package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import org.junit.jupiter.api.Test;
@@ -30,6 +32,21 @@ public class JsonAdaptedLessonTest {
         assertEquals(oneOffLesson, new JsonAdaptedLesson(oneOffLesson).toModelType());
         assertEquals(oneOffLesson, new JsonAdaptedLesson(
                 "Math", "30", "2026-10-20T1800-1930", null, "ONE_OFF").toModelType());
+    }
+
+    @Test
+    public void explicitDetailPresence_distinguishesEachOptionalFieldFromOmission() throws Exception {
+        assertFalse(new JsonAdaptedLesson("Math", "30", "Monday1800-1930").hasExplicitDetails());
+        for (int index = 0; index < 4; index++) {
+            String[] fields = new String[4];
+            fields[index] = index == 3 ? "offline" : "";
+            JsonAdaptedLesson adapted = new JsonAdaptedLesson("Math", "30", "Monday1800-1930", null,
+                    fields[0], fields[1], fields[2], fields[3]);
+            assertTrue(adapted.hasExplicitDetails());
+            assertEquals(VALID_LESSON, adapted.toModelType());
+        }
+        assertThrows(IllegalValueException.class, () -> new JsonAdaptedLesson("Math", "30", "Monday1800-1930",
+                null, null, null, null, null, "invalid").toModelType());
     }
 
     @Test

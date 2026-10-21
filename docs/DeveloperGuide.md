@@ -319,6 +319,49 @@ The outstanding balance is derived rather than stored. `Person#getOutstandingBal
 whose status is `UNPAID`, excluding paid enrolments. Recomputing it from the immutable lesson values prevents a stored
 balance from becoming stale after `class payment`, enrolment, unenrolment, or class deletion operations.
 
+### Adding class and guardian attributes
+
+`add` accepts optional `gn/`, `gp/`, and `ge/` guardian contact fields. `GuardianContact` validates
+non-empty values with the existing name, phone, and email rules. Contact fields are independent,
+with empty strings representing missing values. They participate in `Person#equals` and `hashCode`,
+while student identity retains its existing rules. Person-copy operations preserve the contact.
+
+A contact added with a complete lesson can include `mode/online|offline`, `link/`, `location/`, and
+`notes/`. `ClassDetails` stores an immutable `ClassMode`, meeting link, location, and notes. Online
+classes may omit the link; offline classes reject non-empty links. Links must be absolute HTTP(S)
+URIs with a host and no credentials. Location and notes are limited to 500 single-line characters.
+
+`TuitionClass` owns the shared `ClassDetails`. `Enrollment` carries the stable class ID, a snapshot
+of shared details, and the student's individual payment status. All lesson copy operations retain
+both the ID and details. Model normalization and class edits build enrolments from the canonical
+class instead of resetting their attributes. Class listing and timetable entries display the same values.
+
+Subject search delegates legacy fallback eligibility to `Person#hasUnmigratedLegacyLesson`.
+The same end-time calculation drives migration and fallback, so a valid legacy `Monday2359`
+record stays searchable without restoring stale subjects after a successfully migrated class is removed.
+
+`ClassDetailsUpdate` represents optional `add` input. It resolves classes from the class catalogue,
+including empty classes. New classes default to offline. An empty, undescribed catalogue class can
+receive its extra details through its first contact. For occupied classes or classes with recorded
+details, omitted input inherits shared values and conflicting explicit values fail before adding data.
+
+No new attribute input is added to `edit`, `class enrol`, or `class edit`; Aaron's class-ID commands
+are retained. Ordinary contact edits preserve guardian data. ID enrolments inherit class attributes;
+class edits preserve those attributes and payments. Unenrolling the last student retains the class
+and its metadata until the class itself is deleted.
+
+`JsonAdaptedPerson` stores `guardianName`, `guardianPhone`, and `guardianEmail`.
+`JsonAdaptedTuitionClass` and `JsonAdaptedLesson` retain `mode`, `meetingLink`, `location`, and `notes`
+for compatibility with both catalogue files and pre-catalogue v1.4 files. During loading the central
+class is canonical. Explicit conflicting enrolment details fail validation; old enrolments that omit
+these fields inherit them from the stored class. Attribute-only v1.4 lessons create canonical classes
+without losing details, guardians, or payment statuses. Empty classes also retain attributes in JSON.
+Missing contact/text fields default to empty strings; missing modes are inferred from existing links.
+
+Automated coverage includes first-contact catalogue enrichment, ID enrolment, class edits, last-student
+unenrolment, preservation of IDs/metadata/guardians/payments, empty-class persistence, both legacy file
+formats, conflict rejection, and catalogue UI display. See [the manual checklist](ManualTests-v1.4.md).
+
 ### Subject search
 
 `AddressBookParser` routes `find` to `SubjectFindCommandParser`. The parser handles the `sub/` mode and delegates

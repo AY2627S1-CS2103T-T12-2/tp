@@ -22,6 +22,8 @@ import seedu.address.model.tag.Tag;
  */
 public class Person {
 
+    private final GuardianContact guardianContact;
+
     // Identity fields
     private final Name name;
     private final Phone phone;
@@ -74,8 +76,17 @@ public class Person {
     public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags, Set<Lesson> lessons,
             Set<Subject> legacySubjects, Optional<Cost> legacyCost,
             Optional<seedu.address.model.person.Lesson> legacyLesson, boolean pinned) {
+        this(name, phone, email, address, tags, lessons, legacySubjects, legacyCost, legacyLesson,
+                GuardianContact.EMPTY, pinned);
+    }
+
+    /** Creates a person retaining both guardian details and pin state. */
+    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags, Set<Lesson> lessons,
+            Set<Subject> legacySubjects, Optional<Cost> legacyCost,
+            Optional<seedu.address.model.person.Lesson> legacyLesson, GuardianContact guardianContact, boolean pinned) {
         requireAllNonNull(name, phone, email, address, tags, lessons,
-                legacySubjects, legacyCost, legacyLesson);
+                legacySubjects, legacyCost, legacyLesson, guardianContact);
+        this.guardianContact = guardianContact;
         this.name = name;
         this.phone = phone;
         this.email = email;
@@ -105,18 +116,11 @@ public class Person {
             return Set.of();
         }
 
-        String legacyTiming = lesson.get().toString();
-        String startText = legacyTiming.substring(legacyTiming.length() - 4);
-        LocalTime start = LocalTime.parse(startText, DateTimeFormatter.ofPattern("HHmm"));
-        LocalTime end = start.plusHours(1);
-        if (!end.isAfter(start)) {
-            end = LocalTime.of(23, 59);
-        }
-        if (!end.isAfter(start)) {
+        Optional<LocalTime> end = legacyLessonEnd(lesson);
+        if (end.isEmpty()) {
             return Set.of();
         }
-
-        String migratedTiming = legacyTiming + "-" + end.format(DateTimeFormatter.ofPattern("HHmm"));
+        String migratedTiming = lesson.get() + "-" + end.get().format(DateTimeFormatter.ofPattern("HHmm"));
         Set<Lesson> migrated = new LinkedHashSet<>();
         for (Subject subject : subjects) {
             migrated.add(new Lesson(new seedu.address.model.lesson.Subject(subject.toString()),
@@ -124,6 +128,37 @@ public class Person {
                     new seedu.address.model.lesson.LessonTiming(migratedTiming)));
         }
         return migrated;
+    }
+
+    /** Returns an end time only when a valid same-day legacy lesson range can be constructed. */
+    private static Optional<LocalTime> legacyLessonEnd(Optional<seedu.address.model.person.Lesson> lesson) {
+        if (lesson.isEmpty()) {
+            return Optional.empty();
+        }
+        String legacyTiming = lesson.get().toString();
+        String startText = legacyTiming.substring(legacyTiming.length() - 4);
+        LocalTime start = LocalTime.parse(startText, DateTimeFormatter.ofPattern("HHmm"));
+        LocalTime end = start.plusHours(1);
+        if (!end.isAfter(start)) {
+            end = LocalTime.of(23, 59);
+        }
+        return end.isAfter(start) ? Optional.of(end) : Optional.empty();
+    }
+
+    /** Returns whether retained legacy subjects could not become current lesson enrolments. */
+    public boolean hasUnmigratedLegacyLesson() {
+        return lessons.isEmpty() && !legacySubjects.isEmpty()
+                && (legacyCost.isEmpty() || legacyLessonEnd(legacyLesson).isEmpty());
+    }
+
+    public GuardianContact getGuardianContact() {
+        return guardianContact;
+    }
+
+    /** Returns a copy with only its guardian details replaced. */
+    public Person withGuardianContact(GuardianContact updatedContact) {
+        return new Person(name, phone, email, address, tags, lessons,
+                legacySubjects, legacyCost, legacyLesson, updatedContact, pinned);
     }
 
     public Name getName() {
@@ -156,7 +191,7 @@ public class Person {
     public Person withTags(Set<Tag> updatedTags) {
         requireAllNonNull(updatedTags);
         return new Person(name, phone, email, address, updatedTags, lessons,
-                legacySubjects, legacyCost, legacyLesson, pinned);
+                legacySubjects, legacyCost, legacyLesson, guardianContact, pinned);
     }
 
     /** Returns the immutable set of lessons in which this person is enrolled. */
@@ -176,7 +211,7 @@ public class Person {
     /** Returns a copy of this person with {@code updatedLessons} replacing the current lessons. */
     public Person withLessons(Set<Lesson> updatedLessons) {
         return new Person(name, phone, email, address, tags, updatedLessons,
-                legacySubjects, legacyCost, legacyLesson, pinned);
+                legacySubjects, legacyCost, legacyLesson, guardianContact, pinned);
     }
 
     /** Returns whether this person is pinned. */
@@ -187,7 +222,7 @@ public class Person {
     /** Returns a copy of this person with the specified pin state. */
     public Person withPinned(boolean pinned) {
         return new Person(name, phone, email, address, tags, lessons,
-                legacySubjects, legacyCost, legacyLesson, pinned);
+                legacySubjects, legacyCost, legacyLesson, guardianContact, pinned);
     }
 
     /** Returns subjects retained from the previous student model. */
@@ -242,14 +277,14 @@ public class Person {
                 && legacySubjects.equals(otherPerson.legacySubjects)
                 && legacyCost.equals(otherPerson.legacyCost)
                 && legacyLesson.equals(otherPerson.legacyLesson)
-                && pinned == otherPerson.pinned;
+                && pinned == otherPerson.pinned && guardianContact.equals(otherPerson.guardianContact);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
         return Objects.hash(name, phone, email, address, tags, lessons,
-                legacySubjects, legacyCost, legacyLesson, pinned);
+                legacySubjects, legacyCost, legacyLesson, guardianContact, pinned);
     }
 
     @Override
@@ -267,6 +302,9 @@ public class Person {
                 .add("cost", legacyCost)
                 .add("lesson", legacyLesson)
                 .add("pinned", pinned);
+        if (!guardianContact.isEmpty()) {
+            builder.add("guardian", guardianContact);
+        }
         return builder.toString();
     }
 

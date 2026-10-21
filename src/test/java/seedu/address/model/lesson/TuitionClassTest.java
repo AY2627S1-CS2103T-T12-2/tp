@@ -12,6 +12,18 @@ public class TuitionClassTest {
     private static final TuitionClass MATH = tuitionClass("C001", "Math", "30", "Monday1800-1930");
 
     @Test
+    public void withDetails_changesValueEqualityWhileRetainingClassIdentity() {
+        TuitionClass original = new TuitionClass(new ClassId("C001"), new Subject("Math"), new Cost("30"),
+                new LessonTiming("Monday1800-1930"));
+        TuitionClass updated = original.withDetails(new ClassDetails("https://example.com/math", "", ""));
+        assertNotEquals(original, updated);
+        assertTrue(original.hasSameDetails(updated));
+        assertEquals(original.getClassId(), updated.getClassId());
+        assertEquals(updated, original.withDetails(updated.getDetails()));
+        assertEquals(updated.hashCode(), original.withDetails(updated.getDetails()).hashCode());
+    }
+
+    @Test
     public void accessorsAndRelationshipChecks_returnExpectedValues() {
         assertEquals(new ClassId("C001"), MATH.getClassId());
         assertEquals(new Subject("Math"), MATH.getSubject());

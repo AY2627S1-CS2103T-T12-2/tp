@@ -19,6 +19,7 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
@@ -113,6 +114,22 @@ public class FindCommandTest {
         expectedLessonModel.updateFilteredPersonList(predicate);
         assertCommandSuccess(command, lessonModel, expectedMessage, expectedLessonModel);
         assertEquals(List.of(mondayStudent), lessonModel.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_subjectSearch_findsCompleteLegacyRecordWithUnmigratableStart() throws Exception {
+        Person base = new PersonBuilder().build();
+        Person legacy = new Person(base.getName(), base.getPhone(), base.getEmail(), base.getAddress(),
+                base.getTags(), Set.of(new seedu.address.model.person.Subject("Math")),
+                Optional.of(new seedu.address.model.person.Cost("30")), Optional.of(new Lesson("Monday2359")));
+        AddressBook addressBook = new AddressBook();
+        addressBook.addPerson(legacy);
+        Model legacyModel = new ModelManager(addressBook, new UserPrefs());
+
+        CommandResult result = new AddressBookParser().parseCommand("find sub/mAtH").execute(legacyModel);
+
+        assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 1), result.getFeedbackToUser());
+        assertEquals(List.of(legacy), legacyModel.getFilteredPersonList());
     }
 
     @Test

@@ -71,6 +71,35 @@ public class SubjectContainsKeywordsPredicateTest {
     }
 
     @Test
+    public void test_supportsCompleteLegacyRecordWhoseStartCannotBeMigrated() {
+        Person base = new PersonBuilder().build();
+        Person legacy = new Person(base.getName(), base.getPhone(), base.getEmail(), base.getAddress(),
+                base.getTags(), Set.of(new seedu.address.model.person.Subject("Math")),
+                Optional.of(new seedu.address.model.person.Cost("30")),
+                Optional.of(new seedu.address.model.person.Lesson("Monday2359")));
+
+        assertTrue(legacy.getLessons().isEmpty());
+        assertTrue(legacy.getCost().isPresent());
+        assertTrue(legacy.getLesson().isPresent());
+        assertTrue(predicate("mAtH").test(legacy));
+        assertFalse(predicate("Physics").test(legacy));
+        assertFalse(predicate("math").test(legacy.withLessons(Set.of(lesson("Physics")))));
+    }
+
+    @Test
+    public void test_doesNotRestoreLegacySubjectAfterUnenrollingLastMigratableMinute() {
+        Person base = new PersonBuilder().build();
+        Person migrated = new Person(base.getName(), base.getPhone(), base.getEmail(), base.getAddress(),
+                base.getTags(), Set.of(new seedu.address.model.person.Subject("Math")),
+                Optional.of(new seedu.address.model.person.Cost("30")),
+                Optional.of(new seedu.address.model.person.Lesson("Monday2358")));
+
+        assertEquals(1, migrated.getLessons().size());
+        assertTrue(predicate("math").test(migrated));
+        assertFalse(predicate("math").test(migrated.withLessons(Set.of())));
+    }
+
+    @Test
     public void equalsAndToString_andKeywordsAreCopied() {
         List<String> keywords = new ArrayList<>(List.of("Math"));
         SubjectContainsKeywordsPredicate predicate = new SubjectContainsKeywordsPredicate(keywords);

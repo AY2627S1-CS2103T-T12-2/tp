@@ -55,7 +55,7 @@ public class ClassEditCommand extends ClassCommand {
         }
         TuitionClass original = model.getTuitionClass(classId);
         TuitionClass edited = new TuitionClass(classId, subject.orElse(original.getSubject()),
-                cost.orElse(original.getCost()), schedule.orElse(original.getSchedule()));
+                cost.orElse(original.getCost()), schedule.orElse(original.getSchedule()), original.getDetails());
         if (edited.equals(original)) {
             throw new CommandException(MESSAGE_NO_CHANGE);
         }

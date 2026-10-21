@@ -17,6 +17,8 @@ public class TuitionClassCard extends UiPart<Region> {
     private Label schedule;
     @FXML
     private Label cost;
+    @FXML
+    private Label details;
 
     /** Creates a card for the supplied class. */
     public TuitionClassCard(TuitionClass tuitionClass) {
@@ -28,5 +30,6 @@ public class TuitionClassCard extends UiPart<Region> {
         schedule.setText(timeSeparator < 0 ? scheduleText
                 : scheduleText.substring(0, timeSeparator) + "–" + scheduleText.substring(timeSeparator + 1));
         cost.setText("Cost: " + tuitionClass.getCost());
+        details.setText(tuitionClass.getDetails().toString());
     }
 }
