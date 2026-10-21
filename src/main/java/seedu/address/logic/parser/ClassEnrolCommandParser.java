@@ -2,6 +2,7 @@ package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS_ID;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_COST;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 
@@ -19,17 +20,31 @@ public class ClassEnrolCommandParser implements Parser<ClassEnrolCommand> {
 
     @Override
     public ClassEnrolCommand parse(String args) throws ParseException {
-        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(args, PREFIX_SUBJECT, PREFIX_COST, PREFIX_CLASS);
-        if (arguments.getPreamble().isEmpty() || arguments.getValue(PREFIX_SUBJECT).isEmpty()
-                || arguments.getValue(PREFIX_CLASS).isEmpty()) {
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(args,
+                PREFIX_CLASS_ID, PREFIX_SUBJECT, PREFIX_COST, PREFIX_CLASS);
+        boolean hasId = arguments.getValue(PREFIX_CLASS_ID).isPresent();
+        boolean hasSubject = arguments.getValue(PREFIX_SUBJECT).isPresent();
+        boolean hasCost = arguments.getValue(PREFIX_COST).isPresent();
+        boolean hasTiming = arguments.getValue(PREFIX_CLASS).isPresent();
+        boolean usesOnlyId = hasId && !hasSubject && !hasCost && !hasTiming;
+        boolean usesExistingClassDetails = !hasId && hasSubject && !hasCost && hasTiming;
+        boolean usesLegacyDetailsWithCost = !hasId && hasSubject && hasCost && hasTiming;
+        if (arguments.getPreamble().isEmpty()
+                || !(usesOnlyId || usesExistingClassDetails || usesLegacyDetailsWithCost)) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, ClassEnrolCommand.MESSAGE_USAGE));
         }
-        arguments.verifyNoDuplicatePrefixesFor(PREFIX_SUBJECT, PREFIX_COST, PREFIX_CLASS);
+        arguments.verifyNoDuplicatePrefixesFor(PREFIX_CLASS_ID, PREFIX_SUBJECT, PREFIX_COST, PREFIX_CLASS);
+
+        if (usesOnlyId) {
+            Index index = ParserUtil.parseIndex(arguments.getPreamble());
+            return new ClassEnrolCommand(index,
+                    ParserUtil.parseClassId(arguments.getValue(PREFIX_CLASS_ID).get()));
+        }
 
         List<Index> indexes = ParserUtil.parseIndexes(arguments.getPreamble());
         Subject subject = ParserUtil.parseLessonSubject(arguments.getValue(PREFIX_SUBJECT).get());
         LessonTiming timing = ParserUtil.parseLessonTiming(arguments.getValue(PREFIX_CLASS).get());
-        if (arguments.getValue(PREFIX_COST).isEmpty()) {
+        if (usesExistingClassDetails) {
             return new ClassEnrolCommand(indexes, subject, timing);
         }
         if (indexes.size() > 1) {

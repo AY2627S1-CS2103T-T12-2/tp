@@ -4,12 +4,13 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS_ID;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_COST;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -17,10 +18,12 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
-import seedu.address.model.lesson.Cost;
+import seedu.address.model.lesson.ClassId;
+import seedu.address.model.lesson.Enrollment;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
 import seedu.address.model.lesson.Subject;
+import seedu.address.model.lesson.TuitionClass;
 import seedu.address.model.person.Person;
 
 /** Enrols one or more existing students in a recurring weekly class. */
@@ -29,13 +32,17 @@ public class ClassEnrolCommand extends ClassCommand {
     public static final String SUBCOMMAND_WORD = "enrol";
     public static final String MESSAGE_USAGE = COMMAND_WORD + " " + SUBCOMMAND_WORD
             + ": Enrols one or more indexed students in a class.\n"
+            + "To use a class ID: STUDENT_INDEX " + PREFIX_CLASS_ID + "CLASS_ID\n"
             + "To use an existing class: STUDENT_INDEX [STUDENT_INDEX]... "
             + PREFIX_SUBJECT + "SUBJECT " + PREFIX_CLASS + "DAYHHmm-HHmm\n"
             + "To supply a class cost: STUDENT_INDEX " + PREFIX_SUBJECT + "SUBJECT "
             + PREFIX_COST + "COST " + PREFIX_CLASS + "DAYHHmm-HHmm\n"
             + "Examples:\n"
-            + COMMAND_WORD + " " + SUBCOMMAND_WORD + " 1 3 5 sub/Math c/Monday1800-1930\n"
-            + COMMAND_WORD + " " + SUBCOMMAND_WORD + " 1 sub/Math cost/30 c/Monday1800-1930";
+            + COMMAND_WORD + " " + SUBCOMMAND_WORD + " 1 " + PREFIX_CLASS_ID + "C001\n"
+            + COMMAND_WORD + " " + SUBCOMMAND_WORD + " 1 3 5 "
+            + PREFIX_SUBJECT + "Math " + PREFIX_CLASS + "Monday1800-1930\n"
+            + COMMAND_WORD + " " + SUBCOMMAND_WORD + " 1 "
+            + PREFIX_SUBJECT + "Math " + PREFIX_COST + "30 " + PREFIX_CLASS + "Monday1800-1930";
     public static final String MESSAGE_SUCCESS = "Enrolled %1$s in class: %2$s";
     public static final String MESSAGE_BATCH_SUCCESS = "Enrolled %1$s in class: %2$s, %3$s.";
     public static final String MESSAGE_BATCH_PARTIAL_SUCCESS =
@@ -43,25 +50,36 @@ public class ClassEnrolCommand extends ClassCommand {
     public static final String MESSAGE_BATCH_ALL_ALREADY_ENROLLED =
             "No students were enrolled in class: %1$s, %2$s. Already enrolled: %3$s. No changes were made.";
     public static final String MESSAGE_DUPLICATE_CLASS = "This student is already enrolled in the specified class.";
-    public static final String MESSAGE_CLASS_NOT_FOUND =
+    public static final String MESSAGE_EXISTING_CLASS_NOT_FOUND =
             "The specified class does not exist. No students were enrolled.";
+    public static final String MESSAGE_CLASS_NOT_FOUND = "No class exists with ID %s.";
     public static final String MESSAGE_BATCH_COST_NOT_ALLOWED =
             "Do not provide cost/ when enrolling multiple students. Use an existing class's subject and timing.";
     public static final String MESSAGE_CLASS_COST_CONFLICT =
             "This class already exists with a different cost. Students in the same class must have the same cost.";
 
     private final List<Index> personIndexes;
+    private final ClassId classId;
+    private final Lesson legacyLesson;
     private final Subject subject;
     private final LessonTiming timing;
-    private final Optional<Cost> suppliedCost;
 
-    /** Creates a command that enrols the indexed student in {@code lesson}. */
+    /** Creates an ID-based enrolment command for one student. */
+    public ClassEnrolCommand(Index personIndex, ClassId classId) {
+        personIndexes = List.of(requireNonNull(personIndex));
+        this.classId = requireNonNull(classId);
+        legacyLesson = null;
+        subject = null;
+        timing = null;
+    }
+
+    /** Creates a command that enrols one student while supplying the class details and cost. */
     public ClassEnrolCommand(Index personIndex, Lesson lesson) {
         personIndexes = List.of(requireNonNull(personIndex));
-        Lesson checkedLesson = requireNonNull(lesson);
-        subject = checkedLesson.getSubject();
-        timing = checkedLesson.getTiming();
-        suppliedCost = Optional.of(checkedLesson.getCost());
+        legacyLesson = requireNonNull(lesson);
+        classId = lesson.getClassId();
+        subject = null;
+        timing = null;
     }
 
     /** Creates a command that enrols the indexed students in an existing class. */
@@ -73,7 +91,8 @@ public class ClassEnrolCommand extends ClassCommand {
         this.personIndexes = List.copyOf(personIndexes);
         this.subject = requireNonNull(subject);
         this.timing = requireNonNull(timing);
-        suppliedCost = Optional.empty();
+        classId = null;
+        legacyLesson = null;
     }
 
     @Override
@@ -87,52 +106,46 @@ public class ClassEnrolCommand extends ClassCommand {
         List<Person> selectedPersons = personIndexes.stream()
                 .map(index -> persons.get(index.getZeroBased()))
                 .toList();
-        Lesson lesson = resolveLesson(model);
-        if (suppliedCost.isPresent()) {
-            if (model.hasClassCostConflict(lesson)) {
-                throw new CommandException(MESSAGE_CLASS_COST_CONFLICT);
-            }
-        }
+        TuitionClass tuitionClass = resolveTuitionClass(model);
+        Lesson enrollment = new Enrollment(tuitionClass);
 
         List<Person> alreadyEnrolledPersons = selectedPersons.stream()
-                .filter(person -> person.getLessons().stream().anyMatch(existing -> existing.isSameClass(lesson)))
+                .filter(person -> person.getLessons().stream().anyMatch(existing -> existing.isSameClass(enrollment)))
                 .toList();
-        if (suppliedCost.isPresent() && !alreadyEnrolledPersons.isEmpty()) {
+        if (!isBatchExistingClassCommand() && !alreadyEnrolledPersons.isEmpty()) {
             throw new CommandException(MESSAGE_DUPLICATE_CLASS);
-        }
-        if (suppliedCost.isPresent()) {
-            List<Lesson> overlappingClasses = model.findOverlappingClasses(lesson);
-            if (!overlappingClasses.isEmpty()) {
-                throw new CommandException(Messages.getClassOverlapMessage(lesson, overlappingClasses));
-            }
         }
 
         List<Person> personsToEnrol = selectedPersons.stream()
-                .filter(person -> person.getLessons().stream()
-                        .noneMatch(existing -> existing.isSameClass(lesson)))
+                .filter(person -> person.getLessons().stream().noneMatch(existing -> existing.isSameClass(enrollment)))
                 .toList();
         if (personsToEnrol.isEmpty()) {
             return new CommandResult(String.format(MESSAGE_BATCH_ALL_ALREADY_ENROLLED,
-                    lesson.getSubject(), lesson.getTiming(), formatStudentNames(alreadyEnrolledPersons)));
+                    tuitionClass.getSubject(), tuitionClass.getTiming(), formatStudentNames(alreadyEnrolledPersons)));
         }
 
         for (Person person : personsToEnrol) {
             Set<Lesson> updatedLessons = new LinkedHashSet<>(person.getLessons());
-            updatedLessons.add(lesson);
+            updatedLessons.add(enrollment);
             model.setPerson(person, person.withLessons(updatedLessons));
         }
 
-        if (suppliedCost.isPresent()) {
-            return new CommandResult(String.format(MESSAGE_SUCCESS, selectedPersons.get(0).getName(), lesson));
+        if (!isBatchExistingClassCommand()) {
+            Lesson displayedLesson = legacyLesson != null ? legacyLesson : enrollment;
+            return new CommandResult(String.format(MESSAGE_SUCCESS, selectedPersons.get(0).getName(), displayedLesson));
         }
         String enrolledStudentNames = formatStudentNames(personsToEnrol);
         if (alreadyEnrolledPersons.isEmpty()) {
             return new CommandResult(String.format(MESSAGE_BATCH_SUCCESS,
-                    enrolledStudentNames, lesson.getSubject(), lesson.getTiming()));
+                    enrolledStudentNames, tuitionClass.getSubject(), tuitionClass.getTiming()));
         }
         return new CommandResult(String.format(MESSAGE_BATCH_PARTIAL_SUCCESS,
-                enrolledStudentNames, lesson.getSubject(), lesson.getTiming(),
+                enrolledStudentNames, tuitionClass.getSubject(), tuitionClass.getTiming(),
                 formatStudentNames(alreadyEnrolledPersons)));
+    }
+
+    private boolean isBatchExistingClassCommand() {
+        return classId == null && legacyLesson == null;
     }
 
     private static String formatStudentNames(List<Person> persons) {
@@ -141,24 +154,42 @@ public class ClassEnrolCommand extends ClassCommand {
                 .collect(Collectors.joining(", "));
     }
 
-    private Lesson resolveLesson(Model model) throws CommandException {
-        if (suppliedCost.isPresent()) {
-            return new Lesson(subject, suppliedCost.get(), timing);
+    private TuitionClass resolveTuitionClass(Model model) throws CommandException {
+        if (classId != null) {
+            if (!model.hasTuitionClass(classId)) {
+                throw new CommandException(String.format(MESSAGE_CLASS_NOT_FOUND, classId));
+            }
+            return model.getTuitionClass(classId);
         }
-        Lesson existingClass = model.getAddressBook().getPersonList().stream()
-                .flatMap(person -> person.getLessons().stream())
-                .filter(lesson -> lesson.isSameClass(subject, timing))
-                .findFirst()
-                .orElseThrow(() -> new CommandException(MESSAGE_CLASS_NOT_FOUND));
-        return new Lesson(existingClass.getSubject(), existingClass.getCost(), existingClass.getTiming());
+        if (legacyLesson == null) {
+            return model.findTuitionClass(subject, timing)
+                    .orElseThrow(() -> new CommandException(MESSAGE_EXISTING_CLASS_NOT_FOUND));
+        }
+        if (model.hasClassCostConflict(legacyLesson)) {
+            throw new CommandException(MESSAGE_CLASS_COST_CONFLICT);
+        }
+        TuitionClass existingClass = model.findTuitionClass(legacyLesson.getSubject(), legacyLesson.getTiming())
+                .orElse(null);
+        if (existingClass != null) {
+            return existingClass;
+        }
+        List<Lesson> overlappingClasses = model.findOverlappingClasses(legacyLesson);
+        if (!overlappingClasses.isEmpty()) {
+            throw new CommandException(Messages.getClassOverlapMessage(legacyLesson, overlappingClasses));
+        }
+        TuitionClass createdClass = new TuitionClass(model.allocateClassId(), legacyLesson.getSubject(),
+                legacyLesson.getCost(), legacyLesson.getTiming());
+        model.addTuitionClass(createdClass);
+        return createdClass;
     }
 
     @Override
     public boolean equals(Object other) {
         return other == this || other instanceof ClassEnrolCommand otherCommand
                 && personIndexes.equals(otherCommand.personIndexes)
-                && subject.equals(otherCommand.subject)
-                && timing.equals(otherCommand.timing)
-                && suppliedCost.equals(otherCommand.suppliedCost);
+                && Objects.equals(classId, otherCommand.classId)
+                && Objects.equals(legacyLesson, otherCommand.legacyLesson)
+                && Objects.equals(subject, otherCommand.subject)
+                && Objects.equals(timing, otherCommand.timing);
     }
 }

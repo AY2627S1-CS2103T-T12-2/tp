@@ -11,6 +11,7 @@ import java.util.Set;
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.lesson.ClassId;
 import seedu.address.model.lesson.LessonStart;
 import seedu.address.model.lesson.LessonTiming;
 import seedu.address.model.lesson.PaymentStatus;
@@ -233,6 +234,16 @@ public class ParserUtil {
             throw new ParseException(PaymentStatus.MESSAGE_CONSTRAINTS);
         }
         return PaymentStatus.fromString(trimmedStatus);
+    }
+
+    /** Parses a stable class ID. */
+    public static ClassId parseClassId(String classId) throws ParseException {
+        requireNonNull(classId);
+        String trimmedId = classId.trim();
+        if (!ClassId.isValidClassId(trimmedId)) {
+            throw new ParseException(ClassId.MESSAGE_CONSTRAINTS);
+        }
+        return new ClassId(trimmedId);
     }
 
     /** Parses the day and start time used for class searching. */

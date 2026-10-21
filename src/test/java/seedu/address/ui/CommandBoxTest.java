@@ -52,6 +52,12 @@ public class CommandBoxTest {
                 CommandBox.getCommandSuggestion("find c/"));
         assertEquals("t/TAG (e.g. priority)", CommandBox.getCommandSuggestion("t/"));
         assertEquals("c/DAY TIME (e.g. Monday 1800; time uses HHmm)", CommandBox.getCommandSuggestion("c/"));
+        assertEquals("pin", CommandBox.getCommandSuggestion("pi"));
+        assertEquals("pin INDEX", CommandBox.getCommandSuggestion("pin"));
+        assertEquals("pin INDEX", CommandBox.getCommandSuggestion("pin "));
+        assertEquals("unpin", CommandBox.getCommandSuggestion("unp"));
+        assertEquals("unpin INDEX", CommandBox.getCommandSuggestion("unpin"));
+        assertEquals("unpin INDEX", CommandBox.getCommandSuggestion("unpin "));
         assertEquals("", CommandBox.getCommandSuggestion("list"));
     }
 
@@ -77,6 +83,9 @@ public class CommandBoxTest {
 
             commandTextField.setText("find t/");
             assertEquals("find t/TAG (e.g. priority)", commandSuggestionTextField.getText());
+
+            commandTextField.setText("pin ");
+            assertEquals("pin INDEX", commandSuggestionTextField.getText());
         });
     }
 

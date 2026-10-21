@@ -6,11 +6,16 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.model.lesson.ClassId;
 import seedu.address.model.lesson.Lesson;
+import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.Subject;
+import seedu.address.model.lesson.TuitionClass;
 import seedu.address.model.person.Person;
 import seedu.address.model.timetable.TimetableDay;
 
@@ -68,6 +73,54 @@ public interface Model {
      */
     void setPerson(Person target, Person editedPerson);
 
+    /** Allocates and returns the next stable class ID. */
+    default ClassId allocateClassId() {
+        throw new UnsupportedOperationException();
+    }
+
+    /** Returns whether the supplied stable class ID exists. */
+    default boolean hasTuitionClass(ClassId classId) {
+        return getAddressBook().getTuitionClassList().stream()
+                .anyMatch(item -> item.getClassId().equals(classId));
+    }
+
+    default boolean hasTuitionClassWithDetails(TuitionClass tuitionClass) {
+        return getAddressBook().getTuitionClassList().stream().anyMatch(item -> item.hasSameDetails(tuitionClass));
+    }
+
+    default TuitionClass getTuitionClass(ClassId classId) {
+        return getAddressBook().getTuitionClassList().stream()
+                .filter(item -> item.getClassId().equals(classId)).findFirst()
+                .orElseThrow(java.util.NoSuchElementException::new);
+    }
+
+    /**
+     * Finds a centrally stored class by its case-insensitive subject and complete lesson timing.
+     */
+    default Optional<TuitionClass> findTuitionClass(Subject subject, LessonTiming timing) {
+        requireNonNull(subject);
+        requireNonNull(timing);
+        return getAddressBook().getTuitionClassList().stream()
+                .filter(item -> item.getSubject().equals(subject) && item.getTiming().equals(timing))
+                .findFirst();
+    }
+
+    default void addTuitionClass(TuitionClass tuitionClass) {
+        throw new UnsupportedOperationException();
+    }
+
+    default void setTuitionClass(TuitionClass target, TuitionClass edited) {
+        throw new UnsupportedOperationException();
+    }
+
+    default void deleteTuitionClass(TuitionClass tuitionClass) {
+        throw new UnsupportedOperationException();
+    }
+
+    default ObservableList<TuitionClass> getTuitionClassList() {
+        return getAddressBook().getTuitionClassList();
+    }
+
     /** Returns an unmodifiable view of the filtered person list */
     ObservableList<Person> getFilteredPersonList();
 
@@ -90,9 +143,9 @@ public interface Model {
 
     /** Returns whether an existing student has the same class with a different cost. */
     default boolean hasClassCostConflict(Lesson candidate) {
-        return getAddressBook().getPersonList().stream()
-                .flatMap(person -> person.getLessons().stream())
-                .anyMatch(existing -> existing.isSameClass(candidate)
+        return getAddressBook().getTuitionClassList().stream()
+                .anyMatch(existing -> existing.getSubject().value.equalsIgnoreCase(candidate.getSubject().value)
+                        && existing.getTiming().equals(candidate.getTiming())
                         && !existing.getCost().equals(candidate.getCost()));
     }
 
@@ -108,10 +161,12 @@ public interface Model {
                 .thenComparing(lesson -> lesson.getTiming().getEndTime())
                 .thenComparing(lesson -> lesson.getSubject().toString(), String.CASE_INSENSITIVE_ORDER);
 
-        List<Lesson> overlappingLessons = getAddressBook().getPersonList().stream()
-                .flatMap(person -> person.getLessons().stream())
-                .filter(existing -> !existing.isSameClass(candidate))
+        List<Lesson> overlappingLessons = getAddressBook().getTuitionClassList().stream()
+                .filter(existing -> !(existing.getSubject().equals(candidate.getSubject())
+                        && existing.getTiming().equals(candidate.getTiming())))
                 .filter(existing -> existing.getTiming().overlapsWith(candidate.getTiming()))
+                .map(existing -> new Lesson(existing.getClassId(), existing.getSubject(), existing.getCost(),
+                        existing.getTiming(), seedu.address.model.lesson.PaymentStatus.UNPAID))
                 .sorted(classOrder)
                 .toList();
         List<Lesson> distinctClasses = new ArrayList<>();

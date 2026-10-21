@@ -27,8 +27,10 @@ import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.PinCommand;
 import seedu.address.logic.commands.TagCommand;
 import seedu.address.logic.commands.TimetableCommand;
+import seedu.address.logic.commands.UnpinCommand;
 import seedu.address.logic.commands.UntagCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.lesson.Cost;
@@ -144,6 +146,12 @@ public class AddressBookParserTest {
     }
 
     @Test
+    public void parseCommand_pin() throws Exception {
+        PinCommand command = (PinCommand) parser.parseCommand("pin 1");
+        assertEquals(new PinCommand(INDEX_FIRST_PERSON), command);
+    }
+
+    @Test
     public void parseCommand_tag() throws Exception {
         TagCommand command = (TagCommand) parser.parseCommand("tag 1 exam-prep");
         assertEquals(new TagCommand(INDEX_FIRST_PERSON, Set.of(new Tag("exam-prep"))), command);
@@ -153,6 +161,12 @@ public class AddressBookParserTest {
     public void parseCommand_untag() throws Exception {
         UntagCommand command = (UntagCommand) parser.parseCommand("untag 1 -all");
         assertEquals(new UntagCommand(INDEX_FIRST_PERSON), command);
+    }
+
+    @Test
+    public void parseCommand_unpin() throws Exception {
+        UnpinCommand command = (UnpinCommand) parser.parseCommand("unpin 1");
+        assertEquals(new UnpinCommand(INDEX_FIRST_PERSON), command);
     }
 
     @Test
