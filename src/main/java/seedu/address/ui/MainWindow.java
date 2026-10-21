@@ -35,6 +35,7 @@ public class MainWindow extends UiPart<Stage> {
     // Independent Ui parts residing in this Ui container
     private PersonListPanel personListPanel;
     private TimetablePanel timetablePanel;
+    private ClassListPanel classListPanel;
     private ResultDisplay resultDisplay;
     private StatusBarFooter statusBarFooter;
     private HelpWindow helpWindow;
@@ -189,6 +190,7 @@ public class MainWindow extends UiPart<Stage> {
             switch (commandResult.getViewChange()) {
                 case TIMETABLE -> showTimetable();
                 case PERSON_LIST -> showPersonList();
+                case CLASS_LIST -> showClassList();
                 case NONE -> {
                     // Keep the current main content.
                 }
@@ -224,5 +226,10 @@ public class MainWindow extends UiPart<Stage> {
         boolean privacyModeEnabled = logic.isPrivacyModeEnabled();
         personListPanel.setPrivacyModeEnabled(privacyModeEnabled);
         statusBarFooter.setPrivacyModeEnabled(privacyModeEnabled);
+    }
+
+    private void showClassList() {
+        classListPanel = new ClassListPanel(logic.getTuitionClassList());
+        personListPanelPlaceholder.getChildren().setAll(classListPanel.getRoot());
     }
 }

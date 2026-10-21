@@ -2,6 +2,7 @@ package seedu.address.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_ADDRESS_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
@@ -16,6 +17,11 @@ import org.junit.jupiter.api.Test;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import seedu.address.model.lesson.ClassId;
+import seedu.address.model.lesson.Cost;
+import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.Subject;
+import seedu.address.model.lesson.TuitionClass;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.exceptions.DuplicatePersonException;
 import seedu.address.testutil.PersonBuilder;
@@ -85,6 +91,45 @@ public class AddressBookTest {
     public void toStringMethod() {
         String expected = AddressBook.class.getCanonicalName() + "{persons=" + addressBook.getPersonList() + "}";
         assertEquals(expected, addressBook.toString());
+    }
+
+    @Test
+    public void equals_differentTuitionClasses_returnsFalse() {
+        AddressBook emptyClasses = new AddressBook(getTypicalAddressBook());
+        AddressBook mathClass = new AddressBook(getTypicalAddressBook());
+        AddressBook physicsClass = new AddressBook(getTypicalAddressBook());
+        mathClass.addTuitionClass(tuitionClass("C001", "Math"));
+        physicsClass.addTuitionClass(tuitionClass("C002", "Physics"));
+
+        assertNotEquals(emptyClasses, mathClass);
+        assertNotEquals(mathClass, emptyClasses);
+        assertNotEquals(emptyClasses, physicsClass);
+        assertNotEquals(mathClass, physicsClass);
+    }
+
+    @Test
+    public void equals_differentNextClassSequence_returnsFalse() {
+        AddressBook first = new AddressBook(getTypicalAddressBook());
+        AddressBook second = new AddressBook(getTypicalAddressBook());
+        second.setNextClassSequence(2);
+
+        assertNotEquals(first, second);
+    }
+
+    @Test
+    public void equals_sameState_hasSameHashCode() {
+        AddressBook first = new AddressBook(getTypicalAddressBook());
+        AddressBook second = new AddressBook(getTypicalAddressBook());
+        first.addTuitionClass(tuitionClass("C001", "Math"));
+        second.addTuitionClass(tuitionClass("C001", "Math"));
+
+        assertEquals(first, second);
+        assertEquals(first.hashCode(), second.hashCode());
+    }
+
+    private static TuitionClass tuitionClass(String id, String subject) {
+        return new TuitionClass(new ClassId(id), new Subject(subject), new Cost("30"),
+                new LessonTiming("Monday1800-1930"));
     }
 
     /**

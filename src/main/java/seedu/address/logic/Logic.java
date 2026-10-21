@@ -7,6 +7,7 @@ import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.lesson.TuitionClass;
 import seedu.address.model.person.Person;
 import seedu.address.model.timetable.TimetableDay;
 
@@ -28,6 +29,11 @@ public interface Logic {
 
     /** Returns the timetable for the current day through Saturday. */
     List<TimetableDay> getTimetable();
+
+    /** Returns all independently stored tuition classes. */
+    default ObservableList<TuitionClass> getTuitionClassList() {
+        return javafx.collections.FXCollections.emptyObservableList();
+    }
 
     /**
      * Returns the user prefs' GUI settings.

@@ -28,6 +28,7 @@ public class PersonBuilder {
     private Address address;
     private Set<Tag> tags;
     private Set<Lesson> lessons;
+    private boolean pinned;
 
     /**
      * Creates a {@code PersonBuilder} with the default details.
@@ -39,6 +40,7 @@ public class PersonBuilder {
         address = new Address(DEFAULT_ADDRESS);
         tags = new HashSet<>();
         lessons = new HashSet<>();
+        pinned = false;
     }
 
     /**
@@ -51,6 +53,7 @@ public class PersonBuilder {
         address = personToCopy.getAddress();
         tags = new HashSet<>(personToCopy.getTags());
         lessons = new HashSet<>(personToCopy.getLessons());
+        pinned = personToCopy.isPinned();
     }
 
     /**
@@ -99,8 +102,14 @@ public class PersonBuilder {
         return this;
     }
 
+    /** Sets whether the person is pinned. */
+    public PersonBuilder withPinned(boolean pinned) {
+        this.pinned = pinned;
+        return this;
+    }
+
     public Person build() {
-        return new Person(name, phone, email, address, tags, lessons);
+        return new Person(name, phone, email, address, tags, lessons, pinned);
     }
 
 }

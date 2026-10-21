@@ -18,11 +18,15 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import seedu.address.model.AddressBook;
+import seedu.address.model.ModelManager;
+import seedu.address.model.UserPrefs;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
 import seedu.address.model.lesson.Subject;
 import seedu.address.model.person.Person;
+import seedu.address.testutil.AddressBookBuilder;
 import seedu.address.testutil.PersonBuilder;
 
 public class PersonListPanelTest {
@@ -127,6 +131,35 @@ public class PersonListPanelTest {
         assertEquals(text, label.getText());
         assertTrue(label.isVisible());
         assertTrue(label.isManaged());
+    }
+
+    @Test
+    public void personList_pinningStudent_reordersItemsAndUpdatesDisplayedIndex() throws Exception {
+        Person firstStudent = new PersonBuilder().withName("Alice Tan").build();
+        Person secondStudent = new PersonBuilder().withName("Ben Tan").withPhone("91234567")
+                .withEmail("ben@example.com").build();
+        AddressBook addressBook = new AddressBookBuilder()
+                .withPerson(firstStudent)
+                .withPerson(secondStudent)
+                .build();
+        ModelManager model = new ModelManager(addressBook, new UserPrefs());
+
+        runOnFxThread(() -> {
+            PersonListPanel panel = new PersonListPanel(model.getFilteredPersonList());
+            @SuppressWarnings("unchecked")
+            ListView<Person> listView = (ListView<Person>) panel.getRoot().lookup("#personListView");
+            Person pinnedSecondStudent = secondStudent.withPinned(true);
+
+            model.setPerson(secondStudent, pinnedSecondStudent);
+
+            assertEquals(List.of(pinnedSecondStudent, firstStudent), listView.getItems());
+            PersonListPanel.PersonListViewCell cell =
+                    (PersonListPanel.PersonListViewCell) listView.getCellFactory().call(listView);
+            cell.updateIndex(0);
+            cell.updateItem(listView.getItems().get(0), false);
+            Label displayedIndex = (Label) cell.getGraphic().lookup("#id");
+            assertEquals("1. ", displayedIndex.getText());
+        });
     }
 
     private static void runOnFxThread(Runnable assertions) throws Exception {

@@ -147,7 +147,7 @@ public class LogicManagerTest {
     }
 
     @Test
-    public void execute_timetableMode_onlyListPrivacyHelpAndExitAllowed() throws Exception {
+    public void execute_readOnlyViews_onlyNonModifyingCommandsAllowed() throws Exception {
         CommandResult timetableResult = logic.execute(TimetableCommand.COMMAND_WORD);
         assertEquals(CommandResult.ViewChange.TIMETABLE, timetableResult.getViewChange());
 
@@ -167,6 +167,11 @@ public class LogicManagerTest {
                 logic.execute("privacy on").getFeedbackToUser());
         assertEquals(ExitCommand.MESSAGE_EXIT_ACKNOWLEDGEMENT,
                 logic.execute(ExitCommand.COMMAND_WORD).getFeedbackToUser());
+
+        CommandResult classListResult = logic.execute("class list");
+        assertEquals(CommandResult.ViewChange.CLASS_LIST, classListResult.getViewChange());
+        assertEquals(PrivacyCommand.MESSAGE_PRIVACY_MODE_DISABLED,
+                logic.execute("privacy off").getFeedbackToUser());
 
         CommandResult listResult = logic.execute(ListCommand.COMMAND_WORD);
         assertEquals(CommandResult.ViewChange.PERSON_LIST, listResult.getViewChange());

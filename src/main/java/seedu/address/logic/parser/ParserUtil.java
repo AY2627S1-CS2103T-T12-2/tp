@@ -2,13 +2,16 @@ package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.lesson.ClassId;
 import seedu.address.model.lesson.LessonStart;
 import seedu.address.model.lesson.LessonTiming;
 import seedu.address.model.lesson.PaymentStatus;
@@ -27,6 +30,7 @@ import seedu.address.model.tag.Tag;
 public class ParserUtil {
 
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
+    public static final String MESSAGE_DUPLICATE_INDEXES = "Student indexes must not be repeated.";
 
     /**
      * Parses {@code oneBasedIndex} into an {@code Index} and returns it. Leading and trailing whitespaces will be
@@ -39,6 +43,25 @@ public class ParserUtil {
             throw new ParseException(MESSAGE_INVALID_INDEX);
         }
         return Index.fromOneBased(Integer.parseInt(trimmedIndex));
+    }
+
+    /**
+     * Parses one or more whitespace-separated one-based indexes.
+     *
+     * @throws ParseException if an index is invalid or repeated.
+     */
+    public static List<Index> parseIndexes(String oneBasedIndexes) throws ParseException {
+        requireNonNull(oneBasedIndexes);
+        List<Index> indexes = new ArrayList<>();
+        Set<Integer> seenZeroBasedIndexes = new LinkedHashSet<>();
+        for (String indexText : oneBasedIndexes.trim().split("\\s+")) {
+            Index index = parseIndex(indexText);
+            if (!seenZeroBasedIndexes.add(index.getZeroBased())) {
+                throw new ParseException(MESSAGE_DUPLICATE_INDEXES);
+            }
+            indexes.add(index);
+        }
+        return List.copyOf(indexes);
     }
 
     /**
@@ -211,6 +234,16 @@ public class ParserUtil {
             throw new ParseException(PaymentStatus.MESSAGE_CONSTRAINTS);
         }
         return PaymentStatus.fromString(trimmedStatus);
+    }
+
+    /** Parses a stable class ID. */
+    public static ClassId parseClassId(String classId) throws ParseException {
+        requireNonNull(classId);
+        String trimmedId = classId.trim();
+        if (!ClassId.isValidClassId(trimmedId)) {
+            throw new ParseException(ClassId.MESSAGE_CONSTRAINTS);
+        }
+        return new ClassId(trimmedId);
     }
 
     /** Parses the day and start time used for class searching. */

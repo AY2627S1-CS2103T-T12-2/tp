@@ -23,6 +23,8 @@ public class CommandBox extends UiPart<Region> {
     private static final String FIND_HOME_HINT = "Type 'list' to return to the home page.";
     private static final String PRIVACY_COMMAND = "privacy";
     private static final String PRIVACY_FORMAT_HINT = "privacy on | privacy off";
+    private static final String PIN_FORMAT_HINT = "pin INDEX";
+    private static final String UNPIN_FORMAT_HINT = "unpin INDEX";
 
     private final CommandExecutor commandExecutor;
 
@@ -125,6 +127,22 @@ public class CommandBox extends UiPart<Region> {
 
         if (commandText.equals("c/")) {
             return "c/DAY TIME (e.g. Monday 1800; time uses HHmm)";
+        }
+
+        if ("pin".startsWith(commandText) && commandText.length() < "pin".length()) {
+            return "pin";
+        }
+
+        if (commandText.equals("pin") || commandText.equals("pin ")) {
+            return PIN_FORMAT_HINT;
+        }
+
+        if ("unpin".startsWith(commandText) && commandText.length() < "unpin".length()) {
+            return "unpin";
+        }
+
+        if (commandText.equals("unpin") || commandText.equals("unpin ")) {
+            return UNPIN_FORMAT_HINT;
         }
 
         return "";

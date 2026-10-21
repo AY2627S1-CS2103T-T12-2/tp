@@ -3,16 +3,24 @@ package seedu.address.model;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_ADDRESS_BOB;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
+import static seedu.address.testutil.TypicalPersons.CARL;
+import static seedu.address.testutil.TypicalPersons.DANIEL;
 
 import java.time.LocalDate;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
 
+import javafx.collections.ListChangeListener;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
@@ -20,6 +28,8 @@ import seedu.address.model.lesson.LessonTiming;
 import seedu.address.model.lesson.Subject;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.exceptions.DuplicatePersonException;
+import seedu.address.model.person.exceptions.PersonNotFoundException;
 import seedu.address.model.timetable.TimetableEntry;
 import seedu.address.testutil.AddressBookBuilder;
 import seedu.address.testutil.PersonBuilder;
@@ -89,8 +99,120 @@ public class ModelManagerTest {
     }
 
     @Test
+    public void setPersons_validReplacements_updatesPersonsInOneChange() {
+        AddressBook addressBook = new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON).build();
+        modelManager = new ModelManager(addressBook, new UserPrefs());
+        Person editedAlice = new PersonBuilder(ALICE).withAddress(VALID_ADDRESS_BOB).build();
+        Person editedBenson = new PersonBuilder(BENSON).withAddress("Edited address").build();
+        AtomicInteger changeCount = new AtomicInteger();
+        modelManager.getAddressBook().getPersonList().addListener((ListChangeListener<Person>)
+                change -> changeCount.incrementAndGet());
+
+        modelManager.setPersons(Map.of(ALICE, editedAlice, BENSON, editedBenson));
+
+        assertEquals(List.of(editedAlice, editedBenson), modelManager.getAddressBook().getPersonList());
+        assertEquals(1, changeCount.get());
+    }
+
+    @Test
+    public void setPersons_emptyReplacements_makesNoChange() {
+        modelManager.addPerson(ALICE);
+        AtomicInteger changeCount = new AtomicInteger();
+        modelManager.getAddressBook().getPersonList().addListener((ListChangeListener<Person>)
+                change -> changeCount.incrementAndGet());
+
+        modelManager.setPersons(Map.of());
+
+        assertEquals(List.of(ALICE), modelManager.getAddressBook().getPersonList());
+        assertEquals(0, changeCount.get());
+    }
+
+    @Test
+    public void setPersons_missingTarget_throwsWithoutChanges() {
+        modelManager.addPerson(ALICE);
+        Person missingPerson = new PersonBuilder().withName("Missing Person").build();
+        AddressBook expectedAddressBook = new AddressBook(modelManager.getAddressBook());
+
+        assertThrows(PersonNotFoundException.class, ()
+                -> modelManager.setPersons(Map.of(missingPerson, BENSON)));
+        assertEquals(expectedAddressBook, modelManager.getAddressBook());
+    }
+
+    @Test
+    public void setPersons_duplicateResult_throwsWithoutChanges() {
+        AddressBook addressBook = new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON).build();
+        modelManager = new ModelManager(addressBook, new UserPrefs());
+        AddressBook expectedAddressBook = new AddressBook(modelManager.getAddressBook());
+
+        assertThrows(DuplicatePersonException.class, ()
+                -> modelManager.setPersons(Map.of(ALICE, BENSON)));
+        assertEquals(expectedAddressBook, modelManager.getAddressBook());
+    }
+
+    @Test
+    public void setPersons_nullInput_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> modelManager.setPersons(null));
+
+        Map<Person, Person> nullTarget = new HashMap<>();
+        nullTarget.put(null, ALICE);
+        assertThrows(NullPointerException.class, () -> modelManager.setPersons(nullTarget));
+
+        Map<Person, Person> nullReplacement = new HashMap<>();
+        nullReplacement.put(ALICE, null);
+        assertThrows(NullPointerException.class, () -> modelManager.setPersons(nullReplacement));
+    }
+
+    @Test
     public void getFilteredPersonList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> modelManager.getFilteredPersonList().remove(0));
+    }
+
+    @Test
+    public void constructor_pinnedAndUnpinnedPersons_placesPinnedFirstAndPreservesGroupOrder() {
+        Person pinnedBenson = new PersonBuilder(BENSON).withPinned(true).build();
+        Person pinnedDaniel = new PersonBuilder(DANIEL).withPinned(true).build();
+        AddressBook addressBook = new AddressBookBuilder()
+                .withPerson(ALICE)
+                .withPerson(pinnedBenson)
+                .withPerson(CARL)
+                .withPerson(pinnedDaniel)
+                .build();
+
+        modelManager = new ModelManager(addressBook, new UserPrefs());
+
+        assertEquals(List.of(pinnedBenson, pinnedDaniel, ALICE, CARL),
+                modelManager.getFilteredPersonList());
+    }
+
+    @Test
+    public void setPerson_unpinnedPersonBecomesPinned_reordersListImmediately() {
+        AddressBook addressBook = new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON).build();
+        modelManager = new ModelManager(addressBook, new UserPrefs());
+        Person pinnedBenson = BENSON.withPinned(true);
+
+        modelManager.setPerson(BENSON, pinnedBenson);
+
+        assertEquals(List.of(pinnedBenson, ALICE), modelManager.getFilteredPersonList());
+    }
+
+    @Test
+    public void updateFilteredPersonList_customComparator_ordersWithinPinGroups() {
+        Person pinnedBenson = BENSON.withPinned(true);
+        Person pinnedDaniel = DANIEL.withPinned(true);
+        AddressBook addressBook = new AddressBookBuilder()
+                .withPerson(ALICE)
+                .withPerson(pinnedBenson)
+                .withPerson(CARL)
+                .withPerson(pinnedDaniel)
+                .build();
+        modelManager = new ModelManager(addressBook, new UserPrefs());
+        Comparator<Person> reverseNameOrder = Comparator.comparing(
+                person -> person.getName().fullName, Comparator.reverseOrder());
+
+        modelManager.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS, reverseNameOrder);
+
+        assertEquals(List.of(pinnedDaniel, pinnedBenson, CARL, ALICE),
+                modelManager.getFilteredPersonList());
     }
 
     @Test
