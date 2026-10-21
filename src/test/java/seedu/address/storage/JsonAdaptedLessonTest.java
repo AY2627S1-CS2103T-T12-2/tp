@@ -6,6 +6,7 @@ import static seedu.address.testutil.Assert.assertThrows;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.exceptions.IllegalValueException;
+import seedu.address.model.lesson.ClassId;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
@@ -24,6 +25,9 @@ public class JsonAdaptedLessonTest {
         Lesson paidLesson = VALID_LESSON.withPaymentStatus(PaymentStatus.PAID);
         assertEquals(paidLesson,
                 new JsonAdaptedLesson("Math", "30", "Monday1800-1930", "PAID").toModelType());
+        Lesson linkedLesson = new JsonAdaptedLesson(
+                "Math", "30", "Monday1800-1930", "PAID", "C001").toModelType();
+        assertEquals(new ClassId("C001"), linkedLesson.getClassId());
     }
 
     @Test
@@ -46,5 +50,7 @@ public class JsonAdaptedLessonTest {
                 "Math", "30", "Monday2400-0100").toModelType());
         assertThrows(IllegalValueException.class, PaymentStatus.MESSAGE_CONSTRAINTS, () -> new JsonAdaptedLesson(
                 "Math", "30", "Monday1800-1930", "pending").toModelType());
+        assertThrows(IllegalValueException.class, ClassId.MESSAGE_CONSTRAINTS, () -> new JsonAdaptedLesson(
+                "Math", "30", "Monday1800-1930", "PAID", "C000").toModelType());
     }
 }

@@ -48,6 +48,10 @@ public class ClassCommandParserTest {
         assertParseSuccess(parser, " list", new ClassListCommand());
         assertParseSuccess(parser, " enrol 1 id/C001",
                 new ClassEnrolCommand(Index.fromOneBased(1), new ClassId("C001")));
+        assertParseSuccess(parser, " unenrol 1 id/C001",
+                new ClassUnenrolCommand(Index.fromOneBased(1), new ClassId("C001")));
+        assertParseSuccess(parser, " delete id/C001",
+                new ClassDeleteCommand(new ClassId("C001")));
         assertParseSuccess(parser, " payment 1 id/C001 status/paid",
                 new ClassPaymentCommand(Index.fromOneBased(1), new ClassId("C001"), PaymentStatus.PAID));
     }
@@ -254,6 +258,18 @@ public class ClassCommandParserTest {
     public void parse_unknownSubcommand_failure() {
         String expected = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ClassCommand.MESSAGE_USAGE);
         assertParseFailure(parser, " unknown", expected);
+    }
+
+    @Test
+    public void parse_listWithArguments_failure() {
+        String expected = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ClassListCommand.MESSAGE_USAGE);
+        assertParseFailure(parser, " list unexpected", expected);
+    }
+
+    @Test
+    public void parse_idBasedCommandWithInvalidId_failure() {
+        assertParseFailure(parser, " delete id/not-an-id", ClassId.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, " unenrol 1 id/C000", ClassId.MESSAGE_CONSTRAINTS);
     }
 
     @Test

@@ -21,6 +21,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.CommandResult;
@@ -125,6 +126,31 @@ public class LogicManagerTest {
         CommandResult listResult = logic.execute(ListCommand.COMMAND_WORD);
         assertEquals(CommandResult.ViewChange.PERSON_LIST, listResult.getViewChange());
         assertEquals(ClearCommand.MESSAGE_SUCCESS, logic.execute("clear").getFeedbackToUser());
+    }
+
+    @Test
+    public void execute_classListMode_onlyReadOnlyNavigationCommandsAllowed() throws Exception {
+        CommandResult classListResult = logic.execute("class list");
+        assertEquals(CommandResult.ViewChange.CLASS_LIST, classListResult.getViewChange());
+
+        assertCommandException("clear", "Class list is read-only. Use \"list\" to return to the student view. "
+                + "Only list, timetable, class list, help, and exit are available.");
+        assertEquals(HelpCommand.SHOWING_HELP_MESSAGE,
+                logic.execute(HelpCommand.COMMAND_WORD).getFeedbackToUser());
+        assertEquals(ExitCommand.MESSAGE_EXIT_ACKNOWLEDGEMENT,
+                logic.execute(ExitCommand.COMMAND_WORD).getFeedbackToUser());
+        assertEquals(CommandResult.ViewChange.CLASS_LIST, logic.execute("class list").getViewChange());
+        assertEquals(CommandResult.ViewChange.TIMETABLE, logic.execute("timetable").getViewChange());
+        assertEquals(CommandResult.ViewChange.PERSON_LIST, logic.execute("list").getViewChange());
+    }
+
+    @Test
+    public void accessors_delegateToModel() {
+        GuiSettings settings = new GuiSettings(800, 600, 10, 20);
+        logic.setGuiSettings(settings);
+
+        assertEquals(settings, logic.getGuiSettings());
+        assertEquals(model.getTuitionClassList(), logic.getTuitionClassList());
     }
 
     @Test

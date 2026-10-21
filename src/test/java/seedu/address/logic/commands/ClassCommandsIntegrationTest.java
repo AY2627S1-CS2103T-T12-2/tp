@@ -69,6 +69,18 @@ public class ClassCommandsIntegrationTest {
     }
 
     @Test
+    public void enrol_sameSubjectAtDifferentTime_createsSeparateClass() throws CommandException {
+        Lesson tuesdayMath = new Lesson(new Subject("Math"), new Cost("30"),
+                new LessonTiming("Tuesday1800-1930"));
+        new ClassEnrolCommand(Index.fromOneBased(1), tuesdayMath).execute(model);
+
+        new ClassEnrolCommand(Index.fromOneBased(2), LESSON).execute(model);
+
+        assertEquals(2, model.getTuitionClassList().size());
+        assertTrue(model.getAddressBook().getPersonList().get(1).getLessons().contains(LESSON));
+    }
+
+    @Test
     public void enrol_filteredList_usesDisplayedIndex() throws CommandException {
         showPersonAtIndex(model, Index.fromOneBased(2));
 
@@ -117,6 +129,14 @@ public class ClassCommandsIntegrationTest {
     }
 
     @Test
+    public void enrol_missingClassId_failure() {
+        ClassId missingId = new ClassId("C099");
+
+        assertCommandFailure(new ClassEnrolCommand(Index.fromOneBased(1), missingId), model,
+                String.format(ClassEnrolCommand.MESSAGE_CLASS_NOT_FOUND, missingId));
+    }
+
+    @Test
     public void enrol_sameClassForSameStudent_failure() throws CommandException {
         ClassEnrolCommand command = new ClassEnrolCommand(Index.fromOneBased(1), LESSON);
         command.execute(model);
@@ -135,6 +155,11 @@ public class ClassCommandsIntegrationTest {
         assertNotEquals(command, new ClassEnrolCommand(Index.fromOneBased(2), LESSON));
         assertNotEquals(command, new ClassEnrolCommand(Index.fromOneBased(1), differentLesson));
         assertNotEquals(command, null);
+
+        ClassEnrolCommand idCommand = new ClassEnrolCommand(Index.fromOneBased(1), new ClassId("C001"));
+        assertEquals(idCommand, new ClassEnrolCommand(Index.fromOneBased(1), new ClassId("C001")));
+        assertNotEquals(idCommand, new ClassEnrolCommand(Index.fromOneBased(1), new ClassId("C002")));
+        assertNotEquals(idCommand, command);
     }
 
     @Test
