@@ -13,7 +13,11 @@ Class ModelManager
 Class UserPrefs
 
 Class UniquePersonList
+Class UniqueTuitionClassList
 Class Person
+Class TuitionClass
+Class Lesson
+Class ClassId
 Class Address
 Class Email
 Class Name
@@ -36,12 +40,17 @@ ModelManager -right-> "1" UserPrefs
 UserPrefs .up.|> ReadOnlyUserPrefs
 
 AddressBook *--> "1" UniquePersonList
+AddressBook *--> "1" UniqueTuitionClassList
 UniquePersonList --> "~* all" Person
+UniqueTuitionClassList --> "~* all" TuitionClass
 Person *--> Name
 Person *--> Phone
 Person *--> Email
 Person *--> Address
 Person *--> "*" Tag
+Person *--> "*" Lesson
+TuitionClass *--> ClassId
+Lesson --> "0..1" ClassId
 
 Person -[hidden]up--> I
 UniquePersonList -[hidden]right-> I
