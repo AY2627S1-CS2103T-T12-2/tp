@@ -8,6 +8,7 @@ import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
+import java.util.List;
 import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +20,7 @@ import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.lesson.ClassId;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonStart;
@@ -26,6 +28,7 @@ import seedu.address.model.lesson.LessonTiming;
 import seedu.address.model.lesson.OneOffLessonSchedule;
 import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.lesson.Subject;
+import seedu.address.model.lesson.TuitionClass;
 import seedu.address.model.person.Person;
 
 public class ClassCommandsIntegrationTest {
@@ -374,6 +377,160 @@ public class ClassCommandsIntegrationTest {
         assertEquals(TimetableCommand.MESSAGE_SUCCESS, result.getFeedbackToUser());
         assertEquals(CommandResult.ViewChange.TIMETABLE, result.getViewChange());
         assertEquals(expectedModel, model);
+    }
+
+    @Test
+    public void addAndList_independentClass_allocatesStableIdAndSwitchesView() throws CommandException {
+        CommandResult addResult = new ClassAddCommand(new Subject("Math"), new Cost("30"),
+                new LessonTiming("Monday1800-1930")).execute(model);
+
+        assertEquals(1, model.getTuitionClassList().size());
+        assertEquals(new ClassId("C001"), model.getTuitionClassList().get(0).getClassId());
+        assertTrue(addResult.getFeedbackToUser().contains("C001"));
+
+        CommandResult listResult = new ClassListCommand().execute(model);
+        assertEquals(CommandResult.ViewChange.CLASS_LIST, listResult.getViewChange());
+    }
+
+    @Test
+    public void enrolAndEdit_byStableId_updatesSharedDetailsAndPreservesPayment() throws CommandException {
+        ClassId classId = model.allocateClassId();
+        TuitionClass original = new TuitionClass(classId, new Subject("Math"), new Cost("30"),
+                new LessonTiming("Monday1800-1930"));
+        model.addTuitionClass(original);
+        new ClassEnrolCommand(Index.fromOneBased(1), classId).execute(model);
+        new ClassPaymentCommand(Index.fromOneBased(1), classId, PaymentStatus.PAID).execute(model);
+
+        new ClassEditCommand(classId, java.util.Optional.of(new Subject("Advanced Math")),
+                java.util.Optional.of(new Cost("35")), java.util.Optional.empty()).execute(model);
+
+        TuitionClass edited = model.getTuitionClass(classId);
+        Lesson enrollment = model.getAddressBook().getPersonList().get(0).getLessons().iterator().next();
+        assertEquals(new Subject("Advanced Math"), edited.getSubject());
+        assertEquals(new Cost("35"), enrollment.getCost());
+        assertEquals(classId, enrollment.getClassId());
+        assertEquals(PaymentStatus.PAID, enrollment.getPaymentStatus());
+    }
+
+    @Test
+    public void deleteThenAdd_classIdsAreNotReused() throws CommandException {
+        new ClassAddCommand(new Subject("Math"), new Cost("30"),
+                new LessonTiming("Monday1800-1930")).execute(model);
+        new ClassDeleteCommand(new ClassId("C001")).execute(model);
+        new ClassAddCommand(new Subject("Physics"), new Cost("35"),
+                new LessonTiming("Tuesday1800-1930")).execute(model);
+
+        assertEquals(new ClassId("C002"), model.getTuitionClassList().get(0).getClassId());
+    }
+
+    @Test
+    public void add_duplicateAndOverlappingClasses_failWithoutConsumingId() throws CommandException {
+        ClassAddCommand addMath = new ClassAddCommand(new Subject("Math"), new Cost("30"),
+                new LessonTiming("Monday1800-1930"));
+        addMath.execute(model);
+
+        assertCommandFailure(new ClassAddCommand(new Subject("math"), new Cost("99"),
+                new LessonTiming("Monday1800-1930")), model, ClassAddCommand.MESSAGE_DUPLICATE);
+        Lesson overlap = new Lesson(new Subject("Physics"), new Cost("35"),
+                new LessonTiming("Monday1900-2000"));
+        assertCommandFailure(new ClassAddCommand(overlap.getSubject(), overlap.getCost(), overlap.getSchedule()), model,
+                Messages.getClassOverlapMessage(overlap, List.of(LESSON)));
+
+        new ClassAddCommand(new Subject("English"), new Cost("25"),
+                new LessonTiming("Tuesday1800-1930")).execute(model);
+        assertEquals(new ClassId("C002"), model.getTuitionClassList().get(1).getClassId());
+    }
+
+    @Test
+    public void edit_invalidCases_failWithoutMutation() throws CommandException {
+        new ClassAddCommand(new Subject("Math"), new Cost("30"),
+                new LessonTiming("Monday1800-1930")).execute(model);
+        new ClassAddCommand(new Subject("Physics"), new Cost("35"),
+                new LessonTiming("Tuesday1800-1930")).execute(model);
+
+        assertCommandFailure(new ClassEditCommand(new ClassId("C099"), java.util.Optional.empty(),
+                java.util.Optional.of(new Cost("40")), java.util.Optional.empty()), model,
+                String.format(ClassEditCommand.MESSAGE_NOT_FOUND, "C099"));
+        assertCommandFailure(new ClassEditCommand(new ClassId("C001"), java.util.Optional.empty(),
+                java.util.Optional.of(new Cost("30")), java.util.Optional.empty()), model,
+                ClassEditCommand.MESSAGE_NO_CHANGE);
+        assertCommandFailure(new ClassEditCommand(new ClassId("C001"),
+                java.util.Optional.of(new Subject("Physics")), java.util.Optional.empty(),
+                java.util.Optional.of(new LessonTiming("Tuesday1800-1930"))), model,
+                ClassEditCommand.MESSAGE_DUPLICATE);
+
+        Lesson overlap = new Lesson(new Subject("Math"), new Cost("30"),
+                new LessonTiming("Tuesday1900-2000"));
+        Lesson physics = new Lesson(new ClassId("C002"), new Subject("Physics"), new Cost("35"),
+                new LessonTiming("Tuesday1800-1930"), PaymentStatus.UNPAID);
+        assertCommandFailure(new ClassEditCommand(new ClassId("C001"), java.util.Optional.empty(),
+                java.util.Optional.empty(), java.util.Optional.of(overlap.getSchedule())), model,
+                Messages.getClassOverlapMessage(overlap, List.of(physics)));
+    }
+
+    @Test
+    public void unenrol_byStableId_successAndMissingFailure() throws CommandException {
+        ClassId id = model.allocateClassId();
+        model.addTuitionClass(new TuitionClass(id, new Subject("Math"), new Cost("30"),
+                new LessonTiming("Monday1800-1930")));
+        new ClassEnrolCommand(Index.fromOneBased(1), id).execute(model);
+
+        Person person = model.getFilteredPersonList().get(0);
+        CommandResult result = new ClassUnenrolCommand(Index.fromOneBased(1), id).execute(model);
+
+        assertEquals(String.format(ClassUnenrolCommand.MESSAGE_SUCCESS_BY_ID, person.getName(), id),
+                result.getFeedbackToUser());
+        assertTrue(model.getAddressBook().getPersonList().get(0).getLessons().isEmpty());
+        assertCommandFailure(new ClassUnenrolCommand(Index.fromOneBased(1), id), model,
+                ClassUnenrolCommand.MESSAGE_NOT_ENROLLED);
+    }
+
+    @Test
+    public void payment_byStableId_usesIdSpecificMessages() throws CommandException {
+        ClassId id = model.allocateClassId();
+        model.addTuitionClass(new TuitionClass(id, new Subject("Math"), new Cost("30"),
+                new LessonTiming("Monday1800-1930")));
+        new ClassEnrolCommand(Index.fromOneBased(1), id).execute(model);
+        Person person = model.getFilteredPersonList().get(0);
+
+        CommandResult success = new ClassPaymentCommand(
+                Index.fromOneBased(1), id, PaymentStatus.PAID).execute(model);
+        assertEquals(String.format(ClassPaymentCommand.MESSAGE_SUCCESS_BY_ID,
+                person.getName(), id, "paid"), success.getFeedbackToUser());
+
+        CommandResult alreadyMarked = new ClassPaymentCommand(
+                Index.fromOneBased(1), id, PaymentStatus.PAID).execute(model);
+        assertEquals(String.format(ClassPaymentCommand.MESSAGE_ALREADY_MARKED_BY_ID,
+                person.getName(), id, "paid"), alreadyMarked.getFeedbackToUser());
+
+        assertCommandFailure(new ClassPaymentCommand(
+                Index.fromOneBased(2), id, PaymentStatus.PAID), model,
+                String.format(ClassPaymentCommand.MESSAGE_NOT_ENROLLED_BY_ID, id));
+    }
+
+    @Test
+    public void newClassCommands_equals_coverDifferentFieldsAndTypes() {
+        ClassAddCommand add = new ClassAddCommand(new Subject("Math"), new Cost("30"), LESSON.getSchedule());
+        assertEquals(add, add);
+        assertEquals(add, new ClassAddCommand(new Subject("math"), new Cost("30.00"), LESSON.getSchedule()));
+        assertNotEquals(add, new ClassAddCommand(new Subject("Physics"), new Cost("30"), LESSON.getSchedule()));
+        assertNotEquals(add, new ClassAddCommand(new Subject("Math"), new Cost("31"), LESSON.getSchedule()));
+        assertNotEquals(add, new ClassAddCommand(new Subject("Math"), new Cost("30"), OTHER_LESSON.getSchedule()));
+        assertNotEquals(add, null);
+
+        ClassEditCommand edit = new ClassEditCommand(new ClassId("C001"), java.util.Optional.empty(),
+                java.util.Optional.of(new Cost("31")), java.util.Optional.empty());
+        assertEquals(edit, edit);
+        assertEquals(edit, new ClassEditCommand(new ClassId("C001"), java.util.Optional.empty(),
+                java.util.Optional.of(new Cost("31")), java.util.Optional.empty()));
+        assertNotEquals(edit, new ClassEditCommand(new ClassId("C002"), java.util.Optional.empty(),
+                java.util.Optional.of(new Cost("31")), java.util.Optional.empty()));
+        assertNotEquals(edit, new ClassEditCommand(new ClassId("C001"),
+                java.util.Optional.of(new Subject("Math")), java.util.Optional.of(new Cost("31")),
+                java.util.Optional.empty()));
+        assertNotEquals(edit, null);
+        assertEquals(new ClassListCommand(), new ClassListCommand());
+        assertNotEquals(new ClassListCommand(), null);
     }
 
     private void enrolStudentsInLesson(Lesson lesson, int... oneBasedIndexes) throws CommandException {

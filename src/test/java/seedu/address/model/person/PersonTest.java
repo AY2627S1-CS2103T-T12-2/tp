@@ -60,6 +60,29 @@ public class PersonTest {
     }
 
     @Test
+    public void withPinned_updatesOnlyPinnedState() {
+        Person pinnedAlice = ALICE.withPinned(true);
+
+        assertTrue(pinnedAlice.isPinned());
+        assertTrue(ALICE.isSamePerson(pinnedAlice));
+        assertEquals(ALICE.getName(), pinnedAlice.getName());
+        assertEquals(ALICE.getPhone(), pinnedAlice.getPhone());
+        assertEquals(ALICE.getEmail(), pinnedAlice.getEmail());
+        assertEquals(ALICE.getAddress(), pinnedAlice.getAddress());
+        assertEquals(ALICE.getTags(), pinnedAlice.getTags());
+        assertEquals(ALICE.getLessons(), pinnedAlice.getLessons());
+    }
+
+    @Test
+    public void copyOperations_pinnedPerson_preservePinnedState() {
+        Person pinnedPerson = new PersonBuilder(ALICE).withPinned(true).build();
+
+        assertTrue(pinnedPerson.withTags(pinnedPerson.getTags()).isPinned());
+        assertTrue(pinnedPerson.withLessons(pinnedPerson.getLessons()).isPinned());
+        assertTrue(new PersonBuilder(pinnedPerson).build().isPinned());
+    }
+
+    @Test
     public void isSamePerson() {
         // same object -> returns true
         assertTrue(ALICE.isSamePerson(ALICE));
@@ -123,6 +146,10 @@ public class PersonTest {
         // different tags -> returns false
         editedAlice = new PersonBuilder(ALICE).withTags(VALID_TAG_HUSBAND).build();
         assertFalse(ALICE.equals(editedAlice));
+
+        // different pin state -> returns false
+        editedAlice = new PersonBuilder(ALICE).withPinned(true).build();
+        assertFalse(ALICE.equals(editedAlice));
     }
 
     @Test
@@ -135,7 +162,8 @@ public class PersonTest {
                 + ", tags=" + ALICE.getTags()
                 + ", subjects=" + ALICE.getSubjects()
                 + ", cost=" + ALICE.getCost()
-                + ", lesson=" + ALICE.getLesson() + "}";
+                + ", lesson=" + ALICE.getLesson()
+                + ", pinned=" + ALICE.isPinned() + "}";
         assertEquals(expected, ALICE.toString());
     }
 

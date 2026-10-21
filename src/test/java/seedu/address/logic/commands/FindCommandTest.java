@@ -134,6 +134,23 @@ public class FindCommandTest {
     }
 
     @Test
+    public void execute_pinnedMatches_placesPinnedFirstAndExcludesNonMatches() {
+        AddressBook addressBook = new AddressBook();
+        Person unpinnedTwoMatches = new PersonBuilder().withName("Ann Marie").build();
+        Person pinnedOneMatch = new PersonBuilder().withName("Annabelle Tan").withPinned(true).build();
+        Person pinnedNonMatch = new PersonBuilder().withName("Zoe Tan").withPinned(true).build();
+        addressBook.addPerson(unpinnedTwoMatches);
+        addressBook.addPerson(pinnedOneMatch);
+        addressBook.addPerson(pinnedNonMatch);
+        Model rankedModel = new ModelManager(addressBook, new UserPrefs());
+        NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of("ann", "mar"));
+
+        new FindCommand(predicate).execute(rankedModel);
+
+        assertEquals(List.of(pinnedOneMatch, unpinnedTwoMatches), rankedModel.getFilteredPersonList());
+    }
+
+    @Test
     public void execute_multiplePartialTagKeywords_matchingPersonsRankedByScore() {
         AddressBook addressBook = new AddressBook();
         Person oneMatchFirst = new PersonBuilder().withName("First Student").withTags("priority").build();

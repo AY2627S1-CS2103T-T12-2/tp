@@ -15,6 +15,7 @@ public class CliSyntax {
     public static final Prefix PREFIX_COST = new Prefix("cost/");
     public static final Prefix PREFIX_CLASS = new Prefix("c/");
     public static final Prefix PREFIX_STATUS = new Prefix("status/");
+    public static final Prefix PREFIX_CLASS_ID = new Prefix("id/");
     public static final Prefix PREFIX_LESSON = PREFIX_CLASS;
 
 }
