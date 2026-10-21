@@ -131,17 +131,37 @@ Examples:
 * `class edit id/C001 cost/40`
 * `class edit id/C001 sub/Advanced Math c/Tuesday1800-1930`
 
-### Enrolling a student in a class: `class enrol`
+### Enrolling students in a class: `class enrol`
 
-Enrols an existing student in a recurring weekly class. The student is identified by the index shown in the current
-student list.
+Enrols one or more existing students in a recurring weekly class. Students are identified by their indexes in the
+currently displayed student list.
 
-Format: `class enrol STUDENT_INDEX id/CLASS_ID`
+To enrol one student using a stable class ID, use:
+
+`class enrol STUDENT_INDEX id/CLASS_ID`
 
 Example: `class enrol 1 id/C001`
 
+To enrol one or more students in an existing class using its subject and complete lesson timing, omit the cost and
+provide all student indexes before the prefixes:
+
+`class enrol STUDENT_INDEX [STUDENT_INDEX]... sub/SUBJECT c/DAYHHmm-HHmm`
+
+Example: `class enrol 1 3 5 sub/Physics c/Wednesday1700-1830`
+
+The existing single-student format that supplies the class cost is also supported:
+
+`class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/DAYHHmm-HHmm`
+
 The same class can be assigned to multiple students, but its cost must be consistent. A student cannot be enrolled in
-the same class more than once.
+the same class more than once. For subject-and-timing batch enrolment, TutEasy obtains the cost from its independently
+stored class collection. This also supports classes that currently have no enrolled students.
+
+Batch enrolment validates every index and the target class before changing any student. Repeated or invalid indexes
+and a missing class cause the command to fail without changing any student. Selected students who are already enrolled
+are skipped while the remaining students are enrolled. The feedback identifies both groups. If all selected students
+are already enrolled, no changes are made and an informative message is shown. `cost/` cannot be supplied when multiple
+indexes are used.
 
 Enrolled classes appear as coloured badges below each student's email. Each badge includes the subject and lesson
 timing, and students enrolled in the same class receive a badge with the same colour. When a student has multiple
@@ -394,7 +414,7 @@ Action     | Format, Examples
 **Add class** | `class add sub/SUBJECT cost/COST c/DAYHHmm-HHmm`<br> e.g., `class add sub/Physics cost/35 c/Wednesday1700-1830`
 **List classes** | `class list`
 **Edit class** | `class edit id/CLASS_ID [sub/SUBJECT] [cost/COST] [c/DAYHHmm-HHmm]`<br> e.g., `class edit id/C001 cost/40`
-**Enrol in class** | `class enrol STUDENT_INDEX id/CLASS_ID`<br> e.g., `class enrol 1 id/C001`
+**Enrol in class** | `class enrol STUDENT_INDEX id/CLASS_ID`<br>or `class enrol STUDENT_INDEX [STUDENT_INDEX]... sub/SUBJECT c/DAYHHmm-HHmm`<br> e.g., `class enrol 1 3 5 sub/Physics c/Wednesday1700-1830`
 **Unenrol from class** | `class unenrol STUDENT_INDEX id/CLASS_ID`<br> e.g., `class unenrol 1 id/C001`
 **Update payment status** | `class payment STUDENT_INDEX id/CLASS_ID status/paid|unpaid`<br> e.g., `class payment 1 id/C001 status/paid`
 **Delete class** | `class delete id/CLASS_ID`<br> e.g., `class delete id/C001`
