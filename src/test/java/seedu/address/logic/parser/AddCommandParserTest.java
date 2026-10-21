@@ -40,6 +40,7 @@ import seedu.address.logic.commands.AddCommand;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.OneOffLessonSchedule;
 import seedu.address.model.lesson.Subject;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
@@ -148,6 +149,16 @@ public class AddCommandParserTest {
         Person expectedPerson = new PersonBuilder(AMY).withTags().withLessons(lesson).build();
         assertParseSuccess(parser, NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY + ADDRESS_DESC_AMY
                 + " sub/Math cost/30 c/Monday1800-1930", new AddCommand(expectedPerson));
+    }
+
+    @Test
+    public void parse_withOneOffClass_success() {
+        Lesson lesson = new Lesson(new Subject("Math"), new Cost("30"),
+                new OneOffLessonSchedule("2026-10-20T1800-1930"));
+        Person expectedPerson = new PersonBuilder(AMY).withTags().withLessons(lesson).build();
+
+        assertParseSuccess(parser, NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY + ADDRESS_DESC_AMY
+                + " sub/Math cost/30 c/2026-10-20T1800-1930", new AddCommand(expectedPerson));
     }
 
     @Test

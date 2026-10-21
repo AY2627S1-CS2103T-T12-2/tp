@@ -232,6 +232,10 @@ public class ParserUtilTest {
                 ParserUtil.parseLessonCost("  30  "));
         assertEquals(new seedu.address.model.lesson.LessonTiming("Monday1800-1930"),
                 ParserUtil.parseLessonTiming("  Monday1800-1930  "));
+        assertEquals(new seedu.address.model.lesson.LessonTiming("Monday1800-1930"),
+                ParserUtil.parseLessonSchedule("  Monday1800-1930  "));
+        assertEquals(new seedu.address.model.lesson.OneOffLessonSchedule("2026-10-20T1800-1930"),
+                ParserUtil.parseLessonSchedule("  2026-10-20T1800-1930  "));
         assertEquals(new seedu.address.model.lesson.LessonStart("Monday1800"),
                 ParserUtil.parseLessonStart("  Monday1800  "));
         assertEquals(PaymentStatus.PAID, ParserUtil.parsePaymentStatus("  paid  "));
@@ -243,6 +247,8 @@ public class ParserUtilTest {
         assertThrows(ParseException.class, () -> ParserUtil.parseLessonSubject("Math!"));
         assertThrows(ParseException.class, () -> ParserUtil.parseLessonCost("-1"));
         assertThrows(ParseException.class, () -> ParserUtil.parseLessonTiming("Monday2400-0100"));
+        assertThrows(ParseException.class, () -> ParserUtil.parseLessonSchedule("Monday2400-0100"));
+        assertThrows(ParseException.class, () -> ParserUtil.parseLessonSchedule("2026-02-29T1800-1930"));
         assertThrows(ParseException.class, () -> ParserUtil.parseLessonStart("Monday2400"));
         assertThrows(ParseException.class, () -> ParserUtil.parsePaymentStatus("pending"));
     }

@@ -30,8 +30,8 @@ public class TimetableEntryCard extends UiPart<Region> {
     }
 
     static String formatTimeRange(TimetableEntry entry) {
-        return entry.getLesson().getTiming().getStartTime().format(TIME_FORMAT)
-                + "-" + entry.getLesson().getTiming().getEndTime().format(TIME_FORMAT);
+        return entry.getLesson().getSchedule().getStartTime().format(TIME_FORMAT)
+                + "-" + entry.getLesson().getSchedule().getEndTime().format(TIME_FORMAT);
     }
 
     static String formatStudents(TimetableEntry entry) {

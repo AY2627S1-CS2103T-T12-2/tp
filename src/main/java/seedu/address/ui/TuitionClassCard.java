@@ -1,9 +1,5 @@
 package seedu.address.ui;
 
-import java.time.format.DateTimeFormatter;
-import java.time.format.TextStyle;
-import java.util.Locale;
-
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Region;
@@ -13,8 +9,6 @@ import seedu.address.model.lesson.TuitionClass;
 public class TuitionClassCard extends UiPart<Region> {
 
     private static final String FXML = "TuitionClassCard.fxml";
-    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
-
     @FXML
     private Label classId;
     @FXML
@@ -29,9 +23,10 @@ public class TuitionClassCard extends UiPart<Region> {
         super(FXML);
         classId.setText(tuitionClass.getClassId().toString());
         subject.setText(tuitionClass.getSubject().toString());
-        String day = tuitionClass.getTiming().getDay().getDisplayName(TextStyle.FULL, Locale.ENGLISH);
-        schedule.setText(day + " " + tuitionClass.getTiming().getStartTime().format(TIME_FORMAT)
-                + "–" + tuitionClass.getTiming().getEndTime().format(TIME_FORMAT));
+        String scheduleText = tuitionClass.getSchedule().toString();
+        int timeSeparator = scheduleText.lastIndexOf('-');
+        schedule.setText(timeSeparator < 0 ? scheduleText
+                : scheduleText.substring(0, timeSeparator) + "–" + scheduleText.substring(timeSeparator + 1));
         cost.setText("Cost: " + tuitionClass.getCost());
     }
 }

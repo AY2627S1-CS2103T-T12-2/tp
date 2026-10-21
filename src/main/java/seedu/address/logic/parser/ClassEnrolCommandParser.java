@@ -12,7 +12,7 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.ClassEnrolCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.lesson.Lesson;
-import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.LessonSchedule;
 import seedu.address.model.lesson.Subject;
 
 /** Parses arguments for the {@code class enrol} command. */
@@ -40,18 +40,17 @@ public class ClassEnrolCommandParser implements Parser<ClassEnrolCommand> {
             return new ClassEnrolCommand(index,
                     ParserUtil.parseClassId(arguments.getValue(PREFIX_CLASS_ID).get()));
         }
-
         List<Index> indexes = ParserUtil.parseIndexes(arguments.getPreamble());
         Subject subject = ParserUtil.parseLessonSubject(arguments.getValue(PREFIX_SUBJECT).get());
-        LessonTiming timing = ParserUtil.parseLessonTiming(arguments.getValue(PREFIX_CLASS).get());
+        LessonSchedule schedule = ParserUtil.parseLessonSchedule(arguments.getValue(PREFIX_CLASS).get());
         if (usesExistingClassDetails) {
-            return new ClassEnrolCommand(indexes, subject, timing);
+            return new ClassEnrolCommand(indexes, subject, schedule);
         }
         if (indexes.size() > 1) {
             throw new ParseException(ClassEnrolCommand.MESSAGE_BATCH_COST_NOT_ALLOWED);
         }
         Lesson lesson = new Lesson(subject,
-                ParserUtil.parseLessonCost(arguments.getValue(PREFIX_COST).get()), timing);
+                ParserUtil.parseLessonCost(arguments.getValue(PREFIX_COST).get()), schedule);
         return new ClassEnrolCommand(indexes.get(0), lesson);
     }
 }

@@ -150,10 +150,10 @@ public class ModelManager implements Model {
             } else {
                 tuitionClass = addressBook.getTuitionClassList().stream()
                         .filter(item -> item.getSubject().value.equalsIgnoreCase(lesson.getSubject().value)
-                                && item.getTiming().equals(lesson.getTiming()))
+                                && item.getSchedule().equals(lesson.getSchedule()))
                         .findFirst().orElseGet(() -> {
                             TuitionClass created = new TuitionClass(addressBook.allocateClassId(),
-                                    lesson.getSubject(), lesson.getCost(), lesson.getTiming());
+                                    lesson.getSubject(), lesson.getCost(), lesson.getSchedule());
                             addressBook.addTuitionClass(created);
                             return created;
                         });

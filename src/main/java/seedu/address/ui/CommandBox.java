@@ -17,9 +17,10 @@ public class CommandBox extends UiPart<Region> {
     public static final String ERROR_STYLE_CLASS = "error";
     private static final String FXML = "CommandBox.fxml";
     private static final String FIND_FORMAT_HINT =
-            "find KEYWORD | find t/TAG (e.g. priority) | find c/DAY TIME (e.g. Monday 1800)";
+            "find KEYWORD | find t/TAG | find c/DAY, DATE, or TIME";
     private static final String FIND_TAG_HINT = "find t/TAG (e.g. priority)";
-    private static final String FIND_LESSON_HINT = "find c/DAY TIME (e.g. Monday 1800; time uses HHmm)";
+    private static final String FIND_LESSON_HINT =
+            "find c/DAY, DATE, or TIME (e.g. Monday 1800; 2026-10-20; time uses HHmm)";
     private static final String FIND_HOME_HINT = "Type 'list' to return to the home page.";
     private static final String PRIVACY_COMMAND = "privacy";
     private static final String PRIVACY_FORMAT_HINT = "privacy on | privacy off";
@@ -126,7 +127,7 @@ public class CommandBox extends UiPart<Region> {
         }
 
         if (commandText.equals("c/")) {
-            return "c/DAY TIME (e.g. Monday 1800; time uses HHmm)";
+            return "c/DAY, DATE, or TIME (e.g. Monday 1800; 2026-10-20; time uses HHmm)";
         }
 
         if ("pin".startsWith(commandText) && commandText.length() < "pin".length()) {

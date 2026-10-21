@@ -192,6 +192,25 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Lesson scheduling model
+
+`LessonSchedule` is the common immutable contract for when a class occurs. `LessonTiming` implements it for a weekly
+schedule containing a `DayOfWeek`, start time, and end time. `OneOffLessonSchedule` implements it for an exact
+`LocalDate` and time range. Both reject null fields, invalid times, equal start and end times, and overnight ranges.
+
+Commands retain the existing weekly representation `c/Monday1800-1930` and accept one-off schedules in the form
+`c/2026-10-20T1800-1930`. `ParserUtil#parseLessonSchedule` selects the matching immutable schedule type. A `Lesson`
+stores the resulting `LessonSchedule`; its subject and complete schedule form its logical class identity, while cost and
+payment status remain enrolment properties excluded by `Lesson#isSameClass`.
+
+Schedule overlap is date-aware. Two weekly schedules conflict on the same weekday, two one-off schedules conflict only
+on the same date, and a weekly schedule conflicts with a one-off schedule when the date has the weekly schedule's
+weekday. In all three cases, their time ranges must overlap; ranges meeting only at an endpoint do not conflict.
+
+`JsonAdaptedLesson` stores `scheduleType` as `WEEKLY` or `ONE_OFF` alongside the compact `timing` value. Saved lessons
+without `scheduleType` are interpreted as weekly schedules, so existing address-book files load without manual
+migration. Weekly occurrences remain derived and are never expanded into persisted dated records.
+
 ### Pin feature
 
 Each `Person` stores a `pinned` boolean. `JsonAdaptedPerson` writes this value to the address-book data file and treats
@@ -218,14 +237,16 @@ Supported modes are mutually exclusive:
 
 * `find KEYWORD [MORE_KEYWORDS]` -> `NameContainsKeywordsPredicate`
 * `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]` -> `TagContainsKeywordsPredicate`
-* `find c/DAY [TIME_HHmm]` or `find c/TIME_HHmm` -> `LessonContainsKeywordsPredicate`
+* `find c/DAY [TIME_HHmm]`, `find c/TIME_HHmm`, or `find c/DATE [TIME_HHmm]`
+  -> `LessonContainsKeywordsPredicate`
 
 `FindCommandParser` selects the mode from the prefix immediately after `find`. It rejects mixed modes, duplicate search
 prefixes, empty prefixed values, and invalid tag or lesson keywords before constructing the corresponding predicate.
 For tag search, it normalizes keywords to lowercase before tag-format validation. This keeps stored tags lowercase-only
 while allowing case-insensitive search input for user convenience.
 Lesson keywords accept a weekday/prefix such as `Mon`, an HHmm-style time within `0000`-`2359`, or both; shorter
-numeric fragments such as `18` are accepted for partial matching.
+numeric fragments such as `18` are accepted for partial matching. An exact ISO date such as `2026-10-20` matches a
+one-off schedule, while a weekday search also matches one-off schedules occurring on that weekday.
 
 `FindCommand` applies the predicate through `Model#updateFilteredPersonList`. Predicates that implement
 `ScoredPersonPredicate` also provide a relevance score, so `FindCommand` requests a sorted filtered list with stronger
@@ -254,9 +275,11 @@ neither command changes address-book data.
 `TimetablePanel`.
 
 `ModelManager#getTimetable(LocalDate)` passes the central class list and complete person list to `TimetableBuilder`.
-The builder includes independently created classes even when they have no enrolled students, attaches students through
-their enrolments, and omits days before the supplied date's weekday. Entries are ordered by start time, subject, and
-end time.
+The builder generates the actual dates from the supplied date through Saturday and uses
+`LessonSchedule#occursOn(LocalDate)` to select classes for each date. This places weekly schedules on their matching
+weekday and one-off schedules only on their exact date. Independently created classes appear even without enrolled
+students, while enrolments attach students to the matching class. The builder returns one immutable `TimetableDay` per
+visible date, including empty days, with entries ordered by start time, subject, and end time.
 
 The UI renders the projection in three levels: `TimetablePanel` provides the scrolling list, `TimetableDayCard` displays
 a day heading and empty state, and `TimetableEntryCard` displays a class's time, subject, and students. Entering `list`

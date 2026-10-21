@@ -3,7 +3,6 @@ package seedu.address.model;
 import static java.util.Objects.requireNonNull;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +13,9 @@ import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.lesson.ClassId;
 import seedu.address.model.lesson.Lesson;
-import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.LessonSchedule;
+import seedu.address.model.lesson.LessonScheduleComparator;
+import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.lesson.Subject;
 import seedu.address.model.lesson.TuitionClass;
 import seedu.address.model.person.Person;
@@ -108,13 +109,13 @@ public interface Model {
     }
 
     /**
-     * Finds a centrally stored class by its case-insensitive subject and complete lesson timing.
+     * Finds a centrally stored class by its case-insensitive subject and complete lesson schedule.
      */
-    default Optional<TuitionClass> findTuitionClass(Subject subject, LessonTiming timing) {
+    default Optional<TuitionClass> findTuitionClass(Subject subject, LessonSchedule schedule) {
         requireNonNull(subject);
-        requireNonNull(timing);
+        requireNonNull(schedule);
         return getAddressBook().getTuitionClassList().stream()
-                .filter(item -> item.getSubject().equals(subject) && item.getTiming().equals(timing))
+                .filter(item -> item.getSubject().equals(subject) && item.getSchedule().equals(schedule))
                 .findFirst();
     }
 
@@ -154,41 +155,37 @@ public interface Model {
     /** Returns the timetable derived from all persons for the specified date. */
     List<TimetableDay> getTimetable(LocalDate today);
 
-    /** Returns whether an existing student has the same class with a different cost. */
+    /** Returns whether an existing class has the same class with a different cost. */
     default boolean hasClassCostConflict(Lesson candidate) {
-        return getAddressBook().getTuitionClassList().stream()
-                .anyMatch(existing -> existing.getSubject().value.equalsIgnoreCase(candidate.getSubject().value)
-                        && existing.getTiming().equals(candidate.getTiming())
-                        && !existing.getCost().equals(candidate.getCost()));
+        requireNonNull(candidate);
+        return getTuitionClassList().stream()
+                .anyMatch(existing ->
+                        existing.getSubject().value.equalsIgnoreCase(candidate.getSubject().value)
+                                && existing.getSchedule().equals(candidate.getSchedule())
+                                && !existing.getCost().equals(candidate.getCost()));
     }
 
     /**
-     * Returns the distinct existing classes that overlap {@code candidate}, ordered by day,
-     * start time, end time, then subject. Copies of the same group class are returned once.
+     * Returns the distinct existing classes that overlap {@code candidate}, ordered
+     * by schedule, then subject. Copies of the same group class are returned once.
      */
     default List<Lesson> findOverlappingClasses(Lesson candidate) {
         requireNonNull(candidate);
         Comparator<Lesson> classOrder = Comparator
-                .comparingInt((Lesson lesson) -> lesson.getTiming().getDay().getValue())
-                .thenComparing(lesson -> lesson.getTiming().getStartTime())
-                .thenComparing(lesson -> lesson.getTiming().getEndTime())
+                .comparing(Lesson::getSchedule, LessonScheduleComparator.INSTANCE)
                 .thenComparing(lesson -> lesson.getSubject().toString(), String.CASE_INSENSITIVE_ORDER);
 
-        List<Lesson> overlappingLessons = getAddressBook().getTuitionClassList().stream()
-                .filter(existing -> !(existing.getSubject().equals(candidate.getSubject())
-                        && existing.getTiming().equals(candidate.getTiming())))
-                .filter(existing -> existing.getTiming().overlapsWith(candidate.getTiming()))
-                .map(existing -> new Lesson(existing.getClassId(), existing.getSubject(), existing.getCost(),
-                        existing.getTiming(), seedu.address.model.lesson.PaymentStatus.UNPAID))
+        return getTuitionClassList().stream()
+                .map(existing -> new Lesson(
+                        existing.getClassId(),
+                        existing.getSubject(),
+                        existing.getCost(),
+                        existing.getSchedule(),
+                        PaymentStatus.UNPAID))
+                .filter(existing -> !existing.isSameClass(candidate))
+                .filter(existing -> existing.getSchedule().overlapsWith(candidate.getSchedule()))
                 .sorted(classOrder)
                 .toList();
-        List<Lesson> distinctClasses = new ArrayList<>();
-        for (Lesson lesson : overlappingLessons) {
-            if (distinctClasses.stream().noneMatch(existing -> existing.isSameClass(lesson))) {
-                distinctClasses.add(lesson);
-            }
-        }
-        return List.copyOf(distinctClasses);
     }
 
 }

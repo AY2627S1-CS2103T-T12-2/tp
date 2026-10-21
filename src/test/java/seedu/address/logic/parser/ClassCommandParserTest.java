@@ -28,6 +28,7 @@ import seedu.address.model.lesson.ClassId;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.OneOffLessonSchedule;
 import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.lesson.Subject;
 
@@ -98,6 +99,21 @@ public class ClassCommandParserTest {
     public void parse_enrolAllFieldsPresent_success() {
         assertParseSuccess(parser, " enrol 1 sub/Math cost/30 c/Monday1800-1930",
                 new ClassEnrolCommand(Index.fromOneBased(1), LESSON));
+    }
+
+    @Test
+    public void parse_oneOffSchedules_success() {
+        OneOffLessonSchedule schedule = new OneOffLessonSchedule("2026-10-20T1800-1930");
+        Lesson lesson = new Lesson(SUBJECT, new Cost("30"), schedule);
+
+        assertParseSuccess(parser, " enrol 1 sub/Math cost/30 c/2026-10-20T1800-1930",
+                new ClassEnrolCommand(Index.fromOneBased(1), lesson));
+        assertParseSuccess(parser, " unenrol 1 sub/Math c/2026-10-20T1800-1930",
+                new ClassUnenrolCommand(Index.fromOneBased(1), SUBJECT, schedule));
+        assertParseSuccess(parser, " delete sub/Math c/2026-10-20T1800-1930",
+                new ClassDeleteCommand(SUBJECT, schedule));
+        assertParseSuccess(parser, " payment 1 sub/Math c/2026-10-20T1800-1930 status/paid",
+                new ClassPaymentCommand(Index.fromOneBased(1), SUBJECT, schedule, PaymentStatus.PAID));
     }
 
     @Test

@@ -32,6 +32,6 @@ public class ClassUnenrolCommandParser implements Parser<ClassUnenrolCommand> {
         }
         return new ClassUnenrolCommand(index,
                 ParserUtil.parseLessonSubject(arguments.getValue(PREFIX_SUBJECT).get()),
-                ParserUtil.parseLessonTiming(arguments.getValue(PREFIX_CLASS).get()));
+                ParserUtil.parseLessonSchedule(arguments.getValue(PREFIX_CLASS).get()));
     }
 }

@@ -25,6 +25,7 @@ import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.OneOffLessonSchedule;
 import seedu.address.model.lesson.Subject;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
@@ -265,6 +266,24 @@ public class ModelManagerTest {
                 new NameContainsKeywordsPredicate(List.of(otherLessons.getName().fullName.split(" ")[0])));
 
         assertEquals(List.of(earlierConflict, laterConflict), modelManager.findOverlappingClasses(candidate));
+    }
+
+    @Test
+    public void findOverlappingClasses_weeklyAndOneOff_returnsDateAwareConflicts() {
+        Lesson weekly = new Lesson(new Subject("Math"), new Cost("30"),
+                new LessonTiming("Tuesday1800-1930"));
+        Lesson differentDate = new Lesson(new Subject("English"), new Cost("25"),
+                new OneOffLessonSchedule("2026-10-21T1800-1930"));
+        Person student = new PersonBuilder(ALICE).withLessons(weekly, differentDate).build();
+        modelManager = new ModelManager(new AddressBookBuilder().withPerson(student).build(), new UserPrefs());
+
+        Lesson overlappingTuesday = new Lesson(new Subject("Physics"), new Cost("35"),
+                new OneOffLessonSchedule("2026-10-20T1900-2000"));
+        Lesson nonOverlappingTuesday = new Lesson(new Subject("Physics"), new Cost("35"),
+                new OneOffLessonSchedule("2026-10-20T1930-2000"));
+
+        assertEquals(List.of(weekly), modelManager.findOverlappingClasses(overlappingTuesday));
+        assertTrue(modelManager.findOverlappingClasses(nonOverlappingTuesday).isEmpty());
     }
 
     @Test

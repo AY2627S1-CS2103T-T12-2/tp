@@ -14,7 +14,7 @@ import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.lesson.ClassId;
 import seedu.address.model.lesson.Lesson;
-import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.LessonSchedule;
 import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.lesson.Subject;
 import seedu.address.model.person.Person;
@@ -45,7 +45,7 @@ public class ClassPaymentCommand extends ClassCommand {
     private final Index personIndex;
     private final ClassId classId;
     private final Subject subject;
-    private final LessonTiming timing;
+    private final LessonSchedule schedule;
     private final PaymentStatus paymentStatus;
 
     /** Creates an ID-based payment command. */
@@ -53,17 +53,17 @@ public class ClassPaymentCommand extends ClassCommand {
         this.personIndex = requireNonNull(personIndex);
         this.classId = requireNonNull(classId);
         this.subject = null;
-        this.timing = null;
+        this.schedule = null;
         this.paymentStatus = requireNonNull(paymentStatus);
     }
 
     /** Creates a command that updates the selected enrolment's payment status. */
-    public ClassPaymentCommand(Index personIndex, Subject subject, LessonTiming timing,
+    public ClassPaymentCommand(Index personIndex, Subject subject, LessonSchedule schedule,
             PaymentStatus paymentStatus) {
         this.personIndex = requireNonNull(personIndex);
         this.classId = null;
         this.subject = requireNonNull(subject);
-        this.timing = requireNonNull(timing);
+        this.schedule = requireNonNull(schedule);
         this.paymentStatus = requireNonNull(paymentStatus);
     }
 
@@ -78,17 +78,17 @@ public class ClassPaymentCommand extends ClassCommand {
         Person person = persons.get(personIndex.getZeroBased());
         Lesson matchingLesson = person.getLessons().stream()
                 .filter(lesson -> classId != null
-                        ? classId.equals(lesson.getClassId()) : lesson.isSameClass(subject, timing))
+                        ? classId.equals(lesson.getClassId()) : lesson.isSameClass(subject, schedule))
                 .findFirst()
                 .orElseThrow(() -> new CommandException(classId != null
                         ? String.format(MESSAGE_NOT_ENROLLED_BY_ID, classId)
-                        : String.format(MESSAGE_NOT_ENROLLED, subject, timing)));
+                        : String.format(MESSAGE_NOT_ENROLLED, subject, schedule)));
 
         String displayStatus = paymentStatus.toString();
         if (matchingLesson.getPaymentStatus() == paymentStatus) {
             String message = classId != null
                     ? String.format(MESSAGE_ALREADY_MARKED_BY_ID, person.getName(), classId, displayStatus)
-                    : String.format(MESSAGE_ALREADY_MARKED, person.getName(), subject, timing, displayStatus);
+                    : String.format(MESSAGE_ALREADY_MARKED, person.getName(), subject, schedule, displayStatus);
             return new CommandResult(message);
         }
 
@@ -98,7 +98,7 @@ public class ClassPaymentCommand extends ClassCommand {
         model.setPerson(person, person.withLessons(updatedLessons));
         String message = classId != null
                 ? String.format(MESSAGE_SUCCESS_BY_ID, person.getName(), classId, displayStatus)
-                : String.format(MESSAGE_SUCCESS, person.getName(), subject, timing, displayStatus);
+                : String.format(MESSAGE_SUCCESS, person.getName(), subject, schedule, displayStatus);
         return new CommandResult(message);
     }
 
@@ -108,7 +108,7 @@ public class ClassPaymentCommand extends ClassCommand {
                 && personIndex.equals(otherCommand.personIndex)
                 && java.util.Objects.equals(classId, otherCommand.classId)
                 && java.util.Objects.equals(subject, otherCommand.subject)
-                && java.util.Objects.equals(timing, otherCommand.timing)
+                && java.util.Objects.equals(schedule, otherCommand.schedule)
                 && paymentStatus == otherCommand.paymentStatus;
     }
 }

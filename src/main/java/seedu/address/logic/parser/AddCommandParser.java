@@ -64,7 +64,7 @@ public class AddCommandParser implements Parser<AddCommand> {
             Set<Lesson> lessons = new java.util.LinkedHashSet<>();
             lessons.add(new Lesson(ParserUtil.parseLessonSubject(argMultimap.getValue(PREFIX_SUBJECT).get()),
                     ParserUtil.parseLessonCost(argMultimap.getValue(PREFIX_COST).get()),
-                    ParserUtil.parseLessonTiming(argMultimap.getValue(PREFIX_CLASS).get())));
+                    ParserUtil.parseLessonSchedule(argMultimap.getValue(PREFIX_CLASS).get())));
             person = new Person(name, phone, email, address, tagList, lessons);
         } else {
             Set<seedu.address.model.person.Subject> subjects =

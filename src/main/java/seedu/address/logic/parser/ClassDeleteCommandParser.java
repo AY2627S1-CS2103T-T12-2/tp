@@ -30,6 +30,6 @@ public class ClassDeleteCommandParser implements Parser<ClassDeleteCommand> {
         }
         return new ClassDeleteCommand(
                 ParserUtil.parseLessonSubject(arguments.getValue(PREFIX_SUBJECT).get()),
-                ParserUtil.parseLessonTiming(arguments.getValue(PREFIX_CLASS).get()));
+                ParserUtil.parseLessonSchedule(arguments.getValue(PREFIX_CLASS).get()));
     }
 }

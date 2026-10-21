@@ -16,7 +16,7 @@ public class TuitionClassTest {
         assertEquals(new ClassId("C001"), MATH.getClassId());
         assertEquals(new Subject("Math"), MATH.getSubject());
         assertEquals(new Cost("30"), MATH.getCost());
-        assertEquals(new LessonTiming("Monday1800-1930"), MATH.getTiming());
+        assertEquals(new LessonTiming("Monday1800-1930"), MATH.getSchedule());
         assertTrue(MATH.hasSameDetails(tuitionClass("C009", "math", "99", "Monday1800-1930")));
         assertFalse(MATH.hasSameDetails(null));
         assertFalse(MATH.hasSameDetails(tuitionClass("C009", "Physics", "30", "Monday1800-1930")));

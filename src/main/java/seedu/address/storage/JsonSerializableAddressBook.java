@@ -112,13 +112,13 @@ class JsonSerializableAddressBook {
                 if (tuitionClass == null) {
                     tuitionClass = addressBook.getTuitionClassList().stream()
                             .filter(item -> item.getSubject().value.equalsIgnoreCase(lesson.getSubject().value)
-                                    && item.getTiming().equals(lesson.getTiming()))
+                                    && item.getSchedule().equals(lesson.getSchedule()))
                             .findFirst().orElse(null);
                 }
                 if (tuitionClass == null) {
                     seedu.address.model.lesson.ClassId id = lesson.getClassId() != null
                             ? lesson.getClassId() : addressBook.allocateClassId();
-                    tuitionClass = new TuitionClass(id, lesson.getSubject(), lesson.getCost(), lesson.getTiming());
+                    tuitionClass = new TuitionClass(id, lesson.getSubject(), lesson.getCost(), lesson.getSchedule());
                     addressBook.addTuitionClass(tuitionClass);
                 }
                 if (!tuitionClass.getCost().equals(lesson.getCost())) {

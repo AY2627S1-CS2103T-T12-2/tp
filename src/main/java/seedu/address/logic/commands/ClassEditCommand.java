@@ -15,7 +15,7 @@ import seedu.address.model.Model;
 import seedu.address.model.lesson.ClassId;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
-import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.LessonSchedule;
 import seedu.address.model.lesson.Subject;
 import seedu.address.model.lesson.TuitionClass;
 
@@ -26,7 +26,7 @@ public class ClassEditCommand extends ClassCommand {
     public static final String MESSAGE_USAGE = COMMAND_WORD + " " + SUBCOMMAND_WORD
             + ": Edits a class identified by its stable ID.\nParameters: " + PREFIX_CLASS_ID + "CLASS_ID "
             + "[" + PREFIX_SUBJECT + "SUBJECT] [" + PREFIX_COST + "COST] ["
-            + PREFIX_CLASS + "DAYHHmm-HHmm]\n"
+            + PREFIX_CLASS + "SCHEDULE]\n"
             + "Example: class edit id/C001 cost/35 c/Tuesday1800-1930";
     public static final String MESSAGE_SUCCESS = "Edited class %1$s: %2$s, %3$s, cost %4$s.";
     public static final String MESSAGE_NOT_FOUND = "No class exists with ID %s.";
@@ -36,15 +36,15 @@ public class ClassEditCommand extends ClassCommand {
     private final ClassId classId;
     private final Optional<Subject> subject;
     private final Optional<Cost> cost;
-    private final Optional<LessonTiming> timing;
+    private final Optional<LessonSchedule> schedule;
 
     /** Creates a command containing the optional class fields to replace. */
     public ClassEditCommand(ClassId classId, Optional<Subject> subject, Optional<Cost> cost,
-            Optional<LessonTiming> timing) {
+            Optional<LessonSchedule> schedule) {
         this.classId = requireNonNull(classId);
         this.subject = requireNonNull(subject);
         this.cost = requireNonNull(cost);
-        this.timing = requireNonNull(timing);
+        this.schedule = requireNonNull(schedule);
     }
 
     @Override
@@ -55,7 +55,7 @@ public class ClassEditCommand extends ClassCommand {
         }
         TuitionClass original = model.getTuitionClass(classId);
         TuitionClass edited = new TuitionClass(classId, subject.orElse(original.getSubject()),
-                cost.orElse(original.getCost()), timing.orElse(original.getTiming()));
+                cost.orElse(original.getCost()), schedule.orElse(original.getSchedule()));
         if (edited.equals(original)) {
             throw new CommandException(MESSAGE_NO_CHANGE);
         }
@@ -64,12 +64,12 @@ public class ClassEditCommand extends ClassCommand {
         if (duplicate) {
             throw new CommandException(MESSAGE_DUPLICATE);
         }
-        Lesson candidate = new Lesson(classId, edited.getSubject(), edited.getCost(), edited.getTiming(),
+        Lesson candidate = new Lesson(classId, edited.getSubject(), edited.getCost(), edited.getSchedule(),
                 seedu.address.model.lesson.PaymentStatus.UNPAID);
         List<Lesson> overlaps = model.getTuitionClassList().stream()
                 .filter(item -> !item.getClassId().equals(classId))
-                .filter(item -> item.getTiming().overlapsWith(edited.getTiming()))
-                .map(item -> new Lesson(item.getClassId(), item.getSubject(), item.getCost(), item.getTiming(),
+                .filter(item -> item.getSchedule().overlapsWith(edited.getSchedule()))
+                .map(item -> new Lesson(item.getClassId(), item.getSubject(), item.getCost(), item.getSchedule(),
                         seedu.address.model.lesson.PaymentStatus.UNPAID))
                 .toList();
         if (!overlaps.isEmpty()) {
@@ -77,13 +77,13 @@ public class ClassEditCommand extends ClassCommand {
         }
         model.setTuitionClass(original, edited);
         return new CommandResult(String.format(MESSAGE_SUCCESS, classId, edited.getSubject(),
-                edited.getTiming(), edited.getCost()));
+                edited.getSchedule(), edited.getCost()));
     }
 
     @Override
     public boolean equals(Object other) {
         return other == this || other instanceof ClassEditCommand otherCommand
                 && classId.equals(otherCommand.classId) && subject.equals(otherCommand.subject)
-                && cost.equals(otherCommand.cost) && timing.equals(otherCommand.timing);
+                && cost.equals(otherCommand.cost) && schedule.equals(otherCommand.schedule);
     }
 }

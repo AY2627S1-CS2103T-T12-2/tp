@@ -38,6 +38,6 @@ public class ClassPaymentCommandParser implements Parser<ClassPaymentCommand> {
         }
         return new ClassPaymentCommand(index,
                 ParserUtil.parseLessonSubject(arguments.getValue(PREFIX_SUBJECT).get()),
-                ParserUtil.parseLessonTiming(arguments.getValue(PREFIX_CLASS).get()), status);
+                ParserUtil.parseLessonSchedule(arguments.getValue(PREFIX_CLASS).get()), status);
     }
 }
