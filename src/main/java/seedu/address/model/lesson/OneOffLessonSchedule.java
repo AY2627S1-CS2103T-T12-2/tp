@@ -100,7 +100,11 @@ public final class OneOffLessonSchedule implements LessonSchedule, Comparable<On
     @Override
     public int compareTo(OneOffLessonSchedule other) {
         int dateComparison = date.compareTo(other.date);
-        return dateComparison != 0 ? dateComparison : startTime.compareTo(other.startTime);
+        if (dateComparison != 0) {
+            return dateComparison;
+        }
+        int startComparison = startTime.compareTo(other.startTime);
+        return startComparison != 0 ? startComparison : endTime.compareTo(other.endTime);
     }
 
     @Override

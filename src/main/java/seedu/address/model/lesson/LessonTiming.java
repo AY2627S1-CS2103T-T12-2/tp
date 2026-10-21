@@ -91,7 +91,11 @@ public class LessonTiming implements LessonSchedule, Comparable<LessonTiming> {
     @Override
     public int compareTo(LessonTiming other) {
         int dayComparison = Integer.compare(day.getValue(), other.day.getValue());
-        return dayComparison != 0 ? dayComparison : startTime.compareTo(other.startTime);
+        if (dayComparison != 0) {
+            return dayComparison;
+        }
+        int startComparison = startTime.compareTo(other.startTime);
+        return startComparison != 0 ? startComparison : endTime.compareTo(other.endTime);
     }
 
     @Override
