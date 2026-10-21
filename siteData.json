@@ -51,6 +51,7 @@
         "storage-component": "Storage component",
         "common-classes": "Common classes",
         "implementation": "Implementation",
+        "lesson-scheduling-model": "Lesson scheduling model",
         "pin-feature": "Pin feature",
         "find-feature": "Find feature",
         "privacy-mode": "Privacy mode",
@@ -121,7 +122,8 @@
         "testing-guide": "Testing guide",
         "running-tests": "Running tests",
         "types-of-tests": "Types of tests",
-        "subject-search-tests": "Subject search tests"
+        "subject-search-tests": "Subject search tests",
+        "lesson-scheduling-tests": "Lesson scheduling tests"
       },
       "headingKeywords": {}
     },
