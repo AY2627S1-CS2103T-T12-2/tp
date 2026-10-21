@@ -1,6 +1,7 @@
 package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -94,6 +95,43 @@ public class ClassAttributesIntegrationTest {
         execute("add n/Bob p/81234567 e/bob@example.com a/Two" + MATH);
         assertEquals(DETAILS, model.getAddressBook().getPersonList().get(1)
                 .getLessons().iterator().next().getDetails());
+    }
+
+    @Test
+    public void oneOffClassAndBatchCommands_preserveSharedDetailsAndPinnedGuardian() throws Exception {
+        String schedule = "2026-10-24T1800-1930";
+        execute(ALICE + " sub/Math cost/30 c/" + schedule + " mode/online link/" + LINK);
+        execute("add n/Bob p/81234567 e/bob@example.com a/Two gp/88888888");
+        execute("pin 1");
+        execute("class enrol 1 2 sub/Math c/" + schedule);
+        execute("tag 1 2 t/exam-prep");
+        execute("edit 1 p/91111111");
+        execute("class payment 1 id/C001 status/paid");
+        execute("class edit id/C001 c/2026-10-24T1900-2030");
+        var alice = model.getAddressBook().getPersonList().getFirst();
+        assertTrue(alice.isPinned());
+        assertEquals("99999999", alice.getGuardianContact().phone());
+        assertEquals(PaymentStatus.PAID, firstLesson().getPaymentStatus());
+        assertEquals(LINK, firstLesson().getDetails().meetingLink());
+        assertEquals("2026-10-24T1900-2030", firstLesson().getSchedule().toStorageString());
+        assertEquals(1, model.getTimetable(LocalDate.of(2026, 10, 24)).getFirst().getEntries().size());
+        assertTrue(model.getTimetable(LocalDate.of(2026, 10, 25)).stream()
+                .allMatch(day -> day.getEntries().isEmpty()));
+        execute("class delete id/C001");
+        assertTrue(model.getAddressBook().getPersonList().getFirst().isPinned());
+        assertEquals("99999999", model.getAddressBook().getPersonList().getFirst().getGuardianContact().phone());
+    }
+
+    @Test
+    public void sameSubjectAtDifferentTimes_createsSeparateClassDetails() throws Exception {
+        addAlice();
+        execute("add n/Bob p/81234567 e/bob@example.com a/Two"
+                + " sub/Math cost/30 c/Saturday1600-1730 mode/offline location/Room 3");
+        assertEquals(2, model.getTuitionClassList().size());
+        assertEquals(DETAILS, firstLesson().getDetails());
+        assertEquals("Room 3", model.getAddressBook().getPersonList().get(1)
+                .getLessons().iterator().next().getDetails().location());
+        assertNotEquals(parser.parseCommand(ALICE + MATH), parser.parseCommand(ALICE + MATH + " mode/online"));
     }
 
     @Test

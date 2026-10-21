@@ -18,10 +18,12 @@ public class ClassPaymentCommandParser implements Parser<ClassPaymentCommand> {
     public ClassPaymentCommand parse(String args) throws ParseException {
         ArgumentMultimap arguments = ArgumentTokenizer.tokenize(
                 args, PREFIX_CLASS_ID, PREFIX_SUBJECT, PREFIX_CLASS, PREFIX_STATUS);
-        boolean usesId = arguments.getValue(PREFIX_CLASS_ID).isPresent();
-        boolean usesLegacyDetails = arguments.getValue(PREFIX_SUBJECT).isPresent()
-                && arguments.getValue(PREFIX_CLASS).isPresent();
-        if (arguments.getPreamble().isEmpty() || usesId == usesLegacyDetails
+        boolean hasId = arguments.getValue(PREFIX_CLASS_ID).isPresent();
+        boolean hasSubject = arguments.getValue(PREFIX_SUBJECT).isPresent();
+        boolean hasTiming = arguments.getValue(PREFIX_CLASS).isPresent();
+        boolean usesOnlyId = hasId && !hasSubject && !hasTiming;
+        boolean usesOnlyLegacyDetails = !hasId && hasSubject && hasTiming;
+        if (arguments.getPreamble().isEmpty() || usesOnlyId == usesOnlyLegacyDetails
                 || arguments.getValue(PREFIX_STATUS).isEmpty()) {
             throw new ParseException(String.format(
                     MESSAGE_INVALID_COMMAND_FORMAT, ClassPaymentCommand.MESSAGE_USAGE));
@@ -30,12 +32,12 @@ public class ClassPaymentCommandParser implements Parser<ClassPaymentCommand> {
 
         Index index = ParserUtil.parseIndex(arguments.getPreamble());
         PaymentStatus status = ParserUtil.parsePaymentStatus(arguments.getValue(PREFIX_STATUS).get());
-        if (usesId) {
+        if (usesOnlyId) {
             return new ClassPaymentCommand(index,
                     ParserUtil.parseClassId(arguments.getValue(PREFIX_CLASS_ID).get()), status);
         }
         return new ClassPaymentCommand(index,
                 ParserUtil.parseLessonSubject(arguments.getValue(PREFIX_SUBJECT).get()),
-                ParserUtil.parseLessonTiming(arguments.getValue(PREFIX_CLASS).get()), status);
+                ParserUtil.parseLessonSchedule(arguments.getValue(PREFIX_CLASS).get()), status);
     }
 }

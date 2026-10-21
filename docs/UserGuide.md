@@ -82,7 +82,7 @@ Format: `help`
 
 Adds a person to the address book.
 
-Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [gn/GUARDIAN_NAME] [gp/GUARDIAN_PHONE] [ge/GUARDIAN_EMAIL] [sub/SUBJECT cost/COST c/DAYHHmm-HHmm [mode/online|offline] [link/URL] [location/LOCATION] [notes/NOTES]]`
+Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [gn/GUARDIAN_NAME] [gp/GUARDIAN_PHONE] [ge/GUARDIAN_EMAIL] [sub/SUBJECT cost/COST c/SCHEDULE [mode/online|offline] [link/URL] [location/LOCATION] [notes/NOTES]]`
 
 <box type="tip" seamless>
 
@@ -90,23 +90,27 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [gn/GUARDIAN_NAM
 and use only lowercase letters, numbers, and single hyphens between characters.
 </box>
 
-* `sub/SUBJECT`, `cost/COST`, and `c/DAYHHmm-HHmm` must be supplied together when adding a class.
+* `sub/SUBJECT`, `cost/COST`, and `c/SCHEDULE` must be supplied together when adding a class.
 * Times use the 24-hour range `0000`–`2359`, and the end time must be later than the start time.
+* A weekly schedule uses `DAYHHmm-HHmm`, for example `Monday1800-1930`.
+* A one-off schedule uses `yyyy-MM-ddTHHmm-HHmm`, for example `2026-10-20T1800-1930`.
 * If class details are supplied, TutEasy creates the class if necessary and enrols the new student in it.
 
 Examples:
 * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
 * `add n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
 * `add n/John Davis p/91234567 e/johndavis@gmail.com a/Clementi t/exam-prep sub/Math cost/30 c/Monday1800-1930`
+* `add n/Jane Tan p/92345678 e/jane@example.com a/Bishan sub/Math cost/30 c/2026-10-20T1800-1930`
 
 ### Adding guardian and class details to a contact
 
 The `add` command accepts optional guardian name (`gn/`), phone (`gp/`), and email (`ge/`) fields.
 These are independent: for example, supply just `gp/` when only a parent's phone is known.
 Non-empty guardian values follow the same validation rules as student contact fields.
-The details appear on the student card and are saved across restarts.
+The details appear on the student card and are saved across restarts. Privacy mode masks guardian details
+alongside the student's phone, email, and address.
 
-When adding a contact with a class (`sub/`, `cost/`, and complete `c/DAYHHmm-HHmm`), also supply
+When adding a contact with a class (`sub/`, `cost/`, and complete `c/SCHEDULE`), you may also supply
 `mode/online` or `mode/offline`. An online class may optionally have an HTTP(S) meeting URL in `link/`.
 Offline classes cannot store a non-empty link. New classes default to offline when the mode is omitted.
 Mode values are case-insensitive. Optional `location/` and `notes/` each accept up to 500 characters
@@ -143,7 +147,7 @@ including classes with no students. Use `list` to return from either read-only v
 Creates a class independently of any student. TutEasy assigns a stable class ID such as `C001`; IDs remain unchanged
 when a class is edited and are not reused after deletion.
 
-Format: `class add sub/SUBJECT cost/COST c/DAYHHmm-HHmm`
+Format: `class add sub/SUBJECT cost/COST c/SCHEDULE`
 
 Example: `class add sub/Physics cost/35 c/Wednesday1700-1830`
 
@@ -155,32 +159,54 @@ Opens a read-only graphical list showing every class's stable ID, subject, sched
 
 Format: `class list`
 
-This command is available from both the student list and timetable. Use `list` to return to the student list or
-`timetable` to open the timetable.
+This command is available from both the student list and timetable. While the class list is open, `list`, `timetable`,
+`class list`, `privacy`, `help`, and `exit` are available. Use `list` to return to the student list or `timetable` to
+open the timetable.
 
 ### Editing a class: `class edit`
 
 Updates a class while retaining its stable ID and enrolments. Supply at least one field to change. Payment statuses are
 preserved, and the new details appear for every enrolled student.
 
-Format: `class edit id/CLASS_ID [sub/SUBJECT] [cost/COST] [c/DAYHHmm-HHmm]`
+Format: `class edit id/CLASS_ID [sub/SUBJECT] [cost/COST] [c/SCHEDULE]`
 
 Examples:
 
 * `class edit id/C001 cost/40`
 * `class edit id/C001 sub/Advanced Math c/Tuesday1800-1930`
 
-### Enrolling a student in a class: `class enrol`
+### Enrolling students in a class: `class enrol`
 
-Enrols an existing student in a recurring weekly class. The student is identified by the index shown in the current
-student list.
+Enrols one or more existing students in a weekly or one-off class. Students are identified by their indexes in the
+currently displayed student list. Weekly classes recur on their specified weekday; one-off classes occur only on their
+specified date.
 
-Format: `class enrol STUDENT_INDEX id/CLASS_ID`
+To enrol one student using a stable class ID, use:
+
+`class enrol STUDENT_INDEX id/CLASS_ID`
 
 Example: `class enrol 1 id/C001`
 
+To enrol one or more students in an existing class using its subject and complete lesson schedule, omit the cost and
+provide all student indexes before the prefixes:
+
+`class enrol STUDENT_INDEX [STUDENT_INDEX]... sub/SUBJECT c/SCHEDULE`
+
+Example: `class enrol 1 3 5 sub/Physics c/Wednesday1700-1830`
+
+The existing single-student format that supplies the class cost is also supported:
+
+`class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/SCHEDULE`
+
 The same class can be assigned to multiple students, but its cost must be consistent. A student cannot be enrolled in
-the same class more than once.
+the same class more than once. For subject-and-timing batch enrolment, TutEasy obtains the cost from its independently
+stored class collection. This also supports classes that currently have no enrolled students.
+
+Batch enrolment validates every index and the target class before changing any student. Repeated or invalid indexes
+and a missing class cause the command to fail without changing any student. Selected students who are already enrolled
+are skipped while the remaining students are enrolled. The feedback identifies both groups. If all selected students
+are already enrolled, no changes are made and an informative message is shown. `cost/` cannot be supplied when multiple
+indexes are used.
 
 Enrolled classes appear as coloured badges below each student's email. Each badge includes the subject and lesson
 timing, and students enrolled in the same class receive a badge with the same colour. When a student has multiple
@@ -199,7 +225,7 @@ Example: `class unenrol 1 id/C001`
 
 ### Updating an enrolment's payment status: `class payment`
 
-Marks one student's enrolment in a recurring weekly class as paid or unpaid. The student is identified by the index
+Marks one student's enrolment in a weekly or one-off class as paid or unpaid. The student is identified by the index
 shown in the current student list, while the stable class ID identifies the enrolment.
 
 Format: `class payment STUDENT_INDEX id/CLASS_ID status/paid|unpaid`
@@ -215,9 +241,9 @@ stay together on one row, keeping the status associated with the correct class. 
 does not affect other students enrolled in the same class. If the specified student is not enrolled in that class, no
 data is changed.
 
-Payment status describes the current recurring enrolment as a whole; it is not a payment history for individual weekly
-sessions or billing months. Correspondingly, the displayed balance is the sum of the current unpaid enrolments rather
-than a history of accumulated charges.
+Payment status describes the current enrolment as a whole; it is not a payment history for individual weekly sessions
+or billing months. Correspondingly, the displayed balance is the sum of the current unpaid enrolments rather than a
+history of accumulated charges.
 
 ### Deleting a class: `class delete`
 
@@ -237,16 +263,46 @@ even when it has no classes.
 Each class entry shows its start and end time, subject, and all attending students. Classes are ordered by start time,
 then subject.
 
+Weekly classes appear on their matching weekday. One-off classes appear only when their exact date falls within the
+visible range.
+
 Format: `timetable`
 
-While the timetable is open, `class list`, `list`, `help`, and `exit` are available. `class list` replaces the timetable
-with the class list. Use `list` to return to the student list and re-enable modifying commands.
+While the timetable is open, `class list`, `list`, `privacy`, `help`, and `exit` are available. `class list` replaces
+the timetable with the class list. Use `list` to return to the student list and re-enable modifying commands.
 
 ### Listing all persons: `list`
 
-Shows a list of all persons in the address book.
+Shows all students in the address book. Pinned students appear before unpinned students.
 
 Format: `list`
+
+### Pinning a student: `pin`
+
+Pins a student so that they appear above unpinned students in the student list. The pin is saved and remains after
+TutEasy is restarted.
+
+Format: `pin INDEX`
+
+* `INDEX` refers to the index number shown in the displayed student list.
+* The student must not already be pinned.
+* During a search, only matching students are shown; matching pinned students appear before matching unpinned students.
+* Search relevance and the existing list order are preserved within the pinned and unpinned groups.
+
+Example: `pin 3`
+
+Pinned students display a `PINNED` badge beside their name and balance.
+
+### Unpinning a student: `unpin`
+
+Unpins a student and returns them to the unpinned section of the student list.
+
+Format: `unpin INDEX`
+
+* `INDEX` refers to the index number shown in the displayed student list.
+* The student must already be pinned.
+
+Example: `unpin 1`
 
 ### Editing a person: `edit`
 
@@ -264,21 +320,36 @@ Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing tags.
 
-### Tagging a student: `tag`
+### Tagging students: `tag`
 
-Adds one or more tags to an existing student.
+Adds tags to one or more existing students.
 
-Format: `tag INDEX TAG [MORE_TAGS]`
+Formats:
 
-* `INDEX` refers to the index number shown in the displayed student list.
+* `tag INDEX TAG [MORE_TAGS]`
+* `tag STUDENT_INDEX [MORE_INDEXES] t/TAG`
+
+* Indexes refer to the index numbers shown in the displayed student list.
 * Each tag must be unique for that student.
 * A tag can contain up to 30 characters and use only lowercase letters, numbers, and single hyphens between
   characters.
 * Spaces separate tags. For example, `exam prep` adds the two tags `exam` and `prep`, while `exam-prep` adds
   one tag. Use hyphens when a single tag contains multiple words.
 * A student can have at most 10 tags.
+* The first format preserves the existing behavior of adding one or more tags to one student.
+* The batch format uses `t/` to separate one tag from one or more unique student indexes. This also allows numeric
+  tags such as `t/2026` without confusing them with student indexes.
+* The batch command validates every index and the tag before updating any student. An invalid or repeated index, or
+  an invalid tag, causes the command to fail without changes.
+* In batch mode, students who already have the tag are skipped. Students who have reached the 10-tag limit are also
+  skipped, while eligible selected students still receive the tag.
+* Batch feedback identifies students who received the tag, already had it, or had reached the tag limit. If no
+  selected student can be updated, no changes are made and the feedback explains why.
 
-Example: `tag 3 exam-prep needs-follow-up`
+Examples:
+
+* `tag 3 exam-prep needs-follow-up`
+* `tag 1 3 5 t/math-2026`
 
 ### Removing tags from a student: `untag`
 
@@ -297,15 +368,19 @@ Finds students whose names, tags, or lesson timings partially match the given se
 Formats:
 * `find KEYWORD [MORE_KEYWORDS]`
 * `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]`
-* `find c/DAY [TIME_HHmm]` or `find c/TIME_HHmm`
+* `find c/DAY [TIME_HHmm]`, `find c/TIME_HHmm`, or `find c/DATE [TIME_HHmm]`
 
 * The search is case-insensitive; for example, `hans` matches `Hans`.
 * Without `t/`, the search considers only names.
 * With `t/`, the search considers only tags. Stored tags use lowercase, but tag search keywords are case-insensitive
   for input convenience, e.g. `find t/PRI` matches `priority`.
 * Name and tag searches use partial matching, e.g. `ali` matches `Alice`, and `pri` matches `priority`.
-* With `c/`, search by lesson day, time, or both. Days accept full names or prefixes, e.g. `Monday` or `Mon`. Times use HHmm style from `0000` to `2359`, e.g. `1800`; shorter fragments such as `18` are accepted for partial matching.
-* Name and tag searches return students matching at least one keyword. Students with more matching keywords are shown first; ties keep the current list order.
+* With `c/`, search by lesson day, exact date, time, or a supported combination. Days accept full names or prefixes,
+  e.g. `Monday` or `Mon`. Exact dates use `yyyy-MM-dd`. Times use HHmm style from `0000` to `2359`, e.g. `1800`;
+  shorter fragments such as `18` are accepted for partial matching.
+* Name and tag searches return students matching at least one keyword. Matching pinned students are shown before
+  matching unpinned students. Within each group, students with more matching keywords are shown first; ties keep the
+  current list order.
 * After a successful `find`, the command box shows this light-grey hint: `Type 'list' to return to the home page.`
 
 Examples:
@@ -314,6 +389,8 @@ Examples:
 * `find c/Monday` returns students with Monday lessons
 * `find c/1800` returns students with lessons containing `1800`
 * `find c/Mon 1800` returns students with Monday lessons containing `1800`
+* `find c/2026-10-20` returns students with a one-off lesson on 20 October 2026
+* `find c/2026-10-20 1800` additionally requires the one-off lesson to contain `1800`
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
 
@@ -339,6 +416,22 @@ Examples:
 Clears all entries from the address book.
 
 Format: `clear`
+
+### Hiding contact details: `privacy`
+
+Privacy mode replaces the phone, email, and address values on every student card with a fixed seven-asterisk mask,
+such as `Address: *******`. The underlying contact details are not changed or deleted.
+
+Formats:
+
+* `privacy on` masks all displayed contact details immediately.
+* `privacy off` restores the original contact details immediately.
+
+While privacy mode is active, the status bar displays `Privacy mode enabled`. The selected mode is saved and restored
+when TutEasy restarts. Privacy mode is disabled by default for existing preference files that do not contain this
+setting.
+
+The command box suggests both valid modes after you type `privacy`.
 
 ### Exiting the program: `exit`
 
@@ -385,20 +478,21 @@ _Details coming soon ..._
 
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [gn/GUARDIAN_NAME] [gp/GUARDIAN_PHONE] [ge/GUARDIAN_EMAIL] [sub/SUBJECT cost/COST c/DAYHHmm-HHmm [mode/online\|offline] [link/URL] [location/LOCATION] [notes/NOTES]]` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/Clementi t/friend sub/Math cost/30 c/Monday1800-1930`
-**Add class** | `class add sub/SUBJECT cost/COST c/DAYHHmm-HHmm`<br> e.g., `class add sub/Physics cost/35 c/Wednesday1700-1830`
+**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [gn/GUARDIAN_NAME] [gp/GUARDIAN_PHONE] [ge/GUARDIAN_EMAIL] [sub/SUBJECT cost/COST c/SCHEDULE [mode/online\|offline] [link/URL] [location/LOCATION] [notes/NOTES]]` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/Clementi t/friend sub/Math cost/30 c/Monday1800-1930`
+**Add class** | `class add sub/SUBJECT cost/COST c/SCHEDULE`<br> e.g., `class add sub/Physics cost/35 c/Wednesday1700-1830`
 **List classes** | `class list`
-**Edit class** | `class edit id/CLASS_ID [sub/SUBJECT] [cost/COST] [c/DAYHHmm-HHmm]`<br> e.g., `class edit id/C001 cost/40`
-**Enrol in class** | `class enrol STUDENT_INDEX id/CLASS_ID`<br> e.g., `class enrol 1 id/C001`
+**Edit class** | `class edit id/CLASS_ID [sub/SUBJECT] [cost/COST] [c/SCHEDULE]`<br> e.g., `class edit id/C001 cost/40`
+**Enrol in class** | `class enrol STUDENT_INDEX id/CLASS_ID`<br>or `class enrol STUDENT_INDEX [STUDENT_INDEX]... sub/SUBJECT c/SCHEDULE`<br> e.g., `class enrol 1 3 5 sub/Physics c/Wednesday1700-1830`
 **Unenrol from class** | `class unenrol STUDENT_INDEX id/CLASS_ID`<br> e.g., `class unenrol 1 id/C001`
 **Update payment status** | `class payment STUDENT_INDEX id/CLASS_ID status/paid|unpaid`<br> e.g., `class payment 1 id/C001 status/paid`
 **Delete class** | `class delete id/CLASS_ID`<br> e.g., `class delete id/C001`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
-**Tag**    | `tag INDEX TAG [MORE_TAGS]`<br> e.g., `tag 3 exam-prep needs-follow-up`
+**Tag**    | `tag INDEX TAG [MORE_TAGS]` or `tag STUDENT_INDEX [MORE_INDEXES] t/TAG`<br> e.g., `tag 3 exam-prep needs-follow-up`, `tag 1 3 5 t/math-2026`
 **Untag**  | `untag INDEX TAG [MORE_TAGS]` or `untag INDEX -all`<br> e.g., `untag 2 parent-follow-up`
-**Find**   | `find KEYWORD [MORE_KEYWORDS]`, `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]`, `find c/DAY [TIME_HHmm]`, or `find c/TIME_HHmm`<br> e.g., `find Jam`, `find t/fri`, `find c/Mon 1800`
+**Find**   | `find KEYWORD [MORE_KEYWORDS]`, `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]`, `find c/DAY [TIME_HHmm]`, `find c/TIME_HHmm`, or `find c/DATE [TIME_HHmm]`<br> e.g., `find Jam`, `find t/fri`, `find c/Mon 1800`, `find c/2026-10-20`
 **List**   | `list`
 **Help**   | `help`
 **Timetable** | `timetable`
+**Privacy mode** | `privacy on` or `privacy off`

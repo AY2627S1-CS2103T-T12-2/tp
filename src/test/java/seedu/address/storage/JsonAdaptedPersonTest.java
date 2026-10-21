@@ -1,6 +1,8 @@
 package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.storage.JsonAdaptedPerson.MISSING_FIELD_MESSAGE_FORMAT;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.BENSON;
@@ -18,6 +20,7 @@ import seedu.address.model.person.Email;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
 import seedu.address.model.tag.Tag;
+import seedu.address.testutil.PersonBuilder;
 
 public class JsonAdaptedPersonTest {
     private static final String INVALID_NAME = "R@chel";
@@ -35,9 +38,33 @@ public class JsonAdaptedPersonTest {
             .collect(Collectors.toList());
 
     @Test
+    public void toModelType_pinnedRecordWithoutGuardianFields_preservesPin() throws Exception {
+        JsonAdaptedPerson adapted = new JsonAdaptedPerson("Alice", "91234567", "alice@example.com", "One",
+                java.util.List.of(), null, null, null, null, true);
+        var person = adapted.toModelType();
+        org.junit.jupiter.api.Assertions.assertTrue(person.isPinned());
+        assertEquals(seedu.address.model.person.GuardianContact.EMPTY, person.getGuardianContact());
+    }
+
+    @Test
     public void toModelType_validPersonDetails_returnsPerson() throws Exception {
         JsonAdaptedPerson person = new JsonAdaptedPerson(BENSON);
         assertEquals(BENSON, person.toModelType());
+    }
+
+    @Test
+    public void toModelType_missingPinnedState_defaultsToUnpinned() throws Exception {
+        JsonAdaptedPerson person = new JsonAdaptedPerson(
+                VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS, VALID_TAGS);
+
+        assertFalse(person.toModelType().isPinned());
+    }
+
+    @Test
+    public void toModelType_pinnedPerson_preservesPinnedState() throws Exception {
+        JsonAdaptedPerson person = new JsonAdaptedPerson(new PersonBuilder(BENSON).withPinned(true).build());
+
+        assertTrue(person.toModelType().isPinned());
     }
 
     @Test

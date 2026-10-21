@@ -48,8 +48,8 @@ public class LessonStart {
         }
     }
 
-    public boolean matches(LessonTiming timing) {
-        return timing.startsAt(day, time);
+    public boolean matches(LessonSchedule schedule) {
+        return schedule.getDay() == day && schedule.getStartTime().equals(time);
     }
 
     @Override

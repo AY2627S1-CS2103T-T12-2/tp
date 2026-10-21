@@ -72,7 +72,7 @@ final class ClassColorPalette {
 
         private static ClassIdentity from(Lesson lesson) {
             String subject = lesson.getSubject().toString().toLowerCase(Locale.ROOT);
-            return new ClassIdentity(subject, lesson.getTiming().toStorageString());
+            return new ClassIdentity(subject, lesson.getSchedule().toStorageString());
         }
 
         @Override

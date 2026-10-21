@@ -1,6 +1,6 @@
 # v1.4 manual tests: contact attributes with PR 88's class catalogue
 
-This branch includes Aaron's PR 88 locally. Guardian/class attribute entry remains scoped to `add`.
+This branch includes the latest upstream class catalogue, scheduling, pinning, privacy, and batch commands. Guardian/class attribute entry remains scoped to `add`.
 Existing class add/list/edit/enrol/unenrol/delete commands use Aaron's class-ID syntax.
 
 ## Safe setup
@@ -120,8 +120,22 @@ Return using `list`, then `class enrol 2 id/C001`: Bob inherits the retained det
 Run `class delete id/C001`. The class and its enrolments disappear; guardian contacts remain.
 Adding a new class must receive a new ID rather than reuse C001.
 
+## 9. Privacy and pinned contacts
+
+With a guardian contact visible, enter `privacy on`. Student phone/email/address and guardian details
+should be masked. Enter `privacy off` and check that the original values return.
+Run `pin 1`, edit that student's phone, tag the student, and enrol/unenrol them by class ID.
+The pin and guardian details must survive every operation and a restart. `unpin 1` removes only the pin.
+
+## 10. One-off online classes
+
+Add a fresh contact with a complete class using `c/2026-10-24T0800-0900 mode/online link/https://example.com/one-off`.
+Check its class ID, online details, and exact date in the class catalogue and student card.
+Restart and confirm all values remain. The timetable should show it only if that exact date is in the displayed range.
+Enrol other contacts using `class enrol INDEX INDEX sub/SUBJECT c/2026-10-24T0800-0900` and verify shared details.
+
 ## Automated verification
 
-From the repository run `./gradlew check`.
+From the repository run `./gradlew check coverage`.
 The tests cover Aaron's class commands plus canonical attributes, empty classes, ID/payment preservation,
 first-contact enrichment, guardian preservation, pre-catalogue v1.4 migration, old catalogue files, and UI display.

@@ -2,6 +2,7 @@ package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.parser.ParserUtil.MESSAGE_DUPLICATE_INDEXES;
 import static seedu.address.logic.parser.ParserUtil.MESSAGE_INVALID_INDEX;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
@@ -11,6 +12,7 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.commons.core.index.Index;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.person.Address;
@@ -53,6 +55,22 @@ public class ParserUtilTest {
 
         // Leading and trailing whitespaces
         assertEquals(INDEX_FIRST_PERSON, ParserUtil.parseIndex("  1  "));
+    }
+
+    @Test
+    public void parseIndexes_validInput_returnsIndexesInInputOrder() throws Exception {
+        assertEquals(List.of(Index.fromOneBased(3), Index.fromOneBased(1), Index.fromOneBased(2)),
+                ParserUtil.parseIndexes("  3   1 2  "));
+    }
+
+    @Test
+    public void parseIndexes_duplicateIndex_throwsParseException() {
+        assertThrows(ParseException.class, MESSAGE_DUPLICATE_INDEXES, () -> ParserUtil.parseIndexes("1 2 1"));
+    }
+
+    @Test
+    public void parseIndexes_invalidIndex_throwsParseException() {
+        assertThrows(ParseException.class, MESSAGE_INVALID_INDEX, () -> ParserUtil.parseIndexes("1 0 2"));
     }
 
     @Test
@@ -214,6 +232,10 @@ public class ParserUtilTest {
                 ParserUtil.parseLessonCost("  30  "));
         assertEquals(new seedu.address.model.lesson.LessonTiming("Monday1800-1930"),
                 ParserUtil.parseLessonTiming("  Monday1800-1930  "));
+        assertEquals(new seedu.address.model.lesson.LessonTiming("Monday1800-1930"),
+                ParserUtil.parseLessonSchedule("  Monday1800-1930  "));
+        assertEquals(new seedu.address.model.lesson.OneOffLessonSchedule("2026-10-20T1800-1930"),
+                ParserUtil.parseLessonSchedule("  2026-10-20T1800-1930  "));
         assertEquals(new seedu.address.model.lesson.LessonStart("Monday1800"),
                 ParserUtil.parseLessonStart("  Monday1800  "));
         assertEquals(PaymentStatus.PAID, ParserUtil.parsePaymentStatus("  paid  "));
@@ -225,6 +247,8 @@ public class ParserUtilTest {
         assertThrows(ParseException.class, () -> ParserUtil.parseLessonSubject("Math!"));
         assertThrows(ParseException.class, () -> ParserUtil.parseLessonCost("-1"));
         assertThrows(ParseException.class, () -> ParserUtil.parseLessonTiming("Monday2400-0100"));
+        assertThrows(ParseException.class, () -> ParserUtil.parseLessonSchedule("Monday2400-0100"));
+        assertThrows(ParseException.class, () -> ParserUtil.parseLessonSchedule("2026-02-29T1800-1930"));
         assertThrows(ParseException.class, () -> ParserUtil.parseLessonStart("Monday2400"));
         assertThrows(ParseException.class, () -> ParserUtil.parsePaymentStatus("pending"));
     }

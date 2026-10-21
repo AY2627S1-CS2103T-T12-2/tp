@@ -2,6 +2,7 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
@@ -14,9 +15,11 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
 
+import javafx.collections.ListChangeListener;
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
 import seedu.address.model.AddressBook;
@@ -67,6 +70,109 @@ public class TagCommandTest {
                 personToTag.getName(), "exam-prep");
 
         assertCommandSuccess(tagCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_batchAllEligible_addsTagToEverySelectedStudent() {
+        Tag tagToAdd = new Tag("math-2026");
+        Person firstStudent = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Person secondStudent = model.getFilteredPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
+        TagCommand tagCommand = new TagCommand(List.of(INDEX_FIRST_PERSON, INDEX_SECOND_PERSON), tagToAdd);
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(firstStudent, addTag(firstStudent, tagToAdd));
+        expectedModel.setPerson(secondStudent, addTag(secondStudent, tagToAdd));
+        String expectedMessage = String.format(TagCommand.MESSAGE_BATCH_SUCCESS, tagToAdd.tagName,
+                firstStudent.getName() + ", " + secondStudent.getName(),
+                TagCommand.MESSAGE_NO_STUDENTS, TagCommand.MESSAGE_NO_STUDENTS);
+
+        assertCommandSuccess(tagCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_batchOutOfOrderIndexes_preservesInputOrderAndUpdatesModelOnce() {
+        Index thirdIndex = Index.fromOneBased(3);
+        Tag tagToAdd = new Tag("math-2026");
+        Person thirdStudent = model.getFilteredPersonList().get(thirdIndex.getZeroBased());
+        Person firstStudent = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        TagCommand tagCommand = new TagCommand(List.of(thirdIndex, INDEX_FIRST_PERSON), tagToAdd);
+        AtomicInteger modelUpdateCount = new AtomicInteger();
+        model.getAddressBook().getPersonList().addListener((ListChangeListener<Person>)
+                change -> modelUpdateCount.incrementAndGet());
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(thirdStudent, addTag(thirdStudent, tagToAdd));
+        expectedModel.setPerson(firstStudent, addTag(firstStudent, tagToAdd));
+        String expectedMessage = String.format(TagCommand.MESSAGE_BATCH_SUCCESS, tagToAdd.tagName,
+                thirdStudent.getName() + ", " + firstStudent.getName(),
+                TagCommand.MESSAGE_NO_STUDENTS, TagCommand.MESSAGE_NO_STUDENTS);
+
+        assertCommandSuccess(tagCommand, model, expectedMessage, expectedModel);
+        assertEquals(1, modelUpdateCount.get());
+    }
+
+    @Test
+    public void execute_batchMixedEligibility_updatesEligibleStudentsAndReportsEveryOutcome() {
+        Tag tagToAdd = new Tag("friends");
+        Person alreadyTaggedStudent = model.getFilteredPersonList().get(0);
+        Person originalSecondStudent = model.getFilteredPersonList().get(1);
+        Person studentAtTagLimit = new PersonBuilder(originalSecondStudent)
+                .withTags("one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten")
+                .build();
+        model.setPerson(originalSecondStudent, studentAtTagLimit);
+        Person eligibleStudent = model.getFilteredPersonList().get(2);
+        TagCommand tagCommand = new TagCommand(
+                List.of(INDEX_FIRST_PERSON, INDEX_SECOND_PERSON, Index.fromOneBased(3)), tagToAdd);
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(eligibleStudent, addTag(eligibleStudent, tagToAdd));
+        String expectedMessage = String.format(TagCommand.MESSAGE_BATCH_SUCCESS, tagToAdd.tagName,
+                eligibleStudent.getName(), alreadyTaggedStudent.getName(), studentAtTagLimit.getName());
+
+        assertCommandSuccess(tagCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_batchNoEligibleStudents_returnsNoChangeMessage() {
+        Tag tagToAdd = new Tag("friends");
+        Person alreadyTaggedStudent = model.getFilteredPersonList().get(0);
+        Person originalSecondStudent = model.getFilteredPersonList().get(1);
+        Person studentAtTagLimit = new PersonBuilder(originalSecondStudent)
+                .withTags("one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten")
+                .build();
+        model.setPerson(originalSecondStudent, studentAtTagLimit);
+        TagCommand tagCommand = new TagCommand(List.of(INDEX_FIRST_PERSON, INDEX_SECOND_PERSON), tagToAdd);
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        String expectedMessage = String.format(TagCommand.MESSAGE_BATCH_NO_CHANGE, tagToAdd.tagName,
+                alreadyTaggedStudent.getName(), studentAtTagLimit.getName());
+
+        assertCommandSuccess(tagCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_batchFilteredList_usesDisplayedIndex() {
+        showPersonAtIndex(model, INDEX_SECOND_PERSON);
+        Person personToTag = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Tag tagToAdd = new Tag("math-2026");
+        TagCommand tagCommand = new TagCommand(List.of(INDEX_FIRST_PERSON), tagToAdd);
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        showPersonAtIndex(expectedModel, INDEX_SECOND_PERSON);
+        expectedModel.setPerson(personToTag, addTag(personToTag, tagToAdd));
+        String expectedMessage = String.format(TagCommand.MESSAGE_BATCH_SUCCESS, tagToAdd.tagName,
+                personToTag.getName(), TagCommand.MESSAGE_NO_STUDENTS, TagCommand.MESSAGE_NO_STUDENTS);
+
+        assertCommandSuccess(tagCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_batchInvalidIndex_failureAndDoesNotModifyStudents() {
+        Index outOfBoundsIndex = Index.fromOneBased(model.getFilteredPersonList().size() + 1);
+        TagCommand tagCommand = new TagCommand(
+                List.of(INDEX_FIRST_PERSON, outOfBoundsIndex), new Tag("math-2026"));
+
+        assertCommandFailure(tagCommand, model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
     }
 
     @Test
@@ -133,14 +239,37 @@ public class TagCommandTest {
         assertFalse(standardCommand.equals(new ClearCommand()));
         assertFalse(standardCommand.equals(new TagCommand(INDEX_SECOND_PERSON, getTagSet("exam-prep"))));
         assertFalse(standardCommand.equals(new TagCommand(INDEX_FIRST_PERSON, getTagSet("urgent"))));
+
+        TagCommand batchCommand = new TagCommand(
+                List.of(INDEX_FIRST_PERSON, INDEX_SECOND_PERSON), new Tag("exam-prep"));
+        assertTrue(batchCommand.equals(new TagCommand(
+                List.of(INDEX_FIRST_PERSON, INDEX_SECOND_PERSON), new Tag("exam-prep"))));
+        assertFalse(batchCommand.equals(new TagCommand(
+                List.of(INDEX_SECOND_PERSON, INDEX_FIRST_PERSON), new Tag("exam-prep"))));
+        assertFalse(batchCommand.equals(new TagCommand(
+                List.of(INDEX_FIRST_PERSON, INDEX_SECOND_PERSON), new Tag("urgent"))));
+        assertFalse(new TagCommand(List.of(INDEX_FIRST_PERSON), new Tag("exam-prep"))
+                .equals(new TagCommand(INDEX_FIRST_PERSON, getTagSet("exam-prep"))));
+    }
+
+    @Test
+    public void batchConstructor_emptyIndexes_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () ->
+                new TagCommand(List.of(), new Tag("math-2026")));
+    }
+
+    @Test
+    public void batchConstructor_duplicateIndexes_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () ->
+                new TagCommand(List.of(INDEX_FIRST_PERSON, INDEX_FIRST_PERSON), new Tag("math-2026")));
     }
 
     @Test
     public void toStringMethod() {
         Set<Tag> tagsToAdd = getTagSet("exam-prep");
         TagCommand tagCommand = new TagCommand(INDEX_FIRST_PERSON, tagsToAdd);
-        String expected = TagCommand.class.getCanonicalName() + "{targetIndex=" + INDEX_FIRST_PERSON
-                + ", tagsToAdd=" + tagsToAdd + "}";
+        String expected = TagCommand.class.getCanonicalName() + "{targetIndexes=[" + INDEX_FIRST_PERSON
+                + "], tagsToAdd=" + tagsToAdd + ", isBatchCommand=false}";
 
         assertEquals(expected, tagCommand.toString());
     }
@@ -149,6 +278,12 @@ public class TagCommandTest {
         Set<Tag> tags = new LinkedHashSet<>();
         List.of(tagNames).stream().map(Tag::new).forEach(tags::add);
         return tags;
+    }
+
+    private static Person addTag(Person person, Tag tag) {
+        Set<Tag> updatedTags = new LinkedHashSet<>(person.getTags());
+        updatedTags.add(tag);
+        return person.withTags(updatedTags);
     }
 
     private static Person createStudentWithDetails(Set<Tag> tags) {

@@ -44,7 +44,7 @@ public record ClassDetailsUpdate(Optional<ClassMode> mode, Optional<String> meet
     public Lesson forEnrolment(Model model, Lesson lesson) throws CommandException {
         Optional<TuitionClass> existing = model.getTuitionClassList().stream()
                 .filter(item -> item.getSubject().equals(lesson.getSubject())
-                        && item.getTiming().equals(lesson.getTiming())).findFirst();
+                        && item.getSchedule().equals(lesson.getSchedule())).findFirst();
         try {
             ClassDetails base = existing.map(TuitionClass::getDetails).orElse(lesson.getDetails());
             ClassDetails updated = applyTo(base);

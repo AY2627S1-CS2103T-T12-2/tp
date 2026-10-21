@@ -37,6 +37,7 @@ class JsonAdaptedPerson {
     private final List<String> subjects = new ArrayList<>();
     private final String cost;
     private final String lesson;
+    private final boolean pinned;
     private final String guardianName;
     private final String guardianPhone;
     private final String guardianEmail;
@@ -54,7 +55,8 @@ class JsonAdaptedPerson {
             @JsonProperty("lesson") String lesson,
             @JsonProperty("guardianName") String guardianName,
             @JsonProperty("guardianPhone") String guardianPhone,
-            @JsonProperty("guardianEmail") String guardianEmail) {
+            @JsonProperty("guardianEmail") String guardianEmail, @JsonProperty("pinned") Boolean pinned) {
+        this.pinned = Boolean.TRUE.equals(pinned);
         this.guardianName = guardianName;
         this.guardianPhone = guardianPhone;
         this.guardianEmail = guardianEmail;
@@ -73,6 +75,20 @@ class JsonAdaptedPerson {
         if (subjects != null) {
             this.subjects.addAll(subjects);
         }
+    }
+
+    /** Retains the guardian-only constructor. */
+    public JsonAdaptedPerson(String name, String phone, String email, String address, List<JsonAdaptedTag> tags,
+            List<JsonAdaptedLesson> lessons, List<String> subjects, String cost, String lesson,
+            String guardianName, String guardianPhone, String guardianEmail) {
+        this(name, phone, email, address, tags, lessons, subjects, cost, lesson,
+                guardianName, guardianPhone, guardianEmail, false);
+    }
+
+    /** Retains the pin-aware constructor for records without guardians. */
+    public JsonAdaptedPerson(String name, String phone, String email, String address, List<JsonAdaptedTag> tags,
+            List<JsonAdaptedLesson> lessons, List<String> subjects, String cost, String lesson, Boolean pinned) {
+        this(name, phone, email, address, tags, lessons, subjects, cost, lesson, null, null, null, pinned);
     }
 
     /** Backwards-compatible constructor for records without guardian details. */
@@ -96,6 +112,7 @@ class JsonAdaptedPerson {
      * Converts a given {@code Person} into this class for Jackson use.
      */
     public JsonAdaptedPerson(Person source) {
+        pinned = source.isPinned();
         guardianName = source.getGuardianContact().name();
         guardianPhone = source.getGuardianContact().phone();
         guardianEmail = source.getGuardianContact().email();
@@ -201,7 +218,7 @@ class JsonAdaptedPerson {
             GuardianContact guardian = new GuardianContact(guardianName == null ? "" : guardianName,
                     guardianPhone == null ? "" : guardianPhone, guardianEmail == null ? "" : guardianEmail);
             return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags, modelLessons,
-                    modelSubjects, modelCost, modelLesson, guardian);
+                    modelSubjects, modelCost, modelLesson, guardian, pinned);
         } catch (IllegalArgumentException e) {
             throw new IllegalValueException(e.getMessage());
         }

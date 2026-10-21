@@ -22,19 +22,21 @@ import seedu.address.model.tag.Tag;
  */
 public class Person {
 
+    private final GuardianContact guardianContact;
+
     // Identity fields
     private final Name name;
     private final Phone phone;
     private final Email email;
 
     // Data fields
-    private final GuardianContact guardianContact;
     private final Address address;
     private final Set<Tag> tags = new LinkedHashSet<>();
     private final Set<Lesson> lessons = new LinkedHashSet<>();
     private final Set<Subject> legacySubjects;
     private final Optional<Cost> legacyCost;
     private final Optional<seedu.address.model.person.Lesson> legacyLesson;
+    private final boolean pinned;
 
     /**
      * Every field must be present and not null.
@@ -47,7 +49,15 @@ public class Person {
      * Every field must be present and not null.
      */
     public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags, Set<Lesson> lessons) {
-        this(name, phone, email, address, tags, lessons, Set.of(), Optional.empty(), Optional.empty());
+        this(name, phone, email, address, tags, lessons, false);
+    }
+
+    /**
+     * Every field must be present and not null.
+     */
+    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags, Set<Lesson> lessons,
+            boolean pinned) {
+        this(name, phone, email, address, tags, lessons, Set.of(), Optional.empty(), Optional.empty(), pinned);
     }
 
     /**
@@ -57,14 +67,23 @@ public class Person {
     public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags, Set<Lesson> lessons,
             Set<Subject> legacySubjects, Optional<Cost> legacyCost,
             Optional<seedu.address.model.person.Lesson> legacyLesson) {
-        this(name, phone, email, address, tags, lessons, legacySubjects, legacyCost, legacyLesson,
-                GuardianContact.EMPTY);
+        this(name, phone, email, address, tags, lessons, legacySubjects, legacyCost, legacyLesson, false);
     }
 
-    /** Creates a person with optional guardian details and retained legacy fields. */
+    /**
+     * Creates a person while retaining student fields from the previous storage model and its pin state.
+     */
     public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags, Set<Lesson> lessons,
             Set<Subject> legacySubjects, Optional<Cost> legacyCost,
-            Optional<seedu.address.model.person.Lesson> legacyLesson, GuardianContact guardianContact) {
+            Optional<seedu.address.model.person.Lesson> legacyLesson, boolean pinned) {
+        this(name, phone, email, address, tags, lessons, legacySubjects, legacyCost, legacyLesson,
+                GuardianContact.EMPTY, pinned);
+    }
+
+    /** Creates a person retaining both guardian details and pin state. */
+    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags, Set<Lesson> lessons,
+            Set<Subject> legacySubjects, Optional<Cost> legacyCost,
+            Optional<seedu.address.model.person.Lesson> legacyLesson, GuardianContact guardianContact, boolean pinned) {
         requireAllNonNull(name, phone, email, address, tags, lessons,
                 legacySubjects, legacyCost, legacyLesson, guardianContact);
         this.guardianContact = guardianContact;
@@ -77,6 +96,7 @@ public class Person {
         this.legacySubjects = Set.copyOf(legacySubjects);
         this.legacyCost = legacyCost;
         this.legacyLesson = legacyLesson;
+        this.pinned = pinned;
     }
 
     /**
@@ -124,7 +144,7 @@ public class Person {
     /** Returns a copy with only its guardian details replaced. */
     public Person withGuardianContact(GuardianContact updatedContact) {
         return new Person(name, phone, email, address, tags, lessons,
-                legacySubjects, legacyCost, legacyLesson, updatedContact);
+                legacySubjects, legacyCost, legacyLesson, updatedContact, pinned);
     }
 
     public Name getName() {
@@ -157,7 +177,7 @@ public class Person {
     public Person withTags(Set<Tag> updatedTags) {
         requireAllNonNull(updatedTags);
         return new Person(name, phone, email, address, updatedTags, lessons,
-                legacySubjects, legacyCost, legacyLesson, guardianContact);
+                legacySubjects, legacyCost, legacyLesson, guardianContact, pinned);
     }
 
     /** Returns the immutable set of lessons in which this person is enrolled. */
@@ -177,7 +197,18 @@ public class Person {
     /** Returns a copy of this person with {@code updatedLessons} replacing the current lessons. */
     public Person withLessons(Set<Lesson> updatedLessons) {
         return new Person(name, phone, email, address, tags, updatedLessons,
-                legacySubjects, legacyCost, legacyLesson, guardianContact);
+                legacySubjects, legacyCost, legacyLesson, guardianContact, pinned);
+    }
+
+    /** Returns whether this person is pinned. */
+    public boolean isPinned() {
+        return pinned;
+    }
+
+    /** Returns a copy of this person with the specified pin state. */
+    public Person withPinned(boolean pinned) {
+        return new Person(name, phone, email, address, tags, lessons,
+                legacySubjects, legacyCost, legacyLesson, guardianContact, pinned);
     }
 
     /** Returns subjects retained from the previous student model. */
@@ -232,14 +263,14 @@ public class Person {
                 && legacySubjects.equals(otherPerson.legacySubjects)
                 && legacyCost.equals(otherPerson.legacyCost)
                 && legacyLesson.equals(otherPerson.legacyLesson)
-                && guardianContact.equals(otherPerson.guardianContact);
+                && pinned == otherPerson.pinned && guardianContact.equals(otherPerson.guardianContact);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
         return Objects.hash(name, phone, email, address, tags, lessons,
-                legacySubjects, legacyCost, legacyLesson, guardianContact);
+                legacySubjects, legacyCost, legacyLesson, guardianContact, pinned);
     }
 
     @Override
@@ -255,7 +286,8 @@ public class Person {
         }
         builder.add("subjects", legacySubjects)
                 .add("cost", legacyCost)
-                .add("lesson", legacyLesson);
+                .add("lesson", legacyLesson)
+                .add("pinned", pinned);
         if (!guardianContact.isEmpty()) {
             builder.add("guardian", guardianContact);
         }

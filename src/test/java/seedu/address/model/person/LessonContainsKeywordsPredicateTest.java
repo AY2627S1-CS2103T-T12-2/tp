@@ -78,6 +78,12 @@ public class LessonContainsKeywordsPredicateTest {
         // Structured class end time matches
         predicate = new LessonContainsKeywordsPredicate(List.of("1930"));
         assertTrue(predicate.test(personWithClass("Math", "30", "Monday1800-1930")));
+
+        // One-off classes match their exact date, weekday, and time
+        predicate = new LessonContainsKeywordsPredicate(List.of("2026-10-20"));
+        assertTrue(predicate.test(personWithOneOffClass("2026-10-20T1800-1930")));
+        predicate = new LessonContainsKeywordsPredicate(List.of("Tue", "1800"));
+        assertTrue(predicate.test(personWithOneOffClass("2026-10-20T1800-1930")));
     }
 
     @Test
@@ -110,6 +116,9 @@ public class LessonContainsKeywordsPredicateTest {
         // Structured class day matches but time does not match
         predicate = new LessonContainsKeywordsPredicate(List.of("Monday", "2359"));
         assertFalse(predicate.test(personWithClass("Math", "30", "Monday1800-1930")));
+
+        predicate = new LessonContainsKeywordsPredicate(List.of("2026-10-21"));
+        assertFalse(predicate.test(personWithOneOffClass("2026-10-20T1800-1930")));
     }
 
     @Test
@@ -118,7 +127,7 @@ public class LessonContainsKeywordsPredicateTest {
         LessonContainsKeywordsPredicate predicate = new LessonContainsKeywordsPredicate(keywords);
 
         String expected = LessonContainsKeywordsPredicate.class.getCanonicalName()
-                + "{dayKeyword=Optional[monday], timeKeyword=Optional[1800]}";
+                + "{dayKeyword=Optional[monday], timeKeyword=Optional[1800], dateKeyword=Optional.empty}";
         assertEquals(expected, predicate.toString());
     }
 
@@ -136,5 +145,15 @@ public class LessonContainsKeywordsPredicateTest {
                 new seedu.address.model.lesson.LessonTiming(timing));
         return new Person(person.getName(), person.getPhone(), person.getEmail(), person.getAddress(),
                 person.getTags(), Set.<seedu.address.model.lesson.Lesson>of(lesson));
+    }
+
+    private Person personWithOneOffClass(String timing) {
+        Person person = new PersonBuilder().build();
+        seedu.address.model.lesson.Lesson lesson = new seedu.address.model.lesson.Lesson(
+                new seedu.address.model.lesson.Subject("Math"),
+                new seedu.address.model.lesson.Cost("30"),
+                new seedu.address.model.lesson.OneOffLessonSchedule(timing));
+        return new Person(person.getName(), person.getPhone(), person.getEmail(), person.getAddress(),
+                person.getTags(), Set.of(lesson));
     }
 }

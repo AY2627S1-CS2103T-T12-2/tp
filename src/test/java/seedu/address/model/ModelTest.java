@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.function.Predicate;
 
@@ -103,6 +104,16 @@ public class ModelTest {
         }
 
         @Override
+        public boolean isPrivacyModeEnabled() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void setPrivacyModeEnabled(boolean privacyModeEnabled) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public void setAddressBook(ReadOnlyAddressBook addressBook) {
             throw new UnsupportedOperationException();
         }
@@ -129,6 +140,11 @@ public class ModelTest {
 
         @Override
         public void setPerson(Person target, Person editedPerson) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void setPersons(Map<Person, Person> replacements) {
             throw new UnsupportedOperationException();
         }
 

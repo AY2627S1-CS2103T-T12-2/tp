@@ -73,7 +73,7 @@ public class Messages {
     }
 
     private static String formatLesson(Lesson lesson) {
-        return lesson.getSubject() + " (" + lesson.getTiming() + ")";
+        return lesson.getSubject() + " (" + lesson.getSchedule() + ")";
     }
 
 }

@@ -9,4 +9,7 @@ public interface ReadOnlyUserPrefs {
 
     GuiSettings getGuiSettings();
 
+    /** Returns whether privacy mode is enabled. */
+    boolean isPrivacyModeEnabled();
+
 }

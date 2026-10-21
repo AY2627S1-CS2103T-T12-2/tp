@@ -13,11 +13,11 @@ import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.lesson.ClassId;
 import seedu.address.model.lesson.Lesson;
-import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.LessonSchedule;
 import seedu.address.model.lesson.Subject;
 import seedu.address.model.person.Person;
 
-/** Unenrols one student from one recurring weekly class. */
+/** Unenrols one student from one scheduled class. */
 public class ClassUnenrolCommand extends ClassCommand {
 
     public static final String SUBCOMMAND_WORD = "unenrol";
@@ -33,22 +33,22 @@ public class ClassUnenrolCommand extends ClassCommand {
     private final Index personIndex;
     private final ClassId classId;
     private final Subject subject;
-    private final LessonTiming timing;
+    private final LessonSchedule schedule;
 
     /** Creates an ID-based unenrolment command. */
     public ClassUnenrolCommand(Index personIndex, ClassId classId) {
         this.personIndex = requireNonNull(personIndex);
         this.classId = requireNonNull(classId);
         this.subject = null;
-        this.timing = null;
+        this.schedule = null;
     }
 
     /** Creates a command that unenrols the indexed student from the specified class. */
-    public ClassUnenrolCommand(Index personIndex, Subject subject, LessonTiming timing) {
+    public ClassUnenrolCommand(Index personIndex, Subject subject, LessonSchedule schedule) {
         this.personIndex = requireNonNull(personIndex);
         this.classId = null;
         this.subject = requireNonNull(subject);
-        this.timing = requireNonNull(timing);
+        this.schedule = requireNonNull(schedule);
     }
 
     @Override
@@ -62,7 +62,7 @@ public class ClassUnenrolCommand extends ClassCommand {
         Person person = persons.get(personIndex.getZeroBased());
         Set<Lesson> updatedLessons = new HashSet<>(person.getLessons());
         boolean wasRemoved = updatedLessons.removeIf(lesson -> classId != null
-                ? classId.equals(lesson.getClassId()) : lesson.isSameClass(subject, timing));
+                ? classId.equals(lesson.getClassId()) : lesson.isSameClass(subject, schedule));
         if (!wasRemoved) {
             throw new CommandException(MESSAGE_NOT_ENROLLED);
         }
@@ -70,7 +70,7 @@ public class ClassUnenrolCommand extends ClassCommand {
         model.setPerson(person, person.withLessons(updatedLessons));
         String message = classId != null
                 ? String.format(MESSAGE_SUCCESS_BY_ID, person.getName(), classId)
-                : String.format(MESSAGE_SUCCESS, person.getName(), subject, timing);
+                : String.format(MESSAGE_SUCCESS, person.getName(), subject, schedule);
         return new CommandResult(message);
     }
 
@@ -80,6 +80,6 @@ public class ClassUnenrolCommand extends ClassCommand {
                 && personIndex.equals(otherCommand.personIndex)
                 && java.util.Objects.equals(classId, otherCommand.classId)
                 && java.util.Objects.equals(subject, otherCommand.subject)
-                && java.util.Objects.equals(timing, otherCommand.timing);
+                && java.util.Objects.equals(schedule, otherCommand.schedule);
     }
 }
