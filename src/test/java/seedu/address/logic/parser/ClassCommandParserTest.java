@@ -48,6 +48,10 @@ public class ClassCommandParserTest {
         assertParseSuccess(parser, " list", new ClassListCommand());
         assertParseSuccess(parser, " enrol 1 id/C001",
                 new ClassEnrolCommand(Index.fromOneBased(1), new ClassId("C001")));
+        assertParseSuccess(parser, " unenrol 1 id/C001",
+                new ClassUnenrolCommand(Index.fromOneBased(1), new ClassId("C001")));
+        assertParseSuccess(parser, " delete id/C001",
+                new ClassDeleteCommand(new ClassId("C001")));
         assertParseSuccess(parser, " payment 1 id/C001 status/paid",
                 new ClassPaymentCommand(Index.fromOneBased(1), new ClassId("C001"), PaymentStatus.PAID));
     }
@@ -193,6 +197,18 @@ public class ClassCommandParserTest {
     }
 
     @Test
+    public void parse_enrolIdMixedWithLegacyPrefixes_failure() {
+        String expected = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ClassEnrolCommand.MESSAGE_USAGE);
+        assertParseFailure(parser, " enrol 1 id/C001 sub/Math", expected);
+        assertParseFailure(parser, " enrol 1 id/C001 cost/30", expected);
+        assertParseFailure(parser, " enrol 1 id/C001 c/Monday1800-1930", expected);
+        assertParseFailure(parser, " enrol 1 id/C001 sub/Math cost/30", expected);
+        assertParseFailure(parser, " enrol 1 id/C001 sub/Math c/Monday1800-1930", expected);
+        assertParseFailure(parser, " enrol 1 id/C001 cost/30 c/Monday1800-1930", expected);
+        assertParseFailure(parser, " enrol 1 id/C001 sub/Math cost/30 c/Monday1800-1930", expected);
+    }
+
+    @Test
     public void parse_unenrolMissingIndex_failure() {
         String expected = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ClassUnenrolCommand.MESSAGE_USAGE);
         assertParseFailure(parser, " unenrol sub/Math c/Monday1800-1930", expected);
@@ -215,6 +231,23 @@ public class ClassCommandParserTest {
         assertParseFailure(parser,
                 " unenrol 1 sub/Math sub/English c/Monday1800-1930 c/Tuesday1800-1930",
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_SUBJECT, PREFIX_CLASS));
+    }
+
+    @Test
+    public void parse_unenrolIdMixedWithLegacyPrefixes_failure() {
+        String expected = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ClassUnenrolCommand.MESSAGE_USAGE);
+        assertParseFailure(parser, " unenrol 1 id/C001 sub/Math", expected);
+        assertParseFailure(parser, " unenrol 1 id/C001 c/Monday1800-1930", expected);
+        assertParseFailure(parser, " unenrol 1 id/C001 sub/Math c/Monday1800-1930", expected);
+    }
+
+    @Test
+    public void parse_paymentIdMixedWithLegacyPrefixes_failure() {
+        String expected = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ClassPaymentCommand.MESSAGE_USAGE);
+        assertParseFailure(parser, " payment 1 id/C001 sub/Math status/paid", expected);
+        assertParseFailure(parser, " payment 1 id/C001 c/Monday1800-1930 status/paid", expected);
+        assertParseFailure(parser,
+                " payment 1 id/C001 sub/Math c/Monday1800-1930 status/paid", expected);
     }
 
     @Test

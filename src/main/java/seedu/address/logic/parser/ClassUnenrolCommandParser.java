@@ -15,17 +15,19 @@ public class ClassUnenrolCommandParser implements Parser<ClassUnenrolCommand> {
     @Override
     public ClassUnenrolCommand parse(String args) throws ParseException {
         ArgumentMultimap arguments = ArgumentTokenizer.tokenize(args, PREFIX_CLASS_ID, PREFIX_SUBJECT, PREFIX_CLASS);
-        boolean usesId = arguments.getValue(PREFIX_CLASS_ID).isPresent();
-        boolean usesLegacyDetails = arguments.getValue(PREFIX_SUBJECT).isPresent()
-                && arguments.getValue(PREFIX_CLASS).isPresent();
-        if (arguments.getPreamble().isEmpty() || usesId == usesLegacyDetails) {
+        boolean hasId = arguments.getValue(PREFIX_CLASS_ID).isPresent();
+        boolean hasSubject = arguments.getValue(PREFIX_SUBJECT).isPresent();
+        boolean hasTiming = arguments.getValue(PREFIX_CLASS).isPresent();
+        boolean usesOnlyId = hasId && !hasSubject && !hasTiming;
+        boolean usesOnlyLegacyDetails = !hasId && hasSubject && hasTiming;
+        if (arguments.getPreamble().isEmpty() || usesOnlyId == usesOnlyLegacyDetails) {
             throw new ParseException(String.format(
                     MESSAGE_INVALID_COMMAND_FORMAT, ClassUnenrolCommand.MESSAGE_USAGE));
         }
         arguments.verifyNoDuplicatePrefixesFor(PREFIX_CLASS_ID, PREFIX_SUBJECT, PREFIX_CLASS);
 
         Index index = ParserUtil.parseIndex(arguments.getPreamble());
-        if (usesId) {
+        if (usesOnlyId) {
             return new ClassUnenrolCommand(index, ParserUtil.parseClassId(arguments.getValue(PREFIX_CLASS_ID).get()));
         }
         return new ClassUnenrolCommand(index,

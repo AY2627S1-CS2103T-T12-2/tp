@@ -18,16 +18,19 @@ public class ClassEnrolCommandParser implements Parser<ClassEnrolCommand> {
     public ClassEnrolCommand parse(String args) throws ParseException {
         ArgumentMultimap arguments = ArgumentTokenizer.tokenize(args,
                 PREFIX_CLASS_ID, PREFIX_SUBJECT, PREFIX_COST, PREFIX_CLASS);
-        boolean usesId = arguments.getValue(PREFIX_CLASS_ID).isPresent();
-        boolean usesLegacyDetails = arguments.getValue(PREFIX_SUBJECT).isPresent()
-                && arguments.getValue(PREFIX_COST).isPresent() && arguments.getValue(PREFIX_CLASS).isPresent();
-        if (arguments.getPreamble().isEmpty() || usesId == usesLegacyDetails) {
+        boolean hasId = arguments.getValue(PREFIX_CLASS_ID).isPresent();
+        boolean hasSubject = arguments.getValue(PREFIX_SUBJECT).isPresent();
+        boolean hasCost = arguments.getValue(PREFIX_COST).isPresent();
+        boolean hasTiming = arguments.getValue(PREFIX_CLASS).isPresent();
+        boolean usesOnlyId = hasId && !hasSubject && !hasCost && !hasTiming;
+        boolean usesOnlyLegacyDetails = !hasId && hasSubject && hasCost && hasTiming;
+        if (arguments.getPreamble().isEmpty() || usesOnlyId == usesOnlyLegacyDetails) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, ClassEnrolCommand.MESSAGE_USAGE));
         }
         arguments.verifyNoDuplicatePrefixesFor(PREFIX_CLASS_ID, PREFIX_SUBJECT, PREFIX_COST, PREFIX_CLASS);
 
         Index index = ParserUtil.parseIndex(arguments.getPreamble());
-        if (usesId) {
+        if (usesOnlyId) {
             return new ClassEnrolCommand(index, ParserUtil.parseClassId(arguments.getValue(PREFIX_CLASS_ID).get()));
         }
         Lesson lesson = new Lesson(ParserUtil.parseLessonSubject(arguments.getValue(PREFIX_SUBJECT).get()),
