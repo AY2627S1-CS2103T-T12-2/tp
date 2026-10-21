@@ -14,10 +14,13 @@ import static seedu.address.testutil.TypicalPersons.AMY;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,6 +46,7 @@ import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
 import seedu.address.model.lesson.Subject;
 import seedu.address.model.person.Person;
+import seedu.address.model.timetable.TimetableDay;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -179,15 +183,35 @@ public class LogicManagerTest {
     }
 
     @Test
-    public void getTimetable_fixedClock_usesClockDate() {
+    public void getCurrentDate_fixedClock_returnsClockDate() {
+        Clock thursdayClock = Clock.fixed(Instant.parse("2026-10-08T04:00:00Z"), ZoneOffset.UTC);
+        logic = new LogicManager(model, storage, thursdayClock);
+
+        assertEquals(LocalDate.of(2026, 10, 8), logic.getCurrentDate());
+    }
+
+    @Test
+    public void getTimetable_anchorDate_usesRequestedWeekRatherThanClockDate() {
         Lesson fridayLesson = new Lesson(new Subject("Math"), new Cost("30"),
                 new LessonTiming("Friday1800-1930"));
         model.addPerson(new PersonBuilder().withLessons(fridayLesson).build());
         Clock thursdayClock = Clock.fixed(Instant.parse("2026-10-08T04:00:00Z"), ZoneOffset.UTC);
         logic = new LogicManager(model, storage, thursdayClock);
 
-        assertEquals(3, logic.getTimetable().size());
-        assertEquals(1, logic.getTimetable().get(1).getEntries().size());
+        List<TimetableDay> timetable = logic.getTimetable(LocalDate.of(2026, 10, 15));
+
+        assertEquals(LocalDate.of(2026, 10, 11), timetable.get(0).getDate());
+        assertEquals(1, timetable.get(5).getEntries().size());
+    }
+
+    @Test
+    public void timetableQueries_doNotSaveAddressBook() {
+        Path addressBookPath = storage.getAddressBookFilePath();
+
+        logic.getCurrentDate();
+        logic.getTimetable(LocalDate.of(2026, 10, 20));
+
+        assertFalse(Files.exists(addressBookPath));
     }
 
     /**

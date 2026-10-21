@@ -77,6 +77,9 @@ person list, read-only timetable, and read-only class list according to the `Vie
 `CommandResult`. These UI classes inherit from the abstract `UiPart` class, which captures common behavior among
 classes that represent visible GUI parts.
 
+`MainWindow` constructs `TimetablePanel` with callbacks for obtaining the application date and loading a timetable for
+an anchor date. The panel owns only transient navigation state and does not access `Model` or storage directly.
+
 The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
 
 The `UI` component,
@@ -134,6 +137,9 @@ class-list views, it rejects modifying commands before execution while allowing 
 `exit`. `timetable`, `class list`, and `list` return view-change instructions that keep this state synchronized with
 `MainWindow`.
 
+`Logic#getCurrentDate()` reads `LocalDate.now(clock)`, keeping date-dependent UI behavior testable with a fixed clock.
+`Logic#getTimetable(LocalDate)` delegates a requested anchor date to `Model` without executing a command or saving data.
+
 Here are the other classes in `Logic` (omitted from the class diagram above) that are used for parsing a user command:
 
 <puml src="diagrams/ParserClasses.puml" width="600"/>
@@ -158,8 +164,8 @@ The `Model` component,
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
 * stores a `UserPrefs` object that represents the user’s GUI settings and privacy preference. This is exposed to the
   outside as a `ReadOnlyUserPrefs` object.
-* derives immutable timetable day and class entries from every person's lessons. The timetable is not stored separately,
-  and it uses the complete address book rather than the filtered person list.
+* derives immutable, date-backed timetable day and class entries from every person's lessons. The timetable is not
+  stored separately, and it uses the complete address book rather than the filtered person list.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
 
@@ -271,20 +277,26 @@ neither command changes address-book data.
 ### Timetable view
 
 `TimetableCommand` does not modify model data. It returns a `CommandResult` requesting the `TIMETABLE` view.
-`MainWindow` responds by requesting a current timetable from `Logic` and replacing `PersonListPanel` with a newly built
-`TimetablePanel`.
+`MainWindow` responds by replacing `PersonListPanel` with a newly built `TimetablePanel`. It supplies
+`logic::getCurrentDate` and `logic::getTimetable` callbacks, so the panel can refresh date-dependent state without
+reading the model directly. Creating a new panel whenever timetable mode is entered resets the view to the current week.
 
 `ModelManager#getTimetable(LocalDate)` passes the central class list and complete person list to `TimetableBuilder`.
-The builder generates the actual dates from the supplied date through Saturday and uses
-`LessonSchedule#occursOn(LocalDate)` to select classes for each date. This places weekly schedules on their matching
-weekday and one-off schedules only on their exact date. Independently created classes appear even without enrolled
-students, while enrolments attach students to the matching class. The builder returns one immutable `TimetableDay` per
-visible date, including empty days, with entries ordered by start time, subject, and end time.
+The builder uses `WeekRange` to normalize the supplied anchor date to a complete Sunday-to-Saturday range. `WeekRange`
+performs safe epoch-day calculations, exposes optional adjacent weeks, and rejects an anchor whose complete week is
+outside the supported `LocalDate` range. The builder uses `LessonSchedule#occursOn(LocalDate)` to place weekly schedules
+on matching weekdays and one-off schedules only on their exact date. Independently created classes appear even without
+enrolled students, while enrolments attach students to the matching class. The builder returns seven immutable,
+date-backed `TimetableDay` values, including empty days, with entries ordered by start time, case-insensitive subject,
+and end time.
 
-The UI renders the projection in three levels: `TimetablePanel` provides the scrolling list, `TimetableDayCard` displays
-a day heading and empty state, and `TimetableEntryCard` displays a class's time, subject, and students. Entering `list`
-restores the existing person panel and normal command availability. `class list` returns a `CLASS_LIST` view change;
-`MainWindow` replaces the current panel with `ClassListPanel`, including when the timetable is open.
+`TimetablePanel` keeps its navigation header outside the scrolling `ListView`. Previous and Next select optional adjacent
+`WeekRange` values and reload through the callback. Today always requests a fresh application date and projection, even
+when the same week remains selected. The current date is highlighted and scrolled to the top where possible; other weeks
+start at Sunday. `TimetableDayCard` displays the dated heading and empty state, while `TimetableEntryCard` displays a
+class's time, subject, and students. Entering `list` restores the existing person panel and normal command availability.
+`class list` returns a `CLASS_LIST` view change; `MainWindow` replaces the current panel with `ClassListPanel`, including
+when the timetable is open.
 
 ### Independent class management
 
@@ -740,17 +752,29 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 
 2. TutEasy checks the current view mode.
 
-3. TutEasy switches the display to timetable mode.
+3. TutEasy obtains the current date from the application clock and switches the display to timetable mode.
 
-4. TutEasy shows students and classes arranged by day and time.
+4. TutEasy shows the complete Sunday-to-Saturday week, highlights today, and makes it visible.
 
    Use case ends.
 
 **Extensions**
 
-* 1a. Tutor requests to view the default student list.
+* 4a. Tutor selects Previous week or Next week.
 
-    * 1a1. TutEasy switches the display back to the original alphabetically sorted student list.
+    * 4a1. TutEasy loads the complete adjacent week without changing or saving address-book data.
+
+      Use case resumes at step 4.
+
+* 4b. Tutor selects Today.
+
+    * 4b1. TutEasy recalculates the current date, reloads its week, and makes today visible.
+
+      Use case resumes at step 4.
+
+* 4c. Tutor requests to view the default student list.
+
+    * 4c1. TutEasy switches the display back to the original alphabetically sorted student list.
 
       Use case ends.
 

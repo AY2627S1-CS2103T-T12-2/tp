@@ -256,20 +256,25 @@ Example: `class delete id/C001`
 
 ### Viewing the weekly timetable: `timetable`
 
-Opens a graphical, read-only timetable containing classes from the current day through Saturday. Classes that occurred
-earlier on the current day remain visible, while days earlier in the week are omitted. Every included day has a heading,
-even when it has no classes.
+Opens a graphical, read-only timetable containing the complete Sunday-to-Saturday week that includes the current date.
+Today is highlighted and placed at the top of the scrolling area where possible. Scroll upward to see earlier days in
+the week and downward to see later days. Every day has a dated heading, even when it has no classes.
+
+Use **Previous week** and **Next week** to move exactly seven days at a time. Use **Today** to recalculate the current
+date, return to its week, and reload the timetable. Today remains available even while the current week is displayed.
+The fixed header shows the selected range, for example `18–24 Oct 2026` or `27 Dec 2026 – 2 Jan 2027`.
 
 Each class entry shows its start and end time, subject, and all attending students. Classes are ordered by start time,
-then subject.
+then subject, then end time. Student names within a class are ordered alphabetically.
 
 Weekly classes appear on their matching weekday. One-off classes appear only when their exact date falls within the
-visible range.
+selected week. Navigating between weeks does not change or save address-book data.
 
 Format: `timetable`
 
 While the timetable is open, `class list`, `list`, `privacy`, `help`, and `exit` are available. `class list` replaces
-the timetable with the class list. Use `list` to return to the student list and re-enable modifying commands.
+the timetable with the class list. Use `list` to return to the student list and re-enable modifying commands. Re-entering
+`timetable` starts again from the current week rather than the previously viewed week.
 
 ### Listing all persons: `list`
 

@@ -214,7 +214,7 @@ public class MainWindow extends UiPart<Stage> {
     }
 
     private void showTimetable() {
-        timetablePanel = new TimetablePanel(logic.getTimetable());
+        timetablePanel = new TimetablePanel(logic::getCurrentDate, logic::getTimetable);
         personListPanelPlaceholder.getChildren().setAll(timetablePanel.getRoot());
     }
 
