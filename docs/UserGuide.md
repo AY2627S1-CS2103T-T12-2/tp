@@ -119,8 +119,9 @@ Opens a read-only graphical list showing every class's stable ID, subject, sched
 
 Format: `class list`
 
-This command is available from both the student list and timetable. Use `list` to return to the student list or
-`timetable` to open the timetable.
+This command is available from both the student list and timetable. While the class list is open, `list`, `timetable`,
+`class list`, `privacy`, `help`, and `exit` are available. Use `list` to return to the student list or `timetable` to
+open the timetable.
 
 ### Editing a class: `class edit`
 
@@ -134,17 +135,38 @@ Examples:
 * `class edit id/C001 cost/40`
 * `class edit id/C001 sub/Advanced Math c/Tuesday1800-1930`
 
-### Enrolling a student in a class: `class enrol`
+### Enrolling students in a class: `class enrol`
 
-Enrols an existing student in a weekly or one-off class. The student is identified by the index shown in the current
-student list. Weekly classes recur on their specified weekday; one-off classes occur only on their specified date.
+Enrols one or more existing students in a weekly or one-off class. Students are identified by their indexes in the
+currently displayed student list. Weekly classes recur on their specified weekday; one-off classes occur only on their
+specified date.
 
-Format: `class enrol STUDENT_INDEX id/CLASS_ID`
+To enrol one student using a stable class ID, use:
+
+`class enrol STUDENT_INDEX id/CLASS_ID`
 
 Example: `class enrol 1 id/C001`
 
+To enrol one or more students in an existing class using its subject and complete lesson schedule, omit the cost and
+provide all student indexes before the prefixes:
+
+`class enrol STUDENT_INDEX [STUDENT_INDEX]... sub/SUBJECT c/SCHEDULE`
+
+Example: `class enrol 1 3 5 sub/Physics c/Wednesday1700-1830`
+
+The existing single-student format that supplies the class cost is also supported:
+
+`class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/SCHEDULE`
+
 The same class can be assigned to multiple students, but its cost must be consistent. A student cannot be enrolled in
-the same class more than once.
+the same class more than once. For subject-and-timing batch enrolment, TutEasy obtains the cost from its independently
+stored class collection. This also supports classes that currently have no enrolled students.
+
+Batch enrolment validates every index and the target class before changing any student. Repeated or invalid indexes
+and a missing class cause the command to fail without changing any student. Selected students who are already enrolled
+are skipped while the remaining students are enrolled. The feedback identifies both groups. If all selected students
+are already enrolled, no changes are made and an informative message is shown. `cost/` cannot be supplied when multiple
+indexes are used.
 
 Enrolled classes appear as coloured badges below each student's email. Each badge includes the subject and lesson
 timing, and students enrolled in the same class receive a badge with the same colour. When a student has multiple
@@ -206,8 +228,8 @@ visible range.
 
 Format: `timetable`
 
-While the timetable is open, `class list`, `list`, `help`, and `exit` are available. `class list` replaces the timetable
-with the class list. Use `list` to return to the student list and re-enable modifying commands.
+While the timetable is open, `class list`, `list`, `privacy`, `help`, and `exit` are available. `class list` replaces
+the timetable with the class list. Use `list` to return to the student list and re-enable modifying commands.
 
 ### Listing all persons: `list`
 
@@ -258,21 +280,36 @@ Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing tags.
 
-### Tagging a student: `tag`
+### Tagging students: `tag`
 
-Adds one or more tags to an existing student.
+Adds tags to one or more existing students.
 
-Format: `tag INDEX TAG [MORE_TAGS]`
+Formats:
 
-* `INDEX` refers to the index number shown in the displayed student list.
+* `tag INDEX TAG [MORE_TAGS]`
+* `tag STUDENT_INDEX [MORE_INDEXES] t/TAG`
+
+* Indexes refer to the index numbers shown in the displayed student list.
 * Each tag must be unique for that student.
 * A tag can contain up to 30 characters and use only lowercase letters, numbers, and single hyphens between
   characters.
 * Spaces separate tags. For example, `exam prep` adds the two tags `exam` and `prep`, while `exam-prep` adds
   one tag. Use hyphens when a single tag contains multiple words.
 * A student can have at most 10 tags.
+* The first format preserves the existing behavior of adding one or more tags to one student.
+* The batch format uses `t/` to separate one tag from one or more unique student indexes. This also allows numeric
+  tags such as `t/2026` without confusing them with student indexes.
+* The batch command validates every index and the tag before updating any student. An invalid or repeated index, or
+  an invalid tag, causes the command to fail without changes.
+* In batch mode, students who already have the tag are skipped. Students who have reached the 10-tag limit are also
+  skipped, while eligible selected students still receive the tag.
+* Batch feedback identifies students who received the tag, already had it, or had reached the tag limit. If no
+  selected student can be updated, no changes are made and the feedback explains why.
 
-Example: `tag 3 exam-prep needs-follow-up`
+Examples:
+
+* `tag 3 exam-prep needs-follow-up`
+* `tag 1 3 5 t/math-2026`
 
 ### Removing tags from a student: `untag`
 
@@ -340,6 +377,22 @@ Clears all entries from the address book.
 
 Format: `clear`
 
+### Hiding contact details: `privacy`
+
+Privacy mode replaces the phone, email, and address values on every student card with a fixed seven-asterisk mask,
+such as `Address: *******`. The underlying contact details are not changed or deleted.
+
+Formats:
+
+* `privacy on` masks all displayed contact details immediately.
+* `privacy off` restores the original contact details immediately.
+
+While privacy mode is active, the status bar displays `Privacy mode enabled`. The selected mode is saved and restored
+when TutEasy restarts. Privacy mode is disabled by default for existing preference files that do not contain this
+setting.
+
+The command box suggests both valid modes after you type `privacy`.
+
 ### Exiting the program: `exit`
 
 Exits the program.
@@ -389,16 +442,17 @@ Action     | Format, Examples
 **Add class** | `class add sub/SUBJECT cost/COST c/SCHEDULE`<br> e.g., `class add sub/Physics cost/35 c/2026-10-20T1700-1830`
 **List classes** | `class list`
 **Edit class** | `class edit id/CLASS_ID [sub/SUBJECT] [cost/COST] [c/SCHEDULE]`<br> e.g., `class edit id/C001 cost/40`
-**Enrol in class** | `class enrol STUDENT_INDEX id/CLASS_ID`<br> e.g., `class enrol 1 id/C001`
+**Enrol in class** | `class enrol STUDENT_INDEX id/CLASS_ID`<br>or `class enrol STUDENT_INDEX [STUDENT_INDEX]... sub/SUBJECT c/SCHEDULE`<br> e.g., `class enrol 1 3 5 sub/Physics c/Wednesday1700-1830`
 **Unenrol from class** | `class unenrol STUDENT_INDEX id/CLASS_ID`<br> e.g., `class unenrol 1 id/C001`
 **Update payment status** | `class payment STUDENT_INDEX id/CLASS_ID status/paid|unpaid`<br> e.g., `class payment 1 id/C001 status/paid`
 **Delete class** | `class delete id/CLASS_ID`<br> e.g., `class delete id/C001`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
-**Tag**    | `tag INDEX TAG [MORE_TAGS]`<br> e.g., `tag 3 exam-prep needs-follow-up`
+**Tag**    | `tag INDEX TAG [MORE_TAGS]` or `tag STUDENT_INDEX [MORE_INDEXES] t/TAG`<br> e.g., `tag 3 exam-prep needs-follow-up`, `tag 1 3 5 t/math-2026`
 **Untag**  | `untag INDEX TAG [MORE_TAGS]` or `untag INDEX -all`<br> e.g., `untag 2 parent-follow-up`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`, `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]`, `find c/DAY [TIME_HHmm]`, `find c/TIME_HHmm`, or `find c/DATE [TIME_HHmm]`<br> e.g., `find Jam`, `find t/fri`, `find c/Mon 1800`, `find c/2026-10-20`
 **List**   | `list`
 **Help**   | `help`
 **Timetable** | `timetable`
+**Privacy mode** | `privacy on` or `privacy off`

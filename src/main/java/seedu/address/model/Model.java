@@ -5,14 +5,18 @@ import static java.util.Objects.requireNonNull;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.lesson.ClassId;
 import seedu.address.model.lesson.Lesson;
+import seedu.address.model.lesson.LessonSchedule;
 import seedu.address.model.lesson.LessonScheduleComparator;
 import seedu.address.model.lesson.PaymentStatus;
+import seedu.address.model.lesson.Subject;
 import seedu.address.model.lesson.TuitionClass;
 import seedu.address.model.person.Person;
 import seedu.address.model.timetable.TimetableDay;
@@ -38,6 +42,12 @@ public interface Model {
      * Sets the user prefs' GUI settings.
      */
     void setGuiSettings(GuiSettings guiSettings);
+
+    /** Returns whether privacy mode is enabled. */
+    boolean isPrivacyModeEnabled();
+
+    /** Enables or disables privacy mode. */
+    void setPrivacyModeEnabled(boolean privacyModeEnabled);
 
     /**
      * Replaces address book data with the data in {@code addressBook}.
@@ -71,6 +81,12 @@ public interface Model {
      */
     void setPerson(Person target, Person editedPerson);
 
+    /**
+     * Atomically replaces every target person with its corresponding edited person.
+     * Every target must exist, and the resulting persons must have unique identities.
+     */
+    void setPersons(Map<Person, Person> replacements);
+
     /** Allocates and returns the next stable class ID. */
     default ClassId allocateClassId() {
         throw new UnsupportedOperationException();
@@ -90,6 +106,17 @@ public interface Model {
         return getAddressBook().getTuitionClassList().stream()
                 .filter(item -> item.getClassId().equals(classId)).findFirst()
                 .orElseThrow(java.util.NoSuchElementException::new);
+    }
+
+    /**
+     * Finds a centrally stored class by its case-insensitive subject and complete lesson schedule.
+     */
+    default Optional<TuitionClass> findTuitionClass(Subject subject, LessonSchedule schedule) {
+        requireNonNull(subject);
+        requireNonNull(schedule);
+        return getAddressBook().getTuitionClassList().stream()
+                .filter(item -> item.getSubject().equals(subject) && item.getSchedule().equals(schedule))
+                .findFirst();
     }
 
     default void addTuitionClass(TuitionClass tuitionClass) {

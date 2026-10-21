@@ -3,6 +3,7 @@ package seedu.address.model;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_ADDRESS_BOB;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
@@ -12,10 +13,14 @@ import static seedu.address.testutil.TypicalPersons.DANIEL;
 
 import java.time.LocalDate;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
 
+import javafx.collections.ListChangeListener;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
@@ -24,6 +29,8 @@ import seedu.address.model.lesson.OneOffLessonSchedule;
 import seedu.address.model.lesson.Subject;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.exceptions.DuplicatePersonException;
+import seedu.address.model.person.exceptions.PersonNotFoundException;
 import seedu.address.model.timetable.TimetableEntry;
 import seedu.address.testutil.AddressBookBuilder;
 import seedu.address.testutil.PersonBuilder;
@@ -36,6 +43,7 @@ public class ModelManagerTest {
     public void constructor() {
         assertEquals(new UserPrefs(), modelManager.getUserPrefs());
         assertEquals(new GuiSettings(), modelManager.getGuiSettings());
+        assertFalse(modelManager.isPrivacyModeEnabled());
         assertEquals(new AddressBook(), new AddressBook(modelManager.getAddressBook()));
     }
 
@@ -43,12 +51,14 @@ public class ModelManagerTest {
     public void constructor_validUserPrefs_copiesUserPrefs() {
         UserPrefs userPrefs = new UserPrefs();
         userPrefs.setGuiSettings(new GuiSettings(1, 2, 3, 4));
+        userPrefs.setPrivacyModeEnabled(true);
         modelManager = new ModelManager(new AddressBook(), userPrefs);
         assertEquals(userPrefs, modelManager.getUserPrefs());
 
         // Modifying userPrefs should not modify modelManager's userPrefs
         UserPrefs oldUserPrefs = new UserPrefs(userPrefs);
         userPrefs.setGuiSettings(new GuiSettings(5, 6, 7, 8));
+        userPrefs.setPrivacyModeEnabled(false);
         assertEquals(oldUserPrefs, modelManager.getUserPrefs());
     }
 
@@ -65,6 +75,15 @@ public class ModelManagerTest {
     }
 
     @Test
+    public void setPrivacyModeEnabled_validValue_setsPrivacyMode() {
+        modelManager.setPrivacyModeEnabled(true);
+        assertTrue(modelManager.isPrivacyModeEnabled());
+
+        modelManager.setPrivacyModeEnabled(false);
+        assertFalse(modelManager.isPrivacyModeEnabled());
+    }
+
+    @Test
     public void hasPerson_nullPerson_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> modelManager.hasPerson(null));
     }
@@ -78,6 +97,70 @@ public class ModelManagerTest {
     public void hasPerson_personInAddressBook_returnsTrue() {
         modelManager.addPerson(ALICE);
         assertTrue(modelManager.hasPerson(ALICE));
+    }
+
+    @Test
+    public void setPersons_validReplacements_updatesPersonsInOneChange() {
+        AddressBook addressBook = new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON).build();
+        modelManager = new ModelManager(addressBook, new UserPrefs());
+        Person editedAlice = new PersonBuilder(ALICE).withAddress(VALID_ADDRESS_BOB).build();
+        Person editedBenson = new PersonBuilder(BENSON).withAddress("Edited address").build();
+        AtomicInteger changeCount = new AtomicInteger();
+        modelManager.getAddressBook().getPersonList().addListener((ListChangeListener<Person>)
+                change -> changeCount.incrementAndGet());
+
+        modelManager.setPersons(Map.of(ALICE, editedAlice, BENSON, editedBenson));
+
+        assertEquals(List.of(editedAlice, editedBenson), modelManager.getAddressBook().getPersonList());
+        assertEquals(1, changeCount.get());
+    }
+
+    @Test
+    public void setPersons_emptyReplacements_makesNoChange() {
+        modelManager.addPerson(ALICE);
+        AtomicInteger changeCount = new AtomicInteger();
+        modelManager.getAddressBook().getPersonList().addListener((ListChangeListener<Person>)
+                change -> changeCount.incrementAndGet());
+
+        modelManager.setPersons(Map.of());
+
+        assertEquals(List.of(ALICE), modelManager.getAddressBook().getPersonList());
+        assertEquals(0, changeCount.get());
+    }
+
+    @Test
+    public void setPersons_missingTarget_throwsWithoutChanges() {
+        modelManager.addPerson(ALICE);
+        Person missingPerson = new PersonBuilder().withName("Missing Person").build();
+        AddressBook expectedAddressBook = new AddressBook(modelManager.getAddressBook());
+
+        assertThrows(PersonNotFoundException.class, ()
+                -> modelManager.setPersons(Map.of(missingPerson, BENSON)));
+        assertEquals(expectedAddressBook, modelManager.getAddressBook());
+    }
+
+    @Test
+    public void setPersons_duplicateResult_throwsWithoutChanges() {
+        AddressBook addressBook = new AddressBookBuilder().withPerson(ALICE).withPerson(BENSON).build();
+        modelManager = new ModelManager(addressBook, new UserPrefs());
+        AddressBook expectedAddressBook = new AddressBook(modelManager.getAddressBook());
+
+        assertThrows(DuplicatePersonException.class, ()
+                -> modelManager.setPersons(Map.of(ALICE, BENSON)));
+        assertEquals(expectedAddressBook, modelManager.getAddressBook());
+    }
+
+    @Test
+    public void setPersons_nullInput_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> modelManager.setPersons(null));
+
+        Map<Person, Person> nullTarget = new HashMap<>();
+        nullTarget.put(null, ALICE);
+        assertThrows(NullPointerException.class, () -> modelManager.setPersons(nullTarget));
+
+        Map<Person, Person> nullReplacement = new HashMap<>();
+        nullReplacement.put(ALICE, null);
+        assertThrows(NullPointerException.class, () -> modelManager.setPersons(nullReplacement));
     }
 
     @Test

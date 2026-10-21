@@ -8,6 +8,9 @@ import java.util.Comparator;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ObservableBooleanValue;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -25,6 +28,8 @@ import seedu.address.model.person.Subject;
  * A UI component that displays a person's contact and student details.
  */
 public class PersonCard extends UiPart<Region> {
+
+    public static final String PRIVACY_MASK = "*******";
 
     private static final String FXML = "PersonListCard.fxml";
     private static final String ENROLLED_CLASS_GROUP_STYLE_CLASS = "enrolled-class-group";
@@ -70,25 +75,41 @@ public class PersonCard extends UiPart<Region> {
      * Creates a PersonCard displaying the given person and index.
      */
     public PersonCard(Person person, int displayedIndex) {
-        this(person, displayedIndex, new ClassColorPalette());
+        this(person, displayedIndex, false);
+    }
+
+    /**
+     * Creates a PersonCard displaying the given person and index with the supplied privacy state.
+     */
+    public PersonCard(Person person, int displayedIndex, boolean privacyModeEnabled) {
+        this(person, displayedIndex, new ClassColorPalette(), new SimpleBooleanProperty(privacyModeEnabled));
     }
 
     /**
      * Creates a PersonCard using {@code classColorPalette} for its enrolled-class badges.
      */
     PersonCard(Person person, int displayedIndex, ClassColorPalette classColorPalette) {
+        this(person, displayedIndex, classColorPalette, new SimpleBooleanProperty(false));
+    }
+
+    /**
+     * Creates a PersonCard using {@code classColorPalette} and the supplied observable privacy state.
+     */
+    PersonCard(Person person, int displayedIndex, ClassColorPalette classColorPalette,
+            ObservableBooleanValue privacyModeEnabled) {
         super(FXML);
         this.person = requireNonNull(person);
         requireNonNull(classColorPalette);
+        requireNonNull(privacyModeEnabled);
 
         id.setText(displayedIndex + ". ");
         name.setText(person.getName().fullName);
         pinned.setVisible(person.isPinned());
         pinned.setManaged(person.isPinned());
         balance.setText("Balance: " + person.getOutstandingBalance().toPlainString());
-        phone.setText(person.getPhone().value);
-        address.setText(person.getAddress().value);
-        email.setText(person.getEmail().value);
+        bindContactDetail(phone, "Phone", person.getPhone().value, privacyModeEnabled);
+        bindContactDetail(email, "Email", person.getEmail().value, privacyModeEnabled);
+        bindContactDetail(address, "Address", person.getAddress().value, privacyModeEnabled);
 
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
@@ -122,6 +143,12 @@ public class PersonCard extends UiPart<Region> {
                 .orElse(""));
         lesson.setVisible(!hasEnrolledClasses && person.getLesson().isPresent());
         lesson.setManaged(lesson.isVisible());
+    }
+
+    private static void bindContactDetail(Label label, String fieldName, String value,
+            ObservableBooleanValue privacyModeEnabled) {
+        String maskedValue = fieldName + ": " + PRIVACY_MASK;
+        label.textProperty().bind(Bindings.when(privacyModeEnabled).then(maskedValue).otherwise(value));
     }
 
     private static HBox createClassGroup(Lesson enrolledClass, ClassColorPalette classColorPalette) {

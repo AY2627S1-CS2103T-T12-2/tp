@@ -16,6 +16,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import javafx.application.Platform;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
@@ -124,6 +125,36 @@ public class PersonCardTest {
 
             assertEquals(getColorStyleClass(getClassGroups(firstCard).get(0)),
                     getColorStyleClass(getClassGroups(secondCard).get(0)));
+        });
+    }
+
+    @Test
+    public void privacyMode_changes_masksAndRestoresContactDetailsWithoutChangingPerson() throws Exception {
+        runOnFxThread(() -> {
+            Person person = new PersonBuilder().withPhone("91234567")
+                    .withEmail("student@example.com").withAddress("123 Privacy Street").build();
+            SimpleBooleanProperty privacyModeEnabled = new SimpleBooleanProperty(false);
+            PersonCard card = new PersonCard(person, 1, new ClassColorPalette(List.of(person)),
+                    privacyModeEnabled);
+
+            assertLabel(card, "phone", person.getPhone().value, true);
+            assertLabel(card, "email", person.getEmail().value, true);
+            assertLabel(card, "address", person.getAddress().value, true);
+
+            privacyModeEnabled.set(true);
+
+            assertLabel(card, "phone", "Phone: " + PersonCard.PRIVACY_MASK, true);
+            assertLabel(card, "email", "Email: " + PersonCard.PRIVACY_MASK, true);
+            assertLabel(card, "address", "Address: " + PersonCard.PRIVACY_MASK, true);
+            assertEquals("91234567", person.getPhone().value);
+            assertEquals("student@example.com", person.getEmail().value);
+            assertEquals("123 Privacy Street", person.getAddress().value);
+
+            privacyModeEnabled.set(false);
+
+            assertLabel(card, "phone", person.getPhone().value, true);
+            assertLabel(card, "email", person.getEmail().value, true);
+            assertLabel(card, "address", person.getAddress().value, true);
         });
     }
 
