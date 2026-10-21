@@ -54,6 +54,10 @@ public class FindCommandParserTest {
                 new FindCommand(new LessonContainsKeywordsPredicate(List.of("Mon", "18"))));
         assertParseSuccess(parser, " c/Mon 2359",
                 new FindCommand(new LessonContainsKeywordsPredicate(List.of("Mon", "2359"))));
+        assertParseSuccess(parser, " c/2026-10-20",
+                new FindCommand(new LessonContainsKeywordsPredicate(List.of("2026-10-20"))));
+        assertParseSuccess(parser, " c/2026-10-20 1800",
+                new FindCommand(new LessonContainsKeywordsPredicate(List.of("2026-10-20", "1800"))));
     }
 
     @Test
@@ -106,6 +110,12 @@ public class FindCommandParserTest {
                 "Invalid lesson time keyword '24000'. " + FindCommand.MESSAGE_INVALID_LESSON);
         assertParseFailure(parser, "c/Monday 2400",
                 "Invalid lesson time keyword '2400'. " + FindCommand.MESSAGE_INVALID_LESSON);
+        assertParseFailure(parser, "c/2026-02-29",
+                "Invalid lesson date keyword '2026-02-29'. " + FindCommand.MESSAGE_INVALID_LESSON);
+        assertParseFailure(parser, "c/2026-10-20 2026-10-21",
+                "Lesson search can include only one date keyword. " + FindCommand.MESSAGE_INVALID_LESSON);
+        assertParseFailure(parser, "c/Mon 2026-10-20",
+                "Lesson search cannot combine day and date keywords. " + FindCommand.MESSAGE_INVALID_LESSON);
     }
 
 }

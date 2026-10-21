@@ -2,8 +2,10 @@ package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import seedu.address.commons.core.index.Index;
@@ -12,8 +14,10 @@ import seedu.address.logic.commands.ClassDetailsUpdate;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.lesson.ClassId;
 import seedu.address.model.lesson.ClassMode;
+import seedu.address.model.lesson.LessonSchedule;
 import seedu.address.model.lesson.LessonStart;
 import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.OneOffLessonSchedule;
 import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Cost;
@@ -31,6 +35,7 @@ import seedu.address.model.tag.Tag;
 public class ParserUtil {
 
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
+    public static final String MESSAGE_DUPLICATE_INDEXES = "Student indexes must not be repeated.";
 
     /**
      * Parses {@code oneBasedIndex} into an {@code Index} and returns it. Leading and trailing whitespaces will be
@@ -43,6 +48,25 @@ public class ParserUtil {
             throw new ParseException(MESSAGE_INVALID_INDEX);
         }
         return Index.fromOneBased(Integer.parseInt(trimmedIndex));
+    }
+
+    /**
+     * Parses one or more whitespace-separated one-based indexes.
+     *
+     * @throws ParseException if an index is invalid or repeated.
+     */
+    public static List<Index> parseIndexes(String oneBasedIndexes) throws ParseException {
+        requireNonNull(oneBasedIndexes);
+        List<Index> indexes = new ArrayList<>();
+        Set<Integer> seenZeroBasedIndexes = new LinkedHashSet<>();
+        for (String indexText : oneBasedIndexes.trim().split("\\s+")) {
+            Index index = parseIndex(indexText);
+            if (!seenZeroBasedIndexes.add(index.getZeroBased())) {
+                throw new ParseException(MESSAGE_DUPLICATE_INDEXES);
+            }
+            indexes.add(index);
+        }
+        return List.copyOf(indexes);
     }
 
     /**
@@ -205,6 +229,19 @@ public class ParserUtil {
             throw new ParseException(LessonTiming.MESSAGE_CONSTRAINTS);
         }
         return new LessonTiming(trimmedTiming);
+    }
+
+    /** Parses a weekly or one-off lesson schedule. */
+    public static LessonSchedule parseLessonSchedule(String schedule) throws ParseException {
+        requireNonNull(schedule);
+        String trimmedSchedule = schedule.trim();
+        if (!trimmedSchedule.isEmpty() && Character.isDigit(trimmedSchedule.charAt(0))) {
+            if (!OneOffLessonSchedule.isValidOneOffLessonSchedule(trimmedSchedule)) {
+                throw new ParseException(OneOffLessonSchedule.MESSAGE_CONSTRAINTS);
+            }
+            return new OneOffLessonSchedule(trimmedSchedule);
+        }
+        return parseLessonTiming(trimmedSchedule);
     }
 
     /** Parses optional inline class fields, distinguishing omission from an empty value. */

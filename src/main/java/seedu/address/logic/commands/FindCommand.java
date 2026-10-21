@@ -29,26 +29,29 @@ public class FindCommand extends Command {
             + COMMAND_WORD + " t/TAG_KEYWORD [MORE_TAG_KEYWORDS]...\n"
             + COMMAND_WORD + " c/DAY [TIME_HHmm]\n"
             + COMMAND_WORD + " c/TIME_HHmm\n"
+            + COMMAND_WORD + " c/DATE [TIME_HHmm]\n"
             + "Examples: " + COMMAND_WORD + " ali; " + COMMAND_WORD + " t/pri; "
-            + COMMAND_WORD + " c/Monday 1800; " + COMMAND_WORD + " c/1800";
+            + COMMAND_WORD + " c/Monday 1800; " + COMMAND_WORD + " c/1800; "
+            + COMMAND_WORD + " c/2026-10-20";
 
     public static final String MESSAGE_EMPTY_QUERY =
-            "Find requires a search value. Use: find KEYWORD, find t/TAG, or find c/DAY TIME_HHmm.";
+            "Find requires a search value. Use: find KEYWORD, find t/TAG, or find c/LESSON.";
     public static final String MESSAGE_PREFIX_WITH_NAME =
             "Find prefixes must come immediately after 'find'. "
-                    + "Use either find KEYWORD, find t/TAG, or find c/DAY TIME_HHmm.";
+                    + "Use either find KEYWORD, find t/TAG, or find c/LESSON.";
     public static final String MESSAGE_MULTIPLE_SEARCH_MODES =
             "Find can search only one category at a time. Choose name keywords, t/TAG keywords, or c/LESSON keywords.";
     public static final String MESSAGE_DUPLICATE_TAG_PREFIX =
             "Find tag search accepts only one t/ prefix. Put multiple tag keywords after the same t/.";
     public static final String MESSAGE_DUPLICATE_CLASS_PREFIX =
-            "Find lesson search accepts only one c/ prefix. Put day and time after the same c/.";
+            "Find lesson search accepts only one c/ prefix. Put the schedule search values after the same c/.";
     public static final String MESSAGE_EMPTY_TAG =
             "Find tag search requires at least one tag keyword after t/. Example: find t/priority.";
     public static final String MESSAGE_EMPTY_LESSON =
-            "Enter a day, time, or both after c/. Example: find c/Monday 1800.";
+            "Enter a day, date, time, or a supported combination after c/. Example: find c/Monday 1800.";
     public static final String MESSAGE_INVALID_LESSON =
-            "Lesson search should use a weekday (e.g. Mon), time 0000-2359, or both.";
+            "Lesson search should use a weekday (e.g. Mon), ISO date (e.g. 2026-10-20), "
+                    + "time 0000-2359, or a supported combination.";
 
     private final Predicate<Person> predicate;
 

@@ -8,12 +8,15 @@ import seedu.address.model.lesson.ClassId;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.OneOffLessonSchedule;
+import seedu.address.model.lesson.ScheduleType;
 import seedu.address.model.lesson.Subject;
 import seedu.address.model.lesson.TuitionClass;
 
 /** Jackson-friendly representation of an independently stored tuition class. */
 class JsonAdaptedTuitionClass {
 
+    private final String scheduleType;
     private final String mode;
     private final String meetingLink;
     private final String location;
@@ -28,7 +31,8 @@ class JsonAdaptedTuitionClass {
             @JsonProperty("subject") String subject, @JsonProperty("cost") String cost,
             @JsonProperty("timing") String timing, @JsonProperty("mode") String mode,
             @JsonProperty("meetingLink") String meetingLink, @JsonProperty("location") String location,
-            @JsonProperty("notes") String notes) {
+            @JsonProperty("notes") String notes, @JsonProperty("scheduleType") String scheduleType) {
+        this.scheduleType = scheduleType;
         this.mode = mode;
         this.meetingLink = meetingLink;
         this.location = location;
@@ -39,6 +43,17 @@ class JsonAdaptedTuitionClass {
         this.timing = timing;
     }
 
+    /** Retains the weekly class constructor with additional details. */
+    JsonAdaptedTuitionClass(String id, String subject, String cost, String timing, String mode,
+            String meetingLink, String location, String notes) {
+        this(id, subject, cost, timing, mode, meetingLink, location, notes, null);
+    }
+
+    /** Retains the schedule-aware class constructor. */
+    JsonAdaptedTuitionClass(String id, String subject, String cost, String timing, String scheduleType) {
+        this(id, subject, cost, timing, null, null, null, null, scheduleType);
+    }
+
     /** Retains the previous class storage constructor. */
     JsonAdaptedTuitionClass(String id, String subject, String cost, String timing) {
         this(id, subject, cost, timing, null, null, null, null);
@@ -46,8 +61,9 @@ class JsonAdaptedTuitionClass {
 
     JsonAdaptedTuitionClass(TuitionClass source) {
         this(source.getClassId().toString(), source.getSubject().value,
-                source.getCost().toString(), source.getTiming().toStorageString(), source.getDetails().mode().name(),
-                source.getDetails().meetingLink(), source.getDetails().location(), source.getDetails().notes());
+                source.getCost().toString(), source.getSchedule().toStorageString(), source.getDetails().mode().name(),
+                source.getDetails().meetingLink(), source.getDetails().location(), source.getDetails().notes(),
+                source.getSchedule().getType().name());
     }
 
     TuitionClass toModelType() throws IllegalValueException {
@@ -60,12 +76,13 @@ class JsonAdaptedTuitionClass {
         if (cost == null || !Cost.isValidCost(cost)) {
             throw new IllegalValueException(Cost.MESSAGE_CONSTRAINTS);
         }
-        if (timing == null || !LessonTiming.isValidLessonTiming(timing)) {
-            throw new IllegalValueException(LessonTiming.MESSAGE_CONSTRAINTS);
+        if (timing == null) {
+            throw new IllegalValueException(ScheduleType.ONE_OFF.name().equals(scheduleType)
+                    ? OneOffLessonSchedule.MESSAGE_CONSTRAINTS : LessonTiming.MESSAGE_CONSTRAINTS);
         }
         Lesson validated = new JsonAdaptedLesson(subject, cost, timing, null,
-                meetingLink, location, notes, mode).toModelType();
-        return new TuitionClass(new ClassId(id), new Subject(subject), new Cost(cost), new LessonTiming(timing),
+                meetingLink, location, notes, mode, id, scheduleType).toModelType();
+        return new TuitionClass(new ClassId(id), new Subject(subject), new Cost(cost), validated.getSchedule(),
                 validated.getDetails());
     }
 }

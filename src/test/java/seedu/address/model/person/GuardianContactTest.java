@@ -23,6 +23,17 @@ public class GuardianContactTest {
     }
 
     @Test
+    public void independentOptionalFields_displayWithoutEmptySeparators() {
+        GuardianContact nameOnly = new GuardianContact("Mary", "", "");
+        GuardianContact emailOnly = new GuardianContact("", "", "mary@example.com");
+        assertFalse(nameOnly.isEmpty());
+        assertFalse(emailOnly.isEmpty());
+        assertEquals("Mary", nameOnly.toString());
+        assertEquals("mary@example.com", emailOnly.toString());
+        assertEquals("", GuardianContact.EMPTY.toString());
+    }
+
+    @Test
     public void person_contactUpdates_preserveIdentityAndParticipateInEquality() {
         Person original = new PersonBuilder().build();
         GuardianContact contact = new GuardianContact("Mary Tan", "98765432", "mary@example.com");

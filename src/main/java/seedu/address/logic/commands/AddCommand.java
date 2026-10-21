@@ -36,7 +36,7 @@ public class AddCommand extends Command {
             + PREFIX_ADDRESS + "ADDRESS "
             + "[" + PREFIX_TAG + "TAG]... [gn/GUARDIAN_NAME] [gp/GUARDIAN_PHONE] [ge/GUARDIAN_EMAIL] "
             + "[" + PREFIX_SUBJECT + "SUBJECT " + PREFIX_COST + "COST "
-            + PREFIX_CLASS + "DAYHHmm-HHmm [mode/online|offline] [link/URL] [location/LOCATION] [notes/NOTES]]\n"
+            + PREFIX_CLASS + "SCHEDULE [mode/online|offline] [link/URL] [location/LOCATION] [notes/NOTES]]\n"
             + "Example: " + COMMAND_WORD + " "
             + PREFIX_NAME + "John Doe "
             + PREFIX_PHONE + "98765432 "

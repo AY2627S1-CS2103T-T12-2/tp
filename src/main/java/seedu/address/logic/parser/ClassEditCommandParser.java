@@ -25,7 +25,7 @@ public class ClassEditCommandParser implements Parser<ClassEditCommand> {
         }
         arguments.verifyNoDuplicatePrefixesFor(PREFIX_CLASS_ID, PREFIX_SUBJECT, PREFIX_COST, PREFIX_CLASS);
         return new ClassEditCommand(ParserUtil.parseClassId(arguments.getValue(PREFIX_CLASS_ID).get()),
-                parseOptionalSubject(arguments), parseOptionalCost(arguments), parseOptionalTiming(arguments));
+                parseOptionalSubject(arguments), parseOptionalCost(arguments), parseOptionalSchedule(arguments));
     }
 
     private static Optional<seedu.address.model.lesson.Subject> parseOptionalSubject(ArgumentMultimap arguments)
@@ -42,10 +42,10 @@ public class ClassEditCommandParser implements Parser<ClassEditCommand> {
                 : Optional.empty();
     }
 
-    private static Optional<seedu.address.model.lesson.LessonTiming> parseOptionalTiming(ArgumentMultimap arguments)
+    private static Optional<seedu.address.model.lesson.LessonSchedule> parseOptionalSchedule(ArgumentMultimap arguments)
             throws ParseException {
         return arguments.getValue(PREFIX_CLASS).isPresent()
-                ? Optional.of(ParserUtil.parseLessonTiming(arguments.getValue(PREFIX_CLASS).get()))
+                ? Optional.of(ParserUtil.parseLessonSchedule(arguments.getValue(PREFIX_CLASS).get()))
                 : Optional.empty();
     }
 }

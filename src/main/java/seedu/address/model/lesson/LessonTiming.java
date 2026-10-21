@@ -12,7 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /** A weekly lesson slot with a start and end time on the same day. */
-public class LessonTiming implements Comparable<LessonTiming> {
+public class LessonTiming implements LessonSchedule, Comparable<LessonTiming> {
 
     public static final String MESSAGE_CONSTRAINTS =
             "Lesson timing should use DAYHHmm-HHmm (for example, Monday1800-1930), with end after start.";
@@ -52,6 +52,12 @@ public class LessonTiming implements Comparable<LessonTiming> {
         }
     }
 
+    @Override
+    public ScheduleType getType() {
+        return ScheduleType.WEEKLY;
+    }
+
+    @Override
     public DayOfWeek getDay() {
         return day;
     }
@@ -64,6 +70,12 @@ public class LessonTiming implements Comparable<LessonTiming> {
         return endTime;
     }
 
+    @Override
+    public boolean occursOn(java.time.LocalDate date) {
+        requireNonNull(date);
+        return date.getDayOfWeek() == day;
+    }
+
     public boolean startsAt(DayOfWeek expectedDay, LocalTime expectedTime) {
         return day == expectedDay && startTime.equals(expectedTime);
     }
@@ -73,16 +85,17 @@ public class LessonTiming implements Comparable<LessonTiming> {
      * Timings that only meet at an endpoint are not considered overlapping.
      */
     public boolean overlapsWith(LessonTiming other) {
-        requireNonNull(other);
-        return day == other.day
-                && startTime.isBefore(other.endTime)
-                && other.startTime.isBefore(endTime);
+        return LessonSchedule.super.overlapsWith(other);
     }
 
     @Override
     public int compareTo(LessonTiming other) {
         int dayComparison = Integer.compare(day.getValue(), other.day.getValue());
-        return dayComparison != 0 ? dayComparison : startTime.compareTo(other.startTime);
+        if (dayComparison != 0) {
+            return dayComparison;
+        }
+        int startComparison = startTime.compareTo(other.startTime);
+        return startComparison != 0 ? startComparison : endTime.compareTo(other.endTime);
     }
 
     @Override
@@ -93,6 +106,7 @@ public class LessonTiming implements Comparable<LessonTiming> {
     }
 
     /** Returns the compact form used in JSON and commands. */
+    @Override
     public String toStorageString() {
         String displayDay = day.toString().substring(0, 1)
                 + day.toString().substring(1).toLowerCase(Locale.ROOT);

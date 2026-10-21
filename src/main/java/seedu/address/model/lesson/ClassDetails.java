@@ -8,7 +8,7 @@ import java.net.URISyntaxException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-/** Shared details for a recurring class. Empty fields mean not provided. */
+/** Shared details for a scheduled class. Empty fields mean not provided. */
 public record ClassDetails(ClassMode mode, String meetingLink, String location, String notes) {
 
     public static final ClassDetails EMPTY = new ClassDetails("", "", "");
@@ -53,7 +53,7 @@ public record ClassDetails(ClassMode mode, String meetingLink, String location, 
 
     /** Returns whether this class has no extra details. */
     public boolean isEmpty() {
-        return mode == ClassMode.OFFLINE && meetingLink.isEmpty() && location.isEmpty() && notes.isEmpty();
+        return equals(EMPTY);
     }
 
     @Override

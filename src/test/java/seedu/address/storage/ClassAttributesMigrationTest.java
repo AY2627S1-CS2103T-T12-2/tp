@@ -84,6 +84,49 @@ public class ClassAttributesMigrationTest {
     }
 
     @Test
+    public void oneOffAttributesAndPinState_surviveJsonRoundTripAndNormalisation() throws Exception {
+        ModelManager model = new ModelManager();
+        var parser = new seedu.address.logic.parser.AddressBookParser();
+        parser.parseCommand("add n/Alice p/91234567 e/alice@example.com a/One gn/Mary gp/99999999"
+                + " sub/Math cost/30 c/2026-10-24T1800-1930 mode/online link/https://example.com/math")
+                .execute(model);
+        parser.parseCommand("pin 1").execute(model);
+        parser.parseCommand("class payment 1 id/C001 status/paid").execute(model);
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("one-off.json"));
+        storage.saveAddressBook(model.getAddressBook());
+        var reloaded = storage.readAddressBook().orElseThrow();
+        assertEquals(model.getAddressBook(), reloaded);
+        var person = reloaded.getPersonList().getFirst();
+        assertTrue(person.isPinned());
+        assertEquals("99999999", person.getGuardianContact().phone());
+        assertEquals("2026-10-24T1800-1930", person.getLessons().iterator().next().getSchedule().toStorageString());
+        assertEquals(reloaded, new ModelManager(reloaded, new UserPrefs()).getAddressBook());
+    }
+
+    @Test
+    public void oldScheduleProperty_isReadAndRewrittenUsingCanonicalTiming() throws Exception {
+        String json = CATALOGUE_JSON.replace("\"timing\":\"Saturday1800-1930\",\"paymentStatus\"",
+                "\"schedule\":\"Saturday1800-1930\",\"paymentStatus\"");
+        AddressBook loaded = JsonUtil.fromJsonString(json, JsonSerializableAddressBook.class).toModelType();
+        String saved = JsonUtil.toJsonString(new JsonSerializableAddressBook(loaded));
+        assertTrue(saved.contains("\"timing\""));
+        assertEquals(loaded, JsonUtil.fromJsonString(saved, JsonSerializableAddressBook.class).toModelType());
+    }
+
+    @Test
+    public void emptyUndescribedCatalogueClass_acceptsExplicitLegacyDetails() throws Exception {
+        String json = """
+                {"classes":[{"id":"C004","subject":"Math","cost":"30","timing":"Saturday1800-1930"}],
+                "persons":[{"name":"Alice","phone":"91234567","email":"alice@example.com","address":"One",
+                "tags":[],"lessons":[{"classId":"C004","subject":"Math","cost":"30",
+                "timing":"Saturday1800-1930","paymentStatus":"PAID","meetingLink":"https://example.com/math"}]}]}
+                """;
+        AddressBook loaded = JsonUtil.fromJsonString(json, JsonSerializableAddressBook.class).toModelType();
+        assertEquals(ClassMode.ONLINE, loaded.getTuitionClassList().getFirst().getDetails().mode());
+        assertEquals("https://example.com/math", loaded.getTuitionClassList().getFirst().getDetails().meetingLink());
+    }
+
+    @Test
     public void classWithoutStudents_keepsAttributesInStorage() throws Exception {
         AddressBook book = new AddressBook();
         ClassDetails details = new ClassDetails(ClassMode.ONLINE, "https://example.com/math", "", "Bring notes");

@@ -21,6 +21,6 @@ public class ClassAddCommandParser implements Parser<ClassAddCommand> {
         return new ClassAddCommand(
                 ParserUtil.parseLessonSubject(arguments.getValue(PREFIX_SUBJECT).get()),
                 ParserUtil.parseLessonCost(arguments.getValue(PREFIX_COST).get()),
-                ParserUtil.parseLessonTiming(arguments.getValue(PREFIX_CLASS).get()));
+                ParserUtil.parseLessonSchedule(arguments.getValue(PREFIX_CLASS).get()));
     }
 }

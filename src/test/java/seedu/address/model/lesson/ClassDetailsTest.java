@@ -28,8 +28,9 @@ public class ClassDetailsTest {
 
     @Test
     public void constructor_invalidLinks_rejectsInput() {
-        for (String link : List.of("example.com", "https://", "ftp://example.com", "javascript:alert(1)",
-                "https://user:pass@example.com", "https://example.com/with space", "https://example.com:99999")) {
+        for (String link : List.of("example.com", "https://", "http:/path", "ftp://example.com", "javascript:alert(1)",
+                "https://user:pass@example.com", "https://example.com/with space", "https://example.com:99999",
+                "https://example.com:0", "https://example.com:-2")) {
             assertThrows(IllegalArgumentException.class, () -> new ClassDetails(link, "", ""), link);
         }
     }
@@ -43,6 +44,17 @@ public class ClassDetailsTest {
         assertEquals(ClassMode.ONLINE, ClassMode.fromString("OnLiNe"));
         assertEquals(ClassMode.OFFLINE, ClassMode.fromString("OFFLINE"));
         assertThrows(IllegalArgumentException.class, () -> ClassMode.fromString("hybrid"));
+    }
+
+    @Test
+    public void optionalFieldsAndValidPortBoundaries_remainMeaningfulDetails() {
+        assertTrue(ClassDetails.isValidMeetingLink("https://example.com:1"));
+        assertTrue(ClassDetails.isValidMeetingLink("https://example.com:65535"));
+        assertFalse(new ClassDetails(ClassMode.ONLINE, "", "", "").isEmpty());
+        assertFalse(new ClassDetails("", "Room 2", "").isEmpty());
+        assertFalse(new ClassDetails("", "", "Bring notes").isEmpty());
+        assertEquals("Mode: Offline | Location: Room 2", new ClassDetails("", "Room 2", "").toString());
+        assertEquals("Mode: Offline | Notes: Bring notes", new ClassDetails("", "", "Bring notes").toString());
     }
 
     @Test

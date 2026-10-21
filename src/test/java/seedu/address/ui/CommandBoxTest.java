@@ -43,16 +43,33 @@ public class CommandBoxTest {
         assertEquals("", CommandBox.getCommandSuggestion(null));
         assertEquals("", CommandBox.getCommandSuggestion(""));
         assertEquals("find", CommandBox.getCommandSuggestion("fin"));
-        assertEquals("find KEYWORD | find t/TAG (e.g. priority) | find c/DAY TIME (e.g. Monday 1800)",
+        assertEquals("find KEYWORD | find t/TAG | find c/DAY, DATE, or TIME",
                 CommandBox.getCommandSuggestion("find"));
-        assertEquals("find KEYWORD | find t/TAG (e.g. priority) | find c/DAY TIME (e.g. Monday 1800)",
+        assertEquals("find KEYWORD | find t/TAG | find c/DAY, DATE, or TIME",
                 CommandBox.getCommandSuggestion("find "));
         assertEquals("find t/TAG (e.g. priority)", CommandBox.getCommandSuggestion("find t/"));
-        assertEquals("find c/DAY TIME (e.g. Monday 1800; time uses HHmm)",
+        assertEquals("find c/DAY, DATE, or TIME (e.g. Monday 1800; 2026-10-20; time uses HHmm)",
                 CommandBox.getCommandSuggestion("find c/"));
         assertEquals("t/TAG (e.g. priority)", CommandBox.getCommandSuggestion("t/"));
-        assertEquals("c/DAY TIME (e.g. Monday 1800; time uses HHmm)", CommandBox.getCommandSuggestion("c/"));
+        assertEquals("c/DAY, DATE, or TIME (e.g. Monday 1800; 2026-10-20; time uses HHmm)",
+                CommandBox.getCommandSuggestion("c/"));
+        assertEquals("pin", CommandBox.getCommandSuggestion("pi"));
+        assertEquals("pin INDEX", CommandBox.getCommandSuggestion("pin"));
+        assertEquals("pin INDEX", CommandBox.getCommandSuggestion("pin "));
+        assertEquals("unpin", CommandBox.getCommandSuggestion("unp"));
+        assertEquals("unpin INDEX", CommandBox.getCommandSuggestion("unpin"));
+        assertEquals("unpin INDEX", CommandBox.getCommandSuggestion("unpin "));
         assertEquals("", CommandBox.getCommandSuggestion("list"));
+    }
+
+    @Test
+    public void getCommandSuggestion_privacyInputs_returnsExpectedSuggestion() {
+        assertEquals("privacy", CommandBox.getCommandSuggestion("pri"));
+        assertEquals("privacy on | privacy off", CommandBox.getCommandSuggestion("privacy"));
+        assertEquals("privacy on | privacy off", CommandBox.getCommandSuggestion("privacy "));
+        assertEquals("privacy on | privacy off", CommandBox.getCommandSuggestion("privacy o"));
+        assertEquals("", CommandBox.getCommandSuggestion("privacy on"));
+        assertEquals("", CommandBox.getCommandSuggestion("privacy off"));
     }
 
     @Test
@@ -77,6 +94,12 @@ public class CommandBoxTest {
 
             commandTextField.setText("find t/");
             assertEquals("find t/TAG (e.g. priority)", commandSuggestionTextField.getText());
+
+            commandTextField.setText("privacy ");
+            assertEquals("privacy on | privacy off", commandSuggestionTextField.getText());
+
+            commandTextField.setText("pin ");
+            assertEquals("pin INDEX", commandSuggestionTextField.getText());
         });
     }
 

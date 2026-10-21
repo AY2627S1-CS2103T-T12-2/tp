@@ -72,9 +72,10 @@ The **API** of this component is specified in [`Ui.java`](https://github.com/se-
 <puml src="diagrams/UiClassDiagram.puml" alt="Structure of the UI Component"/>
 
 The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`,
-`TimetablePanel`, and `StatusBarFooter`. `MainWindow` switches the main content placeholder between the person list and
-the read-only timetable according to the `ViewChange` carried by a successful `CommandResult`. These UI classes inherit
-from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
+`TimetablePanel`, `ClassListPanel`, and `StatusBarFooter`. `MainWindow` switches the main content placeholder among the
+person list, read-only timetable, and read-only class list according to the `ViewChange` carried by a successful
+`CommandResult`. These UI classes inherit from the abstract `UiPart` class, which captures common behavior among
+classes that represent visible GUI parts.
 
 The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
 
@@ -92,6 +93,15 @@ contained in one `HBox`, while the surrounding `VBox` places every class group o
 the same colour across students. The palette identifies a class using its case-insensitive subject and complete
 lesson timing, matching `Lesson#isSameClass`; cost and payment status are not part of the colour identity. A muted
 balance badge beside the student's name always displays `Person#getOutstandingBalance`, including when it is zero.
+Pinned students also display a `PINNED` badge beside their name. The badge is visible and participates in the layout
+only when `Person#isPinned` is true.
+
+`MainWindow` passes the privacy preference from `Logic` to `PersonListPanel` and `StatusBarFooter`. The panel owns an
+observable privacy state shared by its `PersonCard` instances. Each card binds its phone, email, and address labels to
+that state, so toggling privacy mode replaces each value with a fixed seven-asterisk mask without modifying the
+underlying `Person`. The panel also refreshes its `ListView` to ensure newly created and currently displayed cells use
+the same state. `StatusBarFooter` keeps a visible privacy indicator active across the student-list, timetable, and
+class-list views.
 
 ### Logic component
 
@@ -119,9 +129,10 @@ How the `Logic` component works:
    Note that although this is shown as a single step in the diagram above for simplicity, the code can require several interactions between the command object and the `Model` to complete the operation.
 1. The result of the command execution is encapsulated as a `CommandResult` object which is returned from `Logic`.
 
-`LogicManager` also tracks whether the person list or timetable is active. In timetable mode it rejects every command
-except `list`, `help`, and `exit` before execution. `timetable` and `list` return view-change instructions that keep this
-state synchronized with `MainWindow`.
+`LogicManager` also tracks whether the person list, timetable, or class list is active. In the read-only timetable and
+class-list views, it rejects modifying commands before execution while allowing navigation, `privacy`, `help`, and
+`exit`. `timetable`, `class list`, and `list` return view-change instructions that keep this state synchronized with
+`MainWindow`.
 
 Here are the other classes in `Logic` (omitted from the class diagram above) that are used for parsing a user command:
 
@@ -145,7 +156,8 @@ The `Model` component,
 * represents the student-to-class association using an enrolment value. The enrolment references the class ID and owns
   the student-specific `PaymentStatus`.
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
-* stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
+* stores a `UserPrefs` object that represents the user’s GUI settings and privacy preference. This is exposed to the
+  outside as a `ReadOnlyUserPrefs` object.
 * derives immutable timetable day and class entries from every person's lessons. The timetable is not stored separately,
   and it uses the complete address book rather than the filtered person list.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
@@ -180,6 +192,43 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Lesson scheduling model
+
+`LessonSchedule` is the common immutable contract for when a class occurs. `LessonTiming` implements it for a weekly
+schedule containing a `DayOfWeek`, start time, and end time. `OneOffLessonSchedule` implements it for an exact
+`LocalDate` and time range. Both reject null fields, invalid times, equal start and end times, and overnight ranges.
+
+Commands retain the existing weekly representation `c/Monday1800-1930` and accept one-off schedules in the form
+`c/2026-10-20T1800-1930`. `ParserUtil#parseLessonSchedule` selects the matching immutable schedule type. A `Lesson`
+stores the resulting `LessonSchedule`; its subject and complete schedule form its logical class identity, while cost and
+payment status remain enrolment properties excluded by `Lesson#isSameClass`.
+
+Schedule overlap is date-aware. Two weekly schedules conflict on the same weekday, two one-off schedules conflict only
+on the same date, and a weekly schedule conflicts with a one-off schedule when the date has the weekly schedule's
+weekday. In all three cases, their time ranges must overlap; ranges meeting only at an endpoint do not conflict.
+
+`JsonAdaptedLesson` stores `scheduleType` as `WEEKLY` or `ONE_OFF` alongside the compact `timing` value. Saved lessons
+without `scheduleType` are interpreted as weekly schedules, so existing address-book files load without manual
+migration. Weekly occurrences remain derived and are never expanded into persisted dated records.
+
+### Pin feature
+
+Each `Person` stores a `pinned` boolean. `JsonAdaptedPerson` writes this value to the address-book data file and treats
+a missing value as `false`, allowing older files to remain compatible. Copy operations such as editing tags or lessons
+retain the existing pin state.
+
+`PinCommand` and `UnpinCommand` resolve their target against the displayed student list and replace that student with
+an immutable copy containing the new pin state. Repeating the existing state is rejected with an actionable error.
+
+`ModelManager` exposes a `SortedList` that places pinned students before unpinned students. This comparator is applied
+both to the complete list and to filtered lists. When a command supplies another comparator, such as the relevance
+comparator used by `find`, pinned state remains the primary key and the supplied comparator orders students within
+each pin group. Filters still control which students are included.
+
+`PersonListPanel` observes this sorted list, so pinning or unpinning immediately reorders the existing list and updates
+displayed indexes. `PersonCard` reads the pin state when rendering and shows the `PINNED` badge for pinned students.
+`CommandBox` suggests the `pin INDEX` and `unpin INDEX` formats while either command is being entered.
+
 ### Find feature
 
 The `find` feature is implemented across `FindCommandParser`, `FindCommand`, the search predicates, and `CommandBox`.
@@ -188,22 +237,36 @@ Supported modes are mutually exclusive:
 
 * `find KEYWORD [MORE_KEYWORDS]` -> `NameContainsKeywordsPredicate`
 * `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]` -> `TagContainsKeywordsPredicate`
-* `find c/DAY [TIME_HHmm]` or `find c/TIME_HHmm` -> `LessonContainsKeywordsPredicate`
+* `find c/DAY [TIME_HHmm]`, `find c/TIME_HHmm`, or `find c/DATE [TIME_HHmm]`
+  -> `LessonContainsKeywordsPredicate`
 
 `FindCommandParser` selects the mode from the prefix immediately after `find`. It rejects mixed modes, duplicate search
 prefixes, empty prefixed values, and invalid tag or lesson keywords before constructing the corresponding predicate.
 For tag search, it normalizes keywords to lowercase before tag-format validation. This keeps stored tags lowercase-only
 while allowing case-insensitive search input for user convenience.
 Lesson keywords accept a weekday/prefix such as `Mon`, an HHmm-style time within `0000`-`2359`, or both; shorter
-numeric fragments such as `18` are accepted for partial matching.
+numeric fragments such as `18` are accepted for partial matching. An exact ISO date such as `2026-10-20` matches a
+one-off schedule, while a weekday search also matches one-off schedules occurring on that weekday.
 
 `FindCommand` applies the predicate through `Model#updateFilteredPersonList`. Predicates that implement
 `ScoredPersonPredicate` also provide a relevance score, so `FindCommand` requests a sorted filtered list with stronger
-matches first and preserves original address-book order for ties.
+matches first within each pin group and preserves original address-book order for ties. Matching pinned students are
+placed before matching unpinned students.
 
-`CommandBox` provides light-grey input-bar hints for common `find` inputs. After a successful `find`, it keeps the
-suggestion overlay visible with `Type 'list' to return to the home page.`; the hint clears when the user starts typing
-or when a non-`find` command succeeds.
+`CommandBox` provides light-grey input-bar hints for common `find` inputs and the available `privacy` modes. After a
+successful `find`, it keeps the suggestion overlay visible with `Type 'list' to return to the home page.`; the hint
+clears when the user starts typing or when a non-`find` command succeeds.
+
+### Privacy mode
+
+`privacy on` and `privacy off` update `UserPrefs#privacyModeEnabled` through the model. `LogicManager` saves the updated
+preferences using the existing user-preferences storage, so the selection survives an application restart. A missing
+JSON field maps to Java's default `false` value, keeping older preference files compatible.
+
+After any successful command, `MainWindow` reads the privacy state from `Logic` and updates both `PersonListPanel` and
+`StatusBarFooter`. Existing `PersonCard` contact-label bindings react immediately, while a list refresh ensures all
+cells are rendered consistently. Disabling privacy mode binds the labels back to the original values held by `Person`;
+neither command changes address-book data.
 
 ### Timetable view
 
@@ -212,9 +275,11 @@ or when a non-`find` command succeeds.
 `TimetablePanel`.
 
 `ModelManager#getTimetable(LocalDate)` passes the central class list and complete person list to `TimetableBuilder`.
-The builder includes independently created classes even when they have no enrolled students, attaches students through
-their enrolments, and omits days before the supplied date's weekday. Entries are ordered by start time, subject, and
-end time.
+The builder generates the actual dates from the supplied date through Saturday and uses
+`LessonSchedule#occursOn(LocalDate)` to select classes for each date. This places weekly schedules on their matching
+weekday and one-off schedules only on their exact date. Independently created classes appear even without enrolled
+students, while enrolments attach students to the matching class. The builder returns one immutable `TimetableDay` per
+visible date, including empty days, with entries ordered by start time, subject, and end time.
 
 The UI renders the projection in three levels: `TimetablePanel` provides the scrolling list, `TimetableDayCard` displays
 a day heading and empty state, and `TimetableEntryCard` displays a class's time, subject, and students. Entering `list`
@@ -271,6 +336,10 @@ of shared details, and the student's individual payment status. All lesson copy 
 both the ID and details. Model normalization and class edits build enrolments from the canonical
 class instead of resetting their attributes. Class listing and timetable entries display the same values.
 
+Subject search delegates legacy fallback eligibility to `Person#hasUnmigratedLegacyLesson`.
+The same end-time calculation drives migration and fallback, so a valid legacy `Monday2359`
+record stays searchable without restoring stale subjects after a successfully migrated class is removed.
+
 `ClassDetailsUpdate` represents optional `add` input. It resolves classes from the class catalogue,
 including empty classes. New classes default to offline. An empty, undescribed catalogue class can
 receive its extra details through its first contact. For occupied classes or classes with recorded
@@ -313,6 +382,32 @@ successful command, so searching does not remove students or enrolments from sto
 
 The [subject search guide](SubjectSearch.md) documents examples and input constraints.
 The [testing guide](Testing.md#subject-search-tests) lists automated coverage and commands for this feature.
+
+### Batch tag assignment
+
+`TagCommandParser` selects the legacy single-student mode when no `t/` prefix is present. When `t/` is present, it
+parses the whitespace-separated preamble as one or more unique displayed student indexes and parses exactly one tag
+from the prefix value. This distinction preserves `tag INDEX TAG [MORE_TAGS]` while allowing numeric batch tags to be
+separated unambiguously from indexes.
+
+Before changing the model, `TagCommand` validates every displayed index and categorizes all selected students. A
+student who already has the tag is skipped. A student with 10 or more tags is reported as being at the tag limit.
+Only the remaining students receive immutable replacement `Person` objects containing the new tag. The command result
+lists all three outcome groups, or reports that no changes were made when every selected student is skipped.
+
+### Batch class enrolment
+
+`ClassEnrolCommandParser` parses the whitespace-separated preamble as one or more displayed student indexes. When
+`cost/` is present, exactly one index is accepted and the existing single-student behaviour is preserved. When cost is
+omitted, the parser constructs a command that identifies an existing class by its case-insensitive subject and complete
+lesson timing.
+
+`ClassEnrolCommand` uses `Model#findTuitionClass` to resolve the subject and timing against the independent central
+class collection, rather than scanning student enrolments. This allows an empty class to be found and supplies the
+canonical class ID and cost for each new `Enrollment`. Before changing the model, the command validates every displayed
+index and the target class. It then skips selected students who are already enrolled and replaces only the remaining
+immutable `Person` objects. Invalid or duplicate indexes and a missing class leave every student unchanged. If all
+selected students are already enrolled, the command makes no changes and returns an informative message.
 
 ### \[Proposed\] Undo/redo feature
 
@@ -481,6 +576,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *`    | tutor deleting a student or class           | see which enrollments and lessons will be affected                | avoid removing related information accidentally                           |
 | `* *`    | tutor                                       | view my next few lessons when the application opens               | prepare without navigating the full timetable                             |
 | `* *`    | tutor with many students                    | sort and filter my students                                        | manage a large contact list easily                                         |
+| `* *`    | tutor with frequently accessed students     | pin important students above the rest                              | access their details quickly                                               |
 | `* *`    | tutor                                       | add notes about each student                                       | remember their learning needs and progress                                 |
 | `* *`    | tutor who conducts in-person lessons        | store a student's home address                                     | travel to their lessons easily                                             |
 | `* *`    | tutor teaching minors                       | record a parent or guardian's contact details                      | contact them when necessary                                                |
@@ -845,6 +941,38 @@ followed by a separate, muted `Unpaid` label, and each balance badge should init
 
 Mark one student as paid, exit the app, and relaunch it. The paid status should still appear, while the other student's
 status remains unpaid. Open the timetable and verify that both students still appear together in one Math class.
+
+### Assigning a tag to multiple students
+
+Use a disposable data file with at least three displayed students and reset it between test cases. Unless a row states
+otherwise, selected students do not have the target tag and have fewer than 10 tags.
+
+| Test input | Expected result |
+| --- | --- |
+| `tag 1 2 3 t/exam-prep` | All three students receive `exam-prep`; feedback lists them under the added group. |
+| Give student 1 `math-2026` and student 2 ten other tags, then run `tag 1 2 3 t/math-2026` | Student 1 is skipped as already tagged, student 2 is skipped at the tag limit, and student 3 receives the tag; feedback identifies each outcome. |
+| Give student 1 `math-2026` and student 2 ten other tags, then run `tag 1 2 t/math-2026` | No student changes; feedback identifies student 1 as already tagged and student 2 as being at the tag limit. |
+| `tag 1 1 3 t/exam-prep` | Duplicate-index error; no student changes. |
+| `tag 1 999 t/exam-prep` | Invalid-index error; no student changes. |
+| `tag 1 3 t/ExamPrep` | Invalid-tag error under the existing lowercase tag rules; no student changes. |
+| `tag 1 3 t/2026` | Both students receive the numeric tag `2026`. |
+| `tag 3 exam-prep needs-follow-up` | The legacy format still adds both tags to student 3. |
+
+### Batch class enrolment
+
+First create `Math` at `Monday1800-1930` with cost 30 using `class add`. Leave the class empty initially so the first
+test also verifies that batch enrolment looks up the independent class rather than scanning existing enrolments.
+
+| Test input | Expected result |
+| --- | --- |
+| `class enrol 2 3 sub/Math c/Monday1800-1930` | Both displayed students are enrolled using the existing cost of 30. |
+| `class enrol 2 sub/math c/Monday1800-1930` | The subject match is case-insensitive and the student is enrolled. |
+| `class enrol 2 2 sub/Math c/Monday1800-1930` | Duplicate-index error; no student changes. |
+| `class enrol 2 999 sub/Math c/Monday1800-1930` | Invalid-index error; no student changes. |
+| `class enrol 1 2 sub/Math c/Monday1800-1930` | Student 1 is skipped because they are already enrolled; student 2 is enrolled, and the feedback identifies both outcomes. |
+| With students 1 and 2 already enrolled, repeat `class enrol 1 2 sub/Math c/Monday1800-1930` | No student changes; feedback says that all selected students are already enrolled. |
+| `class enrol 2 3 sub/Physics c/Monday1800-1930` | Missing-class error; no student changes. |
+| `class enrol 2 3 sub/Math cost/30 c/Monday1800-1930` | Error explaining that cost cannot be supplied for multiple students. |
 
 ### Saving data
 

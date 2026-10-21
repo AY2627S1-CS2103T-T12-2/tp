@@ -16,6 +16,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import javafx.application.Platform;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
@@ -24,6 +25,7 @@ import seedu.address.model.lesson.ClassDetails;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.OneOffLessonSchedule;
 import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.lesson.Subject;
 import seedu.address.model.person.Person;
@@ -33,6 +35,14 @@ import seedu.address.testutil.PersonBuilder;
  * Tests the actual student card and its optional fields using the JavaFX application thread.
  */
 public class PersonCardTest {
+
+    @Test
+    public void formatClassBadge_oneOffSchedule_displaysExactDate() {
+        Lesson oneOff = new Lesson(new Subject("Math"), new Cost("30"),
+                new OneOffLessonSchedule("2026-10-20T1800-1930"));
+
+        assertEquals("Math · 20 Oct 2026 18:00–19:30", PersonCard.formatClassBadge(oneOff));
+    }
 
     @BeforeAll
     public static void startJavaFx() throws InterruptedException {
@@ -120,16 +130,58 @@ public class PersonCardTest {
     }
 
     @Test
+    public void privacyMode_changes_masksAndRestoresContactDetailsWithoutChangingPerson() throws Exception {
+        runOnFxThread(() -> {
+            Person person = new PersonBuilder().withPhone("91234567")
+                    .withEmail("student@example.com").withAddress("123 Privacy Street").build();
+            SimpleBooleanProperty privacyModeEnabled = new SimpleBooleanProperty(false);
+            PersonCard card = new PersonCard(person, 1, new ClassColorPalette(List.of(person)),
+                    privacyModeEnabled);
+
+            assertLabel(card, "phone", person.getPhone().value, true);
+            assertLabel(card, "email", person.getEmail().value, true);
+            assertLabel(card, "address", person.getAddress().value, true);
+
+            privacyModeEnabled.set(true);
+
+            assertLabel(card, "phone", "Phone: " + PersonCard.PRIVACY_MASK, true);
+            assertLabel(card, "email", "Email: " + PersonCard.PRIVACY_MASK, true);
+            assertLabel(card, "address", "Address: " + PersonCard.PRIVACY_MASK, true);
+            assertEquals("91234567", person.getPhone().value);
+            assertEquals("student@example.com", person.getEmail().value);
+            assertEquals("123 Privacy Street", person.getAddress().value);
+
+            privacyModeEnabled.set(false);
+
+            assertLabel(card, "phone", person.getPhone().value, true);
+            assertLabel(card, "email", person.getEmail().value, true);
+            assertLabel(card, "address", person.getAddress().value, true);
+        });
+    }
+
+    @Test
     public void constructor_noStudentDetails_hidesOptionalFieldsAndTheirLayoutSpace() throws Exception {
         runOnFxThread(() -> {
             PersonCard card = new PersonCard(new PersonBuilder().build(), 1);
             assertTrue(getClassGroups(card).isEmpty());
             assertFalse(getClassPane(card).isVisible());
             assertFalse(getClassPane(card).isManaged());
+            assertLabel(card, "pinned", "PINNED", false);
             assertLabel(card, "balance", "Balance: 0", true);
             assertLabel(card, "subjects", "Subjects: ", false);
             assertLabel(card, "cost", "", false);
             assertLabel(card, "lesson", "", false);
+        });
+    }
+
+    @Test
+    public void constructor_pinnedPerson_displaysPinnedBadge() throws Exception {
+        runOnFxThread(() -> {
+            PersonCard card = new PersonCard(new PersonBuilder().withPinned(true).build(), 1);
+
+            assertLabel(card, "pinned", "PINNED", true);
+            Label pinned = (Label) card.getRoot().lookup("#pinned");
+            assertTrue(pinned.getStyleClass().contains("pinned-badge"));
         });
     }
 
@@ -203,6 +255,23 @@ public class PersonCardTest {
             assertTrue(label.isWrapText());
             assertTrue(detailsPane.isVisible());
             assertTrue(detailsPane.isManaged());
+        });
+    }
+
+    @Test
+    public void privacyChanges_maskGuardianContactsWithoutChangingStoredValues() throws Exception {
+        runOnFxThread(() -> {
+            Person person = new PersonBuilder().withPinned(true)
+                    .withGuardianContact("Mary Tan", "98765432", "mary@example.com").build();
+            javafx.beans.property.SimpleBooleanProperty privacy = new javafx.beans.property.SimpleBooleanProperty(true);
+            PersonCard card = new PersonCard(person, 1, new ClassColorPalette(), privacy);
+            assertLabel(card, "guardian", "Guardian: " + PersonCard.PRIVACY_MASK, true);
+            privacy.set(false);
+            assertLabel(card, "guardian", "Guardian: Mary Tan | 98765432 | mary@example.com", true);
+            privacy.set(true);
+            assertLabel(card, "guardian", "Guardian: " + PersonCard.PRIVACY_MASK, true);
+            assertEquals("98765432", person.getGuardianContact().phone());
+            assertTrue(person.isPinned());
         });
     }
 
