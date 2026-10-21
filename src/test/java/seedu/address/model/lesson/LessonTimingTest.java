@@ -43,14 +43,15 @@ public class LessonTimingTest {
     }
 
     @Test
-    public void compareTo_ordersByDayThenStartTime() {
+    public void compareTo_ordersByDayStartAndEndTime() {
         LessonTiming mondayMorning = new LessonTiming("Monday0900-1000");
         LessonTiming mondayEvening = new LessonTiming("Monday1800-1930");
         LessonTiming tuesdayMorning = new LessonTiming("Tuesday0900-1000");
 
         assertTrue(mondayMorning.compareTo(mondayEvening) < 0);
         assertTrue(mondayEvening.compareTo(tuesdayMorning) < 0);
-        assertEquals(0, mondayMorning.compareTo(new LessonTiming("Monday0900-1100")));
+        assertTrue(mondayMorning.compareTo(new LessonTiming("Monday0900-1100")) < 0);
+        assertEquals(0, mondayMorning.compareTo(new LessonTiming("Monday0900-1000")));
     }
 
     @Test
@@ -82,6 +83,8 @@ public class LessonTimingTest {
         assertEquals(timing, timing);
         assertEquals(timing, copy);
         assertEquals(timing.hashCode(), copy.hashCode());
+        assertNotEquals(timing, new LessonTiming("Tuesday1800-1930"));
+        assertNotEquals(timing, new LessonTiming("Monday1900-2000"));
         assertNotEquals(timing, new LessonTiming("Monday1800-2000"));
         assertNotEquals(timing, "Monday1800-1930");
     }

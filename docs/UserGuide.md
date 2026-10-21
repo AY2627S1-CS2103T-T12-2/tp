@@ -129,7 +129,10 @@ Removes one class from one student without affecting other students enrolled in 
 
 Format: `class unenrol STUDENT_INDEX sub/SUBJECT c/SCHEDULE`
 
-Example: `class unenrol 1 sub/Physics c/Wednesday1700-1830`
+Examples:
+
+* `class unenrol 1 sub/Physics c/Wednesday1700-1830`
+* `class unenrol 1 sub/Physics c/2026-10-20T1700-1830`
 
 ### Updating an enrolment's payment status: `class payment`
 
@@ -142,6 +145,7 @@ Examples:
 
 * `class payment 1 sub/Physics c/Wednesday1700-1830 status/paid`
 * `class payment 1 sub/Physics c/Wednesday1700-1830 status/unpaid`
+* `class payment 1 sub/Physics c/2026-10-20T1700-1830 status/paid`
 
 New and previously saved enrolments default to unpaid. A subdued status label appears immediately after the
 corresponding coloured class badge, without sharing the badge's background colour. Each class badge and status label
@@ -160,7 +164,10 @@ deleted. The command searches the complete address book even when the displayed 
 
 Format: `class delete sub/SUBJECT c/SCHEDULE`
 
-Example: `class delete sub/Physics c/Wednesday1700-1830`
+Examples:
+
+* `class delete sub/Physics c/Wednesday1700-1830`
+* `class delete sub/Physics c/2026-10-20T1700-1830`
 
 ### Viewing the weekly timetable: `timetable`
 
@@ -173,6 +180,10 @@ then subject.
 
 Weekly classes appear on their matching weekday. One-off classes appear only when their exact date falls within the
 visible range.
+
+One-off classes are retained after their date passes so that enrolment and payment information is not silently lost.
+Expired one-off classes no longer appear in the timetable, but remain on the student record until they are explicitly
+unenrolled or deleted.
 
 Format: `timetable`
 
@@ -328,8 +339,8 @@ Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 **Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [sub/SUBJECT cost/COST c/SCHEDULE]` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/Clementi t/friend sub/Math cost/30 c/Monday1800-1930`
 **Enrol in class** | `class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/SCHEDULE`<br> e.g., `class enrol 1 sub/Physics cost/35 c/2026-10-20T1700-1830`
-**Unenrol from class** | `class unenrol STUDENT_INDEX sub/SUBJECT c/SCHEDULE`<br> e.g., `class unenrol 1 sub/Physics c/Wednesday1700-1830`
-**Update payment status** | `class payment STUDENT_INDEX sub/SUBJECT c/SCHEDULE status/paid|unpaid`<br> e.g., `class payment 1 sub/Physics c/Wednesday1700-1830 status/paid`
+**Unenrol from class** | `class unenrol STUDENT_INDEX sub/SUBJECT c/SCHEDULE`<br> e.g., `class unenrol 1 sub/Physics c/2026-10-20T1700-1830`
+**Update payment status** | `class payment STUDENT_INDEX sub/SUBJECT c/SCHEDULE status/paid|unpaid`<br> e.g., `class payment 1 sub/Physics c/2026-10-20T1700-1830 status/paid`
 **Delete class** | `class delete sub/SUBJECT c/SCHEDULE`<br> e.g., `class delete sub/Physics c/2026-10-20T1700-1830`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`

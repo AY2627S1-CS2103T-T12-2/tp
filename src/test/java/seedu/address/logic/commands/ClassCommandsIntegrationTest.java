@@ -76,6 +76,26 @@ public class ClassCommandsIntegrationTest {
     }
 
     @Test
+    public void oneOffClass_completeLifecycle_usesExactScheduleIdentity() throws CommandException {
+        Lesson oneOff = new Lesson(new Subject("Physics"), new Cost("35"),
+                new OneOffLessonSchedule("2026-10-20T1700-1830"));
+        enrolStudentsInLesson(oneOff, 1, 2);
+
+        new ClassPaymentCommand(Index.fromOneBased(1), oneOff.getSubject(), oneOff.getSchedule(),
+                PaymentStatus.PAID).execute(model);
+        assertEquals(PaymentStatus.PAID,
+                getPaymentStatus(model.getAddressBook().getPersonList().get(0), oneOff));
+
+        new ClassUnenrolCommand(Index.fromOneBased(1), oneOff.getSubject(), oneOff.getSchedule()).execute(model);
+        assertFalse(model.getAddressBook().getPersonList().get(0).getLessons().contains(oneOff));
+        assertTrue(model.getAddressBook().getPersonList().get(1).getLessons().contains(oneOff));
+
+        new ClassDeleteCommand(oneOff.getSubject(), oneOff.getSchedule()).execute(model);
+        assertFalse(model.getAddressBook().getPersonList().stream()
+                .anyMatch(person -> person.getLessons().contains(oneOff)));
+    }
+
+    @Test
     public void enrol_sameClassCanBelongToMultipleStudents() throws CommandException {
         enrolStudentsInLesson(LESSON, 1, 2);
 

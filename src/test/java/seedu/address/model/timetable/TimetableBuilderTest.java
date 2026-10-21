@@ -72,6 +72,18 @@ public class TimetableBuilderTest {
     }
 
     @Test
+    public void build_expiredOneOffLesson_excludesWithoutMutatingStudentRecord() {
+        Lesson expired = new Lesson(new Subject("Math"), new Cost("30"),
+                new OneOffLessonSchedule("2026-10-07T1800-1930"));
+        Person student = new PersonBuilder().withLessons(expired).build();
+
+        List<TimetableDay> timetable = TimetableBuilder.build(List.of(student), THURSDAY);
+
+        assertEquals(0, timetable.stream().mapToInt(day -> day.getEntries().size()).sum());
+        assertTrue(student.getLessons().contains(expired));
+    }
+
+    @Test
     public void build_groupsEqualLessonsAndSortsStudents() {
         Lesson sharedLesson = lesson("Math", "30", "Friday1800-1930");
         Person zoe = new PersonBuilder().withName("Zoe Tan").withLessons(sharedLesson).build();

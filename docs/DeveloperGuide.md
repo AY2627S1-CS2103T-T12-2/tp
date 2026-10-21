@@ -195,6 +195,10 @@ weekday. In all three cases, their time ranges must overlap; ranges meeting only
 without `scheduleType` are interpreted as weekly schedules, so existing address-book files load without manual
 migration. Weekly occurrences remain derived and are never expanded into persisted dated records.
 
+One-off schedules remain stored after their date has passed. `TimetableBuilder` excludes them because
+`OneOffLessonSchedule#occursOn` matches only the exact date, while the underlying enrolment remains available for
+payment updates, explicit unenrolment, or deletion. This avoids silently discarding historical or unpaid records.
+
 ### Find feature
 
 The `find` feature is implemented across `FindCommandParser`, `FindCommand`, the search predicates, and `CommandBox`.
