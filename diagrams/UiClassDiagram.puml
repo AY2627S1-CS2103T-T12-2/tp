@@ -13,6 +13,9 @@ Class HelpWindow
 Class ResultDisplay
 Class PersonListPanel
 Class PersonCard
+Class TimetablePanel
+Class TimetableDayCard
+Class TimetableEntryCard
 Class StatusBarFooter
 Class CommandBox
 }
@@ -33,10 +36,13 @@ UiManager -down-> "1" MainWindow
 MainWindow *-down->  "1" CommandBox
 MainWindow *-down-> "1" ResultDisplay
 MainWindow *-down-> "1" PersonListPanel
+MainWindow *-down-> "0..1" TimetablePanel
 MainWindow *-down-> "1" StatusBarFooter
 MainWindow --> "0..1" HelpWindow
 
 PersonListPanel -down-> "*" PersonCard
+TimetablePanel -down-> "7" TimetableDayCard
+TimetableDayCard -down-> "*" TimetableEntryCard
 
 MainWindow -left-|> UiPart
 
@@ -44,6 +50,9 @@ ResultDisplay --|> UiPart
 CommandBox --|> UiPart
 PersonListPanel --|> UiPart
 PersonCard --|> UiPart
+TimetablePanel --|> UiPart
+TimetableDayCard --|> UiPart
+TimetableEntryCard --|> UiPart
 StatusBarFooter --|> UiPart
 HelpWindow --|> UiPart
 
