@@ -6,12 +6,15 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.lesson.ClassId;
 import seedu.address.model.lesson.Lesson;
+import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.Subject;
 import seedu.address.model.lesson.TuitionClass;
 import seedu.address.model.person.Person;
 import seedu.address.model.timetable.TimetableDay;
@@ -89,6 +92,17 @@ public interface Model {
         return getAddressBook().getTuitionClassList().stream()
                 .filter(item -> item.getClassId().equals(classId)).findFirst()
                 .orElseThrow(java.util.NoSuchElementException::new);
+    }
+
+    /**
+     * Finds a centrally stored class by its case-insensitive subject and complete lesson timing.
+     */
+    default Optional<TuitionClass> findTuitionClass(Subject subject, LessonTiming timing) {
+        requireNonNull(subject);
+        requireNonNull(timing);
+        return getAddressBook().getTuitionClassList().stream()
+                .filter(item -> item.getSubject().equals(subject) && item.getTiming().equals(timing))
+                .findFirst();
     }
 
     default void addTuitionClass(TuitionClass tuitionClass) {

@@ -296,6 +296,20 @@ successful command, so searching does not remove students or enrolments from sto
 The [subject search guide](SubjectSearch.md) documents examples and input constraints.
 The [testing guide](Testing.md#subject-search-tests) lists automated coverage and commands for this feature.
 
+### Batch class enrolment
+
+`ClassEnrolCommandParser` parses the whitespace-separated preamble as one or more displayed student indexes. When
+`cost/` is present, exactly one index is accepted and the existing single-student behaviour is preserved. When cost is
+omitted, the parser constructs a command that identifies an existing class by its case-insensitive subject and complete
+lesson timing.
+
+`ClassEnrolCommand` uses `Model#findTuitionClass` to resolve the subject and timing against the independent central
+class collection, rather than scanning student enrolments. This allows an empty class to be found and supplies the
+canonical class ID and cost for each new `Enrollment`. Before changing the model, the command validates every displayed
+index and the target class. It then skips selected students who are already enrolled and replaces only the remaining
+immutable `Person` objects. Invalid or duplicate indexes and a missing class leave every student unchanged. If all
+selected students are already enrolled, the command makes no changes and returns an informative message.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
@@ -828,6 +842,22 @@ followed by a separate, muted `Unpaid` label, and each balance badge should init
 
 Mark one student as paid, exit the app, and relaunch it. The paid status should still appear, while the other student's
 status remains unpaid. Open the timetable and verify that both students still appear together in one Math class.
+
+### Batch class enrolment
+
+First create `Math` at `Monday1800-1930` with cost 30 using `class add`. Leave the class empty initially so the first
+test also verifies that batch enrolment looks up the independent class rather than scanning existing enrolments.
+
+| Test input | Expected result |
+| --- | --- |
+| `class enrol 2 3 sub/Math c/Monday1800-1930` | Both displayed students are enrolled using the existing cost of 30. |
+| `class enrol 2 sub/math c/Monday1800-1930` | The subject match is case-insensitive and the student is enrolled. |
+| `class enrol 2 2 sub/Math c/Monday1800-1930` | Duplicate-index error; no student changes. |
+| `class enrol 2 999 sub/Math c/Monday1800-1930` | Invalid-index error; no student changes. |
+| `class enrol 1 2 sub/Math c/Monday1800-1930` | Student 1 is skipped because they are already enrolled; student 2 is enrolled, and the feedback identifies both outcomes. |
+| With students 1 and 2 already enrolled, repeat `class enrol 1 2 sub/Math c/Monday1800-1930` | No student changes; feedback says that all selected students are already enrolled. |
+| `class enrol 2 3 sub/Physics c/Monday1800-1930` | Missing-class error; no student changes. |
+| `class enrol 2 3 sub/Math cost/30 c/Monday1800-1930` | Error explaining that cost cannot be supplied for multiple students. |
 
 ### Saving data
 

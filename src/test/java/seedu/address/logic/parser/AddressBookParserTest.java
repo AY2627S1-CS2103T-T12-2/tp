@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.ClassDeleteCommand;
 import seedu.address.logic.commands.ClassEnrolCommand;
@@ -67,6 +68,15 @@ public class AddressBookParserTest {
                 new LessonTiming("Monday1800-1930"));
         assertEquals(new ClassEnrolCommand(INDEX_FIRST_PERSON, lesson), parser.parseCommand(
                 "class enrol 1 sub/Math cost/30 c/Monday1800-1930"));
+    }
+
+    @Test
+    public void parseCommand_classEnrolMultipleStudentsInExistingClass() throws Exception {
+        Subject subject = new Subject("Math");
+        LessonTiming timing = new LessonTiming("Monday1800-1930");
+        assertEquals(new ClassEnrolCommand(
+                List.of(INDEX_FIRST_PERSON, Index.fromOneBased(2)), subject, timing),
+                parser.parseCommand("class enrol 1 2 sub/Math c/Monday1800-1930"));
     }
 
     @Test
