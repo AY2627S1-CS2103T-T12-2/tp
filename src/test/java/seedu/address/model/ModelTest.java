@@ -104,6 +104,16 @@ public class ModelTest {
         }
 
         @Override
+        public boolean isPrivacyModeEnabled() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void setPrivacyModeEnabled(boolean privacyModeEnabled) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public void setAddressBook(ReadOnlyAddressBook addressBook) {
             throw new UnsupportedOperationException();
         }

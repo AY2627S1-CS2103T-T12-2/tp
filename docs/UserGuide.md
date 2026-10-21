@@ -116,8 +116,9 @@ Opens a read-only graphical list showing every class's stable ID, subject, sched
 
 Format: `class list`
 
-This command is available from both the student list and timetable. Use `list` to return to the student list or
-`timetable` to open the timetable.
+This command is available from both the student list and timetable. While the class list is open, `list`, `timetable`,
+`class list`, `privacy`, `help`, and `exit` are available. Use `list` to return to the student list or `timetable` to
+open the timetable.
 
 ### Editing a class: `class edit`
 
@@ -220,8 +221,8 @@ then subject.
 
 Format: `timetable`
 
-While the timetable is open, `class list`, `list`, `help`, and `exit` are available. `class list` replaces the timetable
-with the class list. Use `list` to return to the student list and re-enable modifying commands.
+While the timetable is open, `class list`, `list`, `privacy`, `help`, and `exit` are available. `class list` replaces
+the timetable with the class list. Use `list` to return to the student list and re-enable modifying commands.
 
 ### Listing all persons: `list`
 
@@ -365,6 +366,22 @@ Clears all entries from the address book.
 
 Format: `clear`
 
+### Hiding contact details: `privacy`
+
+Privacy mode replaces the phone, email, and address values on every student card with a fixed seven-asterisk mask,
+such as `Address: *******`. The underlying contact details are not changed or deleted.
+
+Formats:
+
+* `privacy on` masks all displayed contact details immediately.
+* `privacy off` restores the original contact details immediately.
+
+While privacy mode is active, the status bar displays `Privacy mode enabled`. The selected mode is saved and restored
+when TutEasy restarts. Privacy mode is disabled by default for existing preference files that do not contain this
+setting.
+
+The command box suggests both valid modes after you type `privacy`.
+
 ### Exiting the program: `exit`
 
 Exits the program.
@@ -427,3 +444,4 @@ Action     | Format, Examples
 **List**   | `list`
 **Help**   | `help`
 **Timetable** | `timetable`
+**Privacy mode** | `privacy on` or `privacy off`

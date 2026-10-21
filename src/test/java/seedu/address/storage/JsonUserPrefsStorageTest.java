@@ -60,6 +60,7 @@ public class JsonUserPrefsStorageTest {
     public void readUserPrefs_valuesMissingFromFile_defaultValuesUsed() throws DataLoadingException {
         UserPrefs actual = readUserPrefs("EmptyUserPrefs.json").get();
         assertEquals(new UserPrefs(), actual);
+        assertFalse(actual.isPrivacyModeEnabled());
     }
 
     @Test
@@ -103,6 +104,7 @@ public class JsonUserPrefsStorageTest {
 
         UserPrefs original = new UserPrefs();
         original.setGuiSettings(new GuiSettings(1200, 200, 0, 2));
+        original.setPrivacyModeEnabled(true);
 
         Path pefsFilePath = testFolder.resolve("TempPrefs.json");
         JsonUserPrefsStorage jsonUserPrefsStorage = new JsonUserPrefsStorage(pefsFilePath);
@@ -114,6 +116,7 @@ public class JsonUserPrefsStorageTest {
 
         //Try saving when the file exists
         original.setGuiSettings(new GuiSettings(5, 5, 5, 5));
+        original.setPrivacyModeEnabled(false);
         jsonUserPrefsStorage.saveUserPrefs(original);
         readBack = jsonUserPrefsStorage.readUserPrefs().get();
         assertEquals(original, readBack);

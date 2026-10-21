@@ -75,6 +75,16 @@ public class ModelManager implements Model {
         userPrefs.setGuiSettings(guiSettings);
     }
 
+    @Override
+    public boolean isPrivacyModeEnabled() {
+        return userPrefs.isPrivacyModeEnabled();
+    }
+
+    @Override
+    public void setPrivacyModeEnabled(boolean privacyModeEnabled) {
+        userPrefs.setPrivacyModeEnabled(privacyModeEnabled);
+    }
+
     //=========== AddressBook ================================================================================
 
     @Override

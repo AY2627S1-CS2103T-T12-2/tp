@@ -42,6 +42,12 @@ public interface Model {
      */
     void setGuiSettings(GuiSettings guiSettings);
 
+    /** Returns whether privacy mode is enabled. */
+    boolean isPrivacyModeEnabled();
+
+    /** Enables or disables privacy mode. */
+    void setPrivacyModeEnabled(boolean privacyModeEnabled);
+
     /**
      * Replaces address book data with the data in {@code addressBook}.
      */
