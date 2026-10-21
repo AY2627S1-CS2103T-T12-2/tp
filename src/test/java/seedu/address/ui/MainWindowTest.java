@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.FutureTask;
@@ -145,7 +146,12 @@ public class MainWindowTest {
         }
 
         @Override
-        public List<TimetableDay> getTimetable() {
+        public LocalDate getCurrentDate() {
+            return LocalDate.of(2026, 10, 21);
+        }
+
+        @Override
+        public List<TimetableDay> getTimetable(LocalDate anchorDate) {
             return List.of();
         }
 
