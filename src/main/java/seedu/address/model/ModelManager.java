@@ -4,8 +4,10 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
@@ -19,6 +21,7 @@ import seedu.address.model.lesson.Enrollment;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.TuitionClass;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.exceptions.PersonNotFoundException;
 import seedu.address.model.timetable.TimetableBuilder;
 import seedu.address.model.timetable.TimetableDay;
 
@@ -106,6 +109,26 @@ public class ModelManager implements Model {
         requireAllNonNull(target, editedPerson);
 
         addressBook.setPerson(target, editedPerson);
+    }
+
+    @Override
+    public void setPersons(Map<Person, Person> replacements) {
+        requireNonNull(replacements);
+        requireAllNonNull(replacements.keySet());
+        requireAllNonNull(replacements.values());
+        if (replacements.isEmpty()) {
+            return;
+        }
+
+        List<Person> updatedPersons = new ArrayList<>(addressBook.getPersonList());
+        for (Map.Entry<Person, Person> replacement : replacements.entrySet()) {
+            int targetIndex = addressBook.getPersonList().indexOf(replacement.getKey());
+            if (targetIndex == -1) {
+                throw new PersonNotFoundException();
+            }
+            updatedPersons.set(targetIndex, replacement.getValue());
+        }
+        addressBook.setPersons(updatedPersons);
     }
 
     private Person linkLessonsToClasses(Person person) {

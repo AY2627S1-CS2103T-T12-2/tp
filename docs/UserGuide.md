@@ -272,21 +272,36 @@ Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing tags.
 
-### Tagging a student: `tag`
+### Tagging students: `tag`
 
-Adds one or more tags to an existing student.
+Adds tags to one or more existing students.
 
-Format: `tag INDEX TAG [MORE_TAGS]`
+Formats:
 
-* `INDEX` refers to the index number shown in the displayed student list.
+* `tag INDEX TAG [MORE_TAGS]`
+* `tag STUDENT_INDEX [MORE_INDEXES] t/TAG`
+
+* Indexes refer to the index numbers shown in the displayed student list.
 * Each tag must be unique for that student.
 * A tag can contain up to 30 characters and use only lowercase letters, numbers, and single hyphens between
   characters.
 * Spaces separate tags. For example, `exam prep` adds the two tags `exam` and `prep`, while `exam-prep` adds
   one tag. Use hyphens when a single tag contains multiple words.
 * A student can have at most 10 tags.
+* The first format preserves the existing behavior of adding one or more tags to one student.
+* The batch format uses `t/` to separate one tag from one or more unique student indexes. This also allows numeric
+  tags such as `t/2026` without confusing them with student indexes.
+* The batch command validates every index and the tag before updating any student. An invalid or repeated index, or
+  an invalid tag, causes the command to fail without changes.
+* In batch mode, students who already have the tag are skipped. Students who have reached the 10-tag limit are also
+  skipped, while eligible selected students still receive the tag.
+* Batch feedback identifies students who received the tag, already had it, or had reached the tag limit. If no
+  selected student can be updated, no changes are made and the feedback explains why.
 
-Example: `tag 3 exam-prep needs-follow-up`
+Examples:
+
+* `tag 3 exam-prep needs-follow-up`
+* `tag 1 3 5 t/math-2026`
 
 ### Removing tags from a student: `untag`
 
@@ -406,7 +421,7 @@ Action     | Format, Examples
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
-**Tag**    | `tag INDEX TAG [MORE_TAGS]`<br> e.g., `tag 3 exam-prep needs-follow-up`
+**Tag**    | `tag INDEX TAG [MORE_TAGS]` or `tag STUDENT_INDEX [MORE_INDEXES] t/TAG`<br> e.g., `tag 3 exam-prep needs-follow-up`, `tag 1 3 5 t/math-2026`
 **Untag**  | `untag INDEX TAG [MORE_TAGS]` or `untag INDEX -all`<br> e.g., `untag 2 parent-follow-up`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`, `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]`, `find c/DAY [TIME_HHmm]`, or `find c/TIME_HHmm`<br> e.g., `find Jam`, `find t/fri`, `find c/Mon 1800`
 **List**   | `list`
