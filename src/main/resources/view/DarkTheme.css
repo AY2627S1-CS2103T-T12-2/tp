@@ -145,6 +145,18 @@
     -fx-opacity: 0.9;
 }
 
+.list-cell .pinned-badge {
+    -fx-background-color: #f1d66a;
+    -fx-background-radius: 4;
+    -fx-border-color: #fff0a3;
+    -fx-border-radius: 4;
+    -fx-border-width: 1;
+    -fx-padding: 1 5 1 5;
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-size: 10px;
+    -fx-text-fill: #2b2508;
+}
+
 .list-cell .tag-container .label {
     -fx-background-color: #96d35f;
     -fx-background-radius: 4;

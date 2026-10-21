@@ -28,6 +28,7 @@
           </Label>
           <Label fx:id="name" text="\$first" styleClass="cell_big_label" />
         </HBox>
+        <Label fx:id="pinned" text="PINNED" styleClass="pinned-badge" visible="false" managed="false" />
         <Label fx:id="balance" text="Balance: 0" styleClass="balance-badge" />
       </HBox>
       <FlowPane fx:id="tags" hgap="5" vgap="3" styleClass="tag-container" />
