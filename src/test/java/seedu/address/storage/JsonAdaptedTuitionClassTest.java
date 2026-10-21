@@ -49,6 +49,14 @@ public class JsonAdaptedTuitionClassTest {
     }
 
     @Test
+    public void toModelType_oneOffClass_requiresMatchingScheduleTypeAndTiming() throws Exception {
+        assertEquals("2026-10-24T1800-1930", new JsonAdaptedTuitionClass("C001", "Math", "30",
+                "2026-10-24T1800-1930", "ONE_OFF").toModelType().getSchedule().toStorageString());
+        assertThrows(IllegalValueException.class, () -> new JsonAdaptedTuitionClass("C001", "Math", "30",
+                null, "ONE_OFF").toModelType());
+    }
+
+    @Test
     public void toModelType_invalidTiming_throwsIllegalValueException() {
         assertThrows(IllegalValueException.class, LessonTiming.MESSAGE_CONSTRAINTS, () ->
                 new JsonAdaptedTuitionClass("C001", "Math", "30", null).toModelType());

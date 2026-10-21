@@ -90,6 +90,17 @@ public class ClassCommandsIntegrationTest {
     }
 
     @Test
+    public void enrol_sameSubjectAtDifferentTime_createsSeparateClass() throws CommandException {
+        Lesson tuesdayMath = new Lesson(new Subject("Math"), new Cost("30"),
+                new LessonTiming("Tuesday1800-1930"));
+        new ClassEnrolCommand(Index.fromOneBased(1), tuesdayMath).execute(model);
+
+        new ClassEnrolCommand(Index.fromOneBased(2), LESSON).execute(model);
+
+        assertEquals(2, model.getTuitionClassList().size());
+    }
+
+    @Test
     public void enrolMultiple_existingClass_addsClassWithExistingCostToEverySelectedStudent()
             throws CommandException {
         new ClassEnrolCommand(Index.fromOneBased(1), LESSON).execute(model);
@@ -269,6 +280,14 @@ public class ClassCommandsIntegrationTest {
     }
 
     @Test
+    public void enrol_missingClassId_failure() {
+        ClassId missingId = new ClassId("C099");
+
+        assertCommandFailure(new ClassEnrolCommand(Index.fromOneBased(1), missingId), model,
+                String.format(ClassEnrolCommand.MESSAGE_CLASS_NOT_FOUND, missingId));
+    }
+
+    @Test
     public void enrol_sameClassForSameStudent_failure() throws CommandException {
         ClassEnrolCommand command = new ClassEnrolCommand(Index.fromOneBased(1), LESSON);
         command.execute(model);
@@ -289,6 +308,11 @@ public class ClassCommandsIntegrationTest {
         assertNotEquals(command, new ClassEnrolCommand(List.of(Index.fromOneBased(1)),
                 LESSON.getSubject(), LESSON.getSchedule()));
         assertNotEquals(command, null);
+
+        ClassEnrolCommand idCommand = new ClassEnrolCommand(Index.fromOneBased(1), new ClassId("C001"));
+        assertEquals(idCommand, new ClassEnrolCommand(Index.fromOneBased(1), new ClassId("C001")));
+        assertNotEquals(idCommand, new ClassEnrolCommand(Index.fromOneBased(1), new ClassId("C002")));
+        assertNotEquals(idCommand, command);
     }
 
     @Test

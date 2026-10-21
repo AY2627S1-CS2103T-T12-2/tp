@@ -38,6 +38,15 @@ public class JsonAdaptedPersonTest {
             .collect(Collectors.toList());
 
     @Test
+    public void toModelType_pinnedRecordWithoutGuardianFields_preservesPin() throws Exception {
+        JsonAdaptedPerson adapted = new JsonAdaptedPerson("Alice", "91234567", "alice@example.com", "One",
+                java.util.List.of(), null, null, null, null, true);
+        var person = adapted.toModelType();
+        org.junit.jupiter.api.Assertions.assertTrue(person.isPinned());
+        assertEquals(seedu.address.model.person.GuardianContact.EMPTY, person.getGuardianContact());
+    }
+
+    @Test
     public void toModelType_validPersonDetails_returnsPerson() throws Exception {
         JsonAdaptedPerson person = new JsonAdaptedPerson(BENSON);
         assertEquals(BENSON, person.toModelType());

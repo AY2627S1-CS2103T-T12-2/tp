@@ -19,8 +19,7 @@ public class SubjectContainsKeywordsPredicate implements Predicate<Person> {
     @Override
     public boolean test(Person person) {
         Stream<String> subjects = person.getLessons().stream().map(lesson -> lesson.getSubject().toString());
-        // Complete legacy records have already been migrated. Their retained metadata may be stale after unenrolment.
-        if (person.getLessons().isEmpty() && (person.getCost().isEmpty() || person.getLesson().isEmpty())) {
+        if (person.hasUnmigratedLegacyLesson()) {
             subjects = person.getSubjects().stream().map(Subject::toString);
         }
         return subjects.map(subject -> subject.toLowerCase(Locale.ROOT))

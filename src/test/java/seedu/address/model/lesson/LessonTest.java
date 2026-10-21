@@ -89,4 +89,21 @@ public class LessonTest {
         assertEquals("Paid", PaymentStatus.PAID.toDisplayString());
         assertThrows(IllegalArgumentException.class, () -> PaymentStatus.fromString("pending"));
     }
+
+    @Test
+    public void withTuitionClass_linksClassAndPreservesPaymentStatus() {
+        TuitionClass tuitionClass = new TuitionClass(new ClassId("C001"), new Subject("Physics"),
+                new Cost("40"), DIFFERENT_TIMING);
+        Lesson paidLesson = MATH.withPaymentStatus(PaymentStatus.PAID);
+
+        Lesson linkedLesson = paidLesson.withTuitionClass(tuitionClass);
+
+        assertTrue(linkedLesson instanceof Enrollment);
+        assertEquals(tuitionClass.getClassId(), linkedLesson.getClassId());
+        assertEquals(tuitionClass.getSubject(), linkedLesson.getSubject());
+        assertEquals(tuitionClass.getCost(), linkedLesson.getCost());
+        assertEquals(tuitionClass.getSchedule(), linkedLesson.getSchedule());
+        assertEquals(PaymentStatus.PAID, linkedLesson.getPaymentStatus());
+        assertThrows(NullPointerException.class, () -> paidLesson.withTuitionClass(null));
+    }
 }

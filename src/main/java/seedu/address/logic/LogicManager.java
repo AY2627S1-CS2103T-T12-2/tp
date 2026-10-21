@@ -105,8 +105,14 @@ public class LogicManager implements Logic {
     }
 
     @Override
-    public List<TimetableDay> getTimetable() {
-        return model.getTimetable(LocalDate.now(clock));
+    public LocalDate getCurrentDate() {
+        return LocalDate.now(clock);
+    }
+
+    @Override
+    public List<TimetableDay> getTimetable(LocalDate anchorDate) {
+        requireNonNull(anchorDate);
+        return model.getTimetable(anchorDate);
     }
 
     @Override

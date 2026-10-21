@@ -127,6 +127,18 @@ public class AddressBookTest {
         assertEquals(first.hashCode(), second.hashCode());
     }
 
+    @Test
+    public void setNextClassSequence_nonPositive_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> addressBook.setNextClassSequence(0));
+    }
+
+    @Test
+    public void equals_sameObjectOrDifferentType_returnsExpectedResult() {
+        assertEquals(addressBook, addressBook);
+        assertNotEquals(addressBook, null);
+        assertNotEquals(addressBook, "address book");
+    }
+
     private static TuitionClass tuitionClass(String id, String subject) {
         return new TuitionClass(new ClassId(id), new Subject(subject), new Cost("30"),
                 new LessonTiming("Monday1800-1930"));

@@ -21,6 +21,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import seedu.address.model.lesson.ClassDetails;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
@@ -236,6 +237,52 @@ public class PersonCardTest {
             assertLabel(card, "subjects", "Subjects: ", false);
             assertLabel(card, "cost", "", false);
             assertLabel(card, "lesson", "Lesson: Sunday2359", true);
+        });
+    }
+
+    @Test
+    public void constructor_guardianAndClassDetails_displaysOptionalAttributes() throws Exception {
+        runOnFxThread(() -> {
+            ClassDetails details = new ClassDetails("https://example.com/math", "Room 2", "Bring calculator");
+            Person person = new PersonBuilder().withGuardianContact("Mary Tan", "98765432", "mary@example.com")
+                    .withLessons(lesson("Math", "30", "Monday1800-1930").withDetails(details)).build();
+            PersonCard card = new PersonCard(person, 1);
+            assertLabel(card, "guardian", "Guardian: Mary Tan | 98765432 | mary@example.com", true);
+            VBox detailsPane = (VBox) card.getRoot().lookup("#classDetails");
+            assertEquals(1, detailsPane.getChildren().size());
+            Label label = (Label) detailsPane.getChildren().getFirst();
+            assertEquals("Math · Mon 18:00–19:30\n" + details, label.getText());
+            assertTrue(label.isWrapText());
+            assertTrue(detailsPane.isVisible());
+            assertTrue(detailsPane.isManaged());
+        });
+    }
+
+    @Test
+    public void privacyChanges_maskGuardianContactsWithoutChangingStoredValues() throws Exception {
+        runOnFxThread(() -> {
+            Person person = new PersonBuilder().withPinned(true)
+                    .withGuardianContact("Mary Tan", "98765432", "mary@example.com").build();
+            javafx.beans.property.SimpleBooleanProperty privacy = new javafx.beans.property.SimpleBooleanProperty(true);
+            PersonCard card = new PersonCard(person, 1, new ClassColorPalette(), privacy);
+            assertLabel(card, "guardian", "Guardian: " + PersonCard.PRIVACY_MASK, true);
+            privacy.set(false);
+            assertLabel(card, "guardian", "Guardian: Mary Tan | 98765432 | mary@example.com", true);
+            privacy.set(true);
+            assertLabel(card, "guardian", "Guardian: " + PersonCard.PRIVACY_MASK, true);
+            assertEquals("98765432", person.getGuardianContact().phone());
+            assertTrue(person.isPinned());
+        });
+    }
+
+    @Test
+    public void constructor_noAttributes_hidesUnusedSpace() throws Exception {
+        runOnFxThread(() -> {
+            PersonCard card = new PersonCard(new PersonBuilder().build(), 1);
+            assertLabel(card, "guardian", "", false);
+            VBox detailsPane = (VBox) card.getRoot().lookup("#classDetails");
+            assertFalse(detailsPane.isVisible());
+            assertFalse(detailsPane.isManaged());
         });
     }
 

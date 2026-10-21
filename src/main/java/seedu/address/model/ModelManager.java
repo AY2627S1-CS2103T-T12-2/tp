@@ -16,6 +16,7 @@ import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.model.lesson.ClassDetails;
 import seedu.address.model.lesson.ClassId;
 import seedu.address.model.lesson.Enrollment;
 import seedu.address.model.lesson.Lesson;
@@ -153,10 +154,27 @@ public class ModelManager implements Model {
                                 && item.getSchedule().equals(lesson.getSchedule()))
                         .findFirst().orElseGet(() -> {
                             TuitionClass created = new TuitionClass(addressBook.allocateClassId(),
-                                    lesson.getSubject(), lesson.getCost(), lesson.getSchedule());
+                                    lesson.getSubject(), lesson.getCost(), lesson.getSchedule(), lesson.getDetails());
                             addressBook.addTuitionClass(created);
                             return created;
                         });
+            }
+            if (!tuitionClass.getCost().equals(lesson.getCost())) {
+                throw new IllegalArgumentException("Students in the same class have different costs.");
+            }
+            if (!lesson.getDetails().equals(ClassDetails.EMPTY)
+                    && !tuitionClass.getDetails().equals(lesson.getDetails())) {
+                TuitionClass selected = tuitionClass;
+                boolean hasStudents = addressBook.getPersonList().stream()
+                        .flatMap(student -> student.getLessons().stream())
+                        .anyMatch(item -> selected.getClassId().equals(item.getClassId()));
+                if (tuitionClass.getDetails().equals(ClassDetails.EMPTY) && !hasStudents) {
+                    TuitionClass updated = tuitionClass.withDetails(lesson.getDetails());
+                    addressBook.setTuitionClass(tuitionClass, updated);
+                    tuitionClass = updated;
+                } else {
+                    throw new IllegalArgumentException("Students in the same class have different details.");
+                }
             }
             linkedLessons.add(new Enrollment(tuitionClass, lesson.getPaymentStatus()));
         }
@@ -263,9 +281,9 @@ public class ModelManager implements Model {
     }
 
     @Override
-    public List<TimetableDay> getTimetable(LocalDate today) {
-        requireNonNull(today);
-        return TimetableBuilder.build(addressBook.getTuitionClassList(), addressBook.getPersonList(), today);
+    public List<TimetableDay> getTimetable(LocalDate anchorDate) {
+        requireNonNull(anchorDate);
+        return TimetableBuilder.build(addressBook.getTuitionClassList(), addressBook.getPersonList(), anchorDate);
     }
 
     @Override

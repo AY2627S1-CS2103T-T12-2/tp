@@ -82,7 +82,7 @@ Format: `help`
 
 Adds a person to the address book.
 
-Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [sub/SUBJECT cost/COST c/SCHEDULE]`
+Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [gn/GUARDIAN_NAME] [gp/GUARDIAN_PHONE] [ge/GUARDIAN_EMAIL] [sub/SUBJECT cost/COST c/SCHEDULE [mode/online|offline] [link/URL] [location/LOCATION] [notes/NOTES]]`
 
 <box type="tip" seamless>
 
@@ -102,6 +102,46 @@ Examples:
 * `add n/John Davis p/91234567 e/johndavis@gmail.com a/Clementi t/exam-prep sub/Math cost/30 c/Monday1800-1930`
 * `add n/Jane Tan p/92345678 e/jane@example.com a/Bishan sub/Math cost/30 c/2026-10-20T1800-1930`
 
+### Adding guardian and class details to a contact
+
+The `add` command accepts optional guardian name (`gn/`), phone (`gp/`), and email (`ge/`) fields.
+These are independent: for example, supply just `gp/` when only a parent's phone is known.
+Non-empty guardian values follow the same validation rules as student contact fields.
+The details appear on the student card and are saved across restarts. Privacy mode masks guardian details
+alongside the student's phone, email, and address.
+
+When adding a contact with a class (`sub/`, `cost/`, and complete `c/SCHEDULE`), you may also supply
+`mode/online` or `mode/offline`. An online class may optionally have an HTTP(S) meeting URL in `link/`.
+Offline classes cannot store a non-empty link. New classes default to offline when the mode is omitted.
+Mode values are case-insensitive. Optional `location/` and `notes/` each accept up to 500 characters
+of single-line text. Class fields require a complete class in the same `add` command.
+
+Examples:
+
+* `add n/Alice Tan p/91234567 e/alice@example.com a/Clementi gn/Mary Tan gp/98765432 ge/mary@example.com sub/Math cost/30 c/Saturday1800-1930 mode/online link/https://meet.example.com/math`
+* `add n/Bob Tan p/81234567 e/bob@example.com a/Jurong gp/89999999`
+* `add n/Cara Tan p/71234567 e/cara@example.com a/Tampines sub/Physics cost/40 c/Saturday1600-1730 mode/offline location/Room 2 notes/Bring calculator`
+
+Each prefix may be supplied once. Links must contain a valid host and cannot contain spaces or
+embedded credentials. A link is allowed only when the class is online.
+
+Class IDs identify independently stored shared classes. When adding a contact to an existing class,
+omitted fields inherit the class catalogue's values even when the class has no enrolled students.
+If the catalogue class has no students and no extra details, the first contact may fill its mode,
+link, location, and notes. For classes already in use, explicit values must agree with the shared values.
+Existing classmates, guardian contacts, and payment statuses are not changed by adding a contact.
+Mode and details appear on student cards and timetable entries and are saved with the enrolments.
+Older saved classes without a mode default to offline, or online if they already contain a link.
+
+The new field-entry scope is `add` only. `edit` and `class enrol` retain their existing syntax;
+ordinary contact edits and enrolments preserve stored attributes. Aaron's `class edit` changes
+subject, cost, or timing while retaining mode, link, location, notes, and individual payment status. Guardian/class-field editing is
+not provided in this change.
+
+Class details remain in the class catalogue after its last student unenrols. `class delete id/CLASS_ID`
+removes the class and all of its enrolments. Class listing and timetable entries display the shared details,
+including classes with no students. Use `list` to return from either read-only view before changing data.
+
 ### Adding a class: `class add`
 
 Creates a class independently of any student. TutEasy assigns a stable class ID such as `C001`; IDs remain unchanged
@@ -115,7 +155,7 @@ Classes cannot share the same subject and timing, and overlapping class times ar
 
 ### Viewing classes: `class list`
 
-Opens a read-only graphical list showing every class's stable ID, subject, schedule, and cost.
+Opens a read-only graphical list showing every class's stable ID, subject, schedule, cost, and stored mode/details.
 
 Format: `class list`
 
@@ -128,7 +168,7 @@ open the timetable.
 Updates a class while retaining its stable ID and enrolments. Supply at least one field to change. Payment statuses are
 preserved, and the new details appear for every enrolled student.
 
-Format: `class edit id/CLASS_ID [sub/SUBJECT] [cost/COST] [c/DAYHHmm-HHmm]`
+Format: `class edit id/CLASS_ID [sub/SUBJECT] [cost/COST] [c/SCHEDULE]`
 
 Examples:
 
@@ -216,20 +256,25 @@ Example: `class delete id/C001`
 
 ### Viewing the weekly timetable: `timetable`
 
-Opens a graphical, read-only timetable containing classes from the current day through Saturday. Classes that occurred
-earlier on the current day remain visible, while days earlier in the week are omitted. Every included day has a heading,
-even when it has no classes.
+Opens a graphical, read-only timetable containing the complete Sunday-to-Saturday week that includes the current date.
+Today is highlighted and placed at the top of the scrolling area where possible. Scroll upward to see earlier days in
+the week and downward to see later days. Every day has a dated heading, even when it has no classes.
+
+Use **Previous week** and **Next week** to move exactly seven days at a time. Use **Today** to recalculate the current
+date, return to its week, and reload the timetable. Today remains available even while the current week is displayed.
+The fixed header shows the selected range, for example `18–24 Oct 2026` or `27 Dec 2026 – 2 Jan 2027`.
 
 Each class entry shows its start and end time, subject, and all attending students. Classes are ordered by start time,
-then subject.
+then subject, then end time. Student names within a class are ordered alphabetically.
 
 Weekly classes appear on their matching weekday. One-off classes appear only when their exact date falls within the
-visible range.
+selected week. Navigating between weeks does not change or save address-book data.
 
 Format: `timetable`
 
 While the timetable is open, `class list`, `list`, `privacy`, `help`, and `exit` are available. `class list` replaces
-the timetable with the class list. Use `list` to return to the student list and re-enable modifying commands.
+the timetable with the class list. Use `list` to return to the student list and re-enable modifying commands. Re-entering
+`timetable` starts again from the current week rather than the previously viewed week.
 
 ### Listing all persons: `list`
 
@@ -438,8 +483,8 @@ _Details coming soon ..._
 
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [sub/SUBJECT cost/COST c/SCHEDULE]` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/Clementi t/friend sub/Math cost/30 c/Monday1800-1930`
-**Add class** | `class add sub/SUBJECT cost/COST c/SCHEDULE`<br> e.g., `class add sub/Physics cost/35 c/2026-10-20T1700-1830`
+**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [gn/GUARDIAN_NAME] [gp/GUARDIAN_PHONE] [ge/GUARDIAN_EMAIL] [sub/SUBJECT cost/COST c/SCHEDULE [mode/online\|offline] [link/URL] [location/LOCATION] [notes/NOTES]]` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/Clementi t/friend sub/Math cost/30 c/Monday1800-1930`
+**Add class** | `class add sub/SUBJECT cost/COST c/SCHEDULE`<br> e.g., `class add sub/Physics cost/35 c/Wednesday1700-1830`
 **List classes** | `class list`
 **Edit class** | `class edit id/CLASS_ID [sub/SUBJECT] [cost/COST] [c/SCHEDULE]`<br> e.g., `class edit id/C001 cost/40`
 **Enrol in class** | `class enrol STUDENT_INDEX id/CLASS_ID`<br>or `class enrol STUDENT_INDEX [STUDENT_INDEX]... sub/SUBJECT c/SCHEDULE`<br> e.g., `class enrol 1 3 5 sub/Physics c/Wednesday1700-1830`

@@ -14,6 +14,6 @@ public final class Enrollment extends Lesson {
     /** Creates an enrolment in the supplied class with an explicit payment status. */
     public Enrollment(TuitionClass tuitionClass, PaymentStatus paymentStatus) {
         super(tuitionClass.getClassId(), tuitionClass.getSubject(), tuitionClass.getCost(),
-                tuitionClass.getSchedule(), paymentStatus);
+                tuitionClass.getSchedule(), paymentStatus, tuitionClass.getDetails());
     }
 }

@@ -152,8 +152,8 @@ public interface Model {
         updateFilteredPersonList(predicate);
     }
 
-    /** Returns the timetable derived from all persons for the specified date. */
-    List<TimetableDay> getTimetable(LocalDate today);
+    /** Returns the timetable derived from all persons for the complete week containing {@code anchorDate}. */
+    List<TimetableDay> getTimetable(LocalDate anchorDate);
 
     /** Returns whether an existing class has the same class with a different cost. */
     default boolean hasClassCostConflict(Lesson candidate) {

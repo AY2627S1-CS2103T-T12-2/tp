@@ -229,7 +229,7 @@ public class ModelManagerTest {
                 new NameContainsKeywordsPredicate(List.of(ALICE.getName().fullName.split(" ")[0])));
 
         TimetableEntry entry = modelManager.getTimetable(LocalDate.of(2026, 10, 8))
-                .get(0).getEntries().get(0);
+                .get(4).getEntries().get(0);
 
         assertEquals(1, modelManager.getFilteredPersonList().size());
         assertEquals(List.of(aliceWithLesson, bensonWithLesson), entry.getStudents());

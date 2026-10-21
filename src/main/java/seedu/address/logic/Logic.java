@@ -1,5 +1,6 @@
 package seedu.address.logic;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import javafx.collections.ObservableList;
@@ -27,8 +28,11 @@ public interface Logic {
     /** Returns an unmodifiable view of the filtered list of persons */
     ObservableList<Person> getFilteredPersonList();
 
-    /** Returns the timetable for the current day through Saturday. */
-    List<TimetableDay> getTimetable();
+    /** Returns the current local date according to the application clock. */
+    LocalDate getCurrentDate();
+
+    /** Returns the complete timetable week containing {@code anchorDate}. */
+    List<TimetableDay> getTimetable(LocalDate anchorDate);
 
     /** Returns all independently stored tuition classes. */
     default ObservableList<TuitionClass> getTuitionClassList() {

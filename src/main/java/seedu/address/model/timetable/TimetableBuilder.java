@@ -25,19 +25,20 @@ public final class TimetableBuilder {
     }
 
     /**
-     * Builds day groups from {@code today} through Saturday, including empty days.
+     * Builds a complete Sunday-to-Saturday timetable containing {@code anchorDate}.
      */
-    public static List<TimetableDay> build(List<Person> persons, LocalDate today) {
-        return build(List.of(), persons, today);
+    public static List<TimetableDay> build(List<Person> persons, LocalDate anchorDate) {
+        return build(List.of(), persons, anchorDate);
     }
 
     /** Builds a timetable that also includes independently stored classes without students. */
-    public static List<TimetableDay> build(List<TuitionClass> tuitionClasses, List<Person> persons, LocalDate today) {
+    public static List<TimetableDay> build(List<TuitionClass> tuitionClasses, List<Person> persons,
+            LocalDate anchorDate) {
         requireNonNull(tuitionClasses);
         requireNonNull(persons);
-        requireNonNull(today);
+        requireNonNull(anchorDate);
 
-        List<LocalDate> visibleDates = getVisibleDates(today);
+        List<LocalDate> visibleDates = WeekRange.containing(anchorDate).getDates();
         Map<ClassIdentity, ClassGroup> groupsByClass = new LinkedHashMap<>();
 
         for (TuitionClass tuitionClass : tuitionClasses) {
@@ -70,21 +71,9 @@ public final class TimetableBuilder {
                     .map(group -> new TimetableEntry(group.lesson, List.copyOf(group.students)))
                     .sorted(entryComparator)
                     .toList();
-            timetable.add(new TimetableDay(date.getDayOfWeek(), entries));
+            timetable.add(new TimetableDay(date, entries));
         }
         return List.copyOf(timetable);
-    }
-
-    private static List<LocalDate> getVisibleDates(LocalDate today) {
-        List<LocalDate> visibleDates = new ArrayList<>();
-        LocalDate date = today;
-        while (true) {
-            visibleDates.add(date);
-            if (date.getDayOfWeek() == java.time.DayOfWeek.SATURDAY) {
-                return List.copyOf(visibleDates);
-            }
-            date = date.plusDays(1);
-        }
     }
 
     /** Fields that identify a logical class regardless of an enrolment's payment status. */
@@ -98,7 +87,7 @@ public final class TimetableBuilder {
 
         ClassGroup(Lesson enrolment) {
             lesson = new Lesson(enrolment.getClassId(), enrolment.getSubject(), enrolment.getCost(),
-                    enrolment.getSchedule(), seedu.address.model.lesson.PaymentStatus.UNPAID);
+                    enrolment.getSchedule(), seedu.address.model.lesson.PaymentStatus.UNPAID, enrolment.getDetails());
         }
     }
 }

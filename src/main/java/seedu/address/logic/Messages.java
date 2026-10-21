@@ -49,6 +49,9 @@ public class Messages {
                 .append(person.getAddress())
                 .append("; Tags: ");
         person.getTags().forEach(builder::append);
+        if (!person.getGuardianContact().isEmpty()) {
+            builder.append("; Guardian: ").append(person.getGuardianContact());
+        }
         return builder.toString();
     }
 
