@@ -1,0 +1,20 @@
+@startuml
+!include style.puml
+
+title Basic Class Diagram
+
+skinparam arrowColor MODEL_COLOR
+skinparam classBackgroundColor MODEL_COLOR
+
+package Model <<Rectangle>> {
+    class ModelManager
+    class AddressBook
+    class Person
+    class Lesson
+}
+
+ModelManager --> "1" AddressBook : manages
+AddressBook *--> "*" Person : contains
+Person *--> "*" Lesson : enrols in
+
+@enduml
