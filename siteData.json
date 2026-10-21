@@ -58,6 +58,7 @@
         "timetable-view": "Timetable view",
         "independent-class-management": "Independent class management",
         "payment-status": "Payment status",
+        "adding-class-and-guardian-attributes": "Adding class and guardian attributes",
         "subject-search": "Subject search",
         "batch-tag-assignment": "Batch tag assignment",
         "batch-class-enrolment": "Batch class enrolment",
@@ -94,6 +95,25 @@
       "title": "Logging guide",
       "headings": {
         "logging-guide": "Logging guide"
+      },
+      "headingKeywords": {}
+    },
+    {
+      "src": "ManualTests-v1.4.md",
+      "headings": {
+        "v1-4-manual-tests-contact-attributes-with-pr-88-s-class-catalogue": "v1.4 manual tests: contact attributes with PR 88's class catalogue",
+        "safe-setup": "Safe setup",
+        "1-add-a-contact-and-an-online-class": "1. Add a contact and an online class",
+        "2-add-optional-fields-and-offline-classes": "2. Add optional fields and offline classes",
+        "3-existing-class-enrolment-and-shared-details": "3. Existing class enrolment and shared details",
+        "4-edit-the-canonical-class-without-losing-attributes": "4. Edit the canonical class without losing attributes",
+        "5-fill-an-empty-catalogue-class-s-details-through-its-first-contact": "5. Fill an empty catalogue class's details through its first contact",
+        "6-reject-invalid-data-without-partial-additions": "6. Reject invalid data without partial additions",
+        "7-restart-and-retain-empty-classes": "7. Restart and retain empty classes",
+        "8-delete-a-class": "8. Delete a class",
+        "9-privacy-and-pinned-contacts": "9. Privacy and pinned contacts",
+        "10-one-off-online-classes": "10. One-off online classes",
+        "automated-verification": "Automated verification"
       },
       "headingKeywords": {}
     },
@@ -136,6 +156,7 @@
         "features": "Features",
         "viewing-help-help": "Viewing help: help",
         "adding-a-person-add": "Adding a person: add",
+        "adding-guardian-and-class-details-to-a-contact": "Adding guardian and class details to a contact",
         "adding-a-class-class-add": "Adding a class: class add",
         "viewing-classes-class-list": "Viewing classes: class list",
         "editing-a-class-class-edit": "Editing a class: class edit",
