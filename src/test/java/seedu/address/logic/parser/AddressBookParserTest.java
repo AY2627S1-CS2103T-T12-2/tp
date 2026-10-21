@@ -6,6 +6,7 @@ import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
+import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 
 import java.util.List;
 import java.util.Set;
@@ -13,6 +14,7 @@ import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.ClassDeleteCommand;
 import seedu.address.logic.commands.ClassEnrolCommand;
@@ -26,8 +28,11 @@ import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.PinCommand;
+import seedu.address.logic.commands.PrivacyCommand;
 import seedu.address.logic.commands.TagCommand;
 import seedu.address.logic.commands.TimetableCommand;
+import seedu.address.logic.commands.UnpinCommand;
 import seedu.address.logic.commands.UntagCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.lesson.Cost;
@@ -65,6 +70,15 @@ public class AddressBookParserTest {
                 new LessonTiming("Monday1800-1930"));
         assertEquals(new ClassEnrolCommand(INDEX_FIRST_PERSON, lesson), parser.parseCommand(
                 "class enrol 1 sub/Math cost/30 c/Monday1800-1930"));
+    }
+
+    @Test
+    public void parseCommand_classEnrolMultipleStudentsInExistingClass() throws Exception {
+        Subject subject = new Subject("Math");
+        LessonTiming timing = new LessonTiming("Monday1800-1930");
+        assertEquals(new ClassEnrolCommand(
+                List.of(INDEX_FIRST_PERSON, Index.fromOneBased(2)), subject, timing),
+                parser.parseCommand("class enrol 1 2 sub/Math c/Monday1800-1930"));
     }
 
     @Test
@@ -134,15 +148,39 @@ public class AddressBookParserTest {
     }
 
     @Test
+    public void parseCommand_privacy() throws Exception {
+        assertEquals(new PrivacyCommand(true), parser.parseCommand("privacy on"));
+        assertEquals(new PrivacyCommand(false), parser.parseCommand("privacy off"));
+    }
+
+    @Test
+    public void parseCommand_pin() throws Exception {
+        PinCommand command = (PinCommand) parser.parseCommand("pin 1");
+        assertEquals(new PinCommand(INDEX_FIRST_PERSON), command);
+    }
+
+    @Test
     public void parseCommand_tag() throws Exception {
         TagCommand command = (TagCommand) parser.parseCommand("tag 1 exam-prep");
         assertEquals(new TagCommand(INDEX_FIRST_PERSON, Set.of(new Tag("exam-prep"))), command);
     }
 
     @Test
+    public void parseCommand_tagMultipleStudents() throws Exception {
+        TagCommand command = (TagCommand) parser.parseCommand("tag 1 2 t/math-2026");
+        assertEquals(new TagCommand(List.of(INDEX_FIRST_PERSON, INDEX_SECOND_PERSON), new Tag("math-2026")), command);
+    }
+
+    @Test
     public void parseCommand_untag() throws Exception {
         UntagCommand command = (UntagCommand) parser.parseCommand("untag 1 -all");
         assertEquals(new UntagCommand(INDEX_FIRST_PERSON), command);
+    }
+
+    @Test
+    public void parseCommand_unpin() throws Exception {
+        UnpinCommand command = (UnpinCommand) parser.parseCommand("unpin 1");
+        assertEquals(new UnpinCommand(INDEX_FIRST_PERSON), command);
     }
 
     @Test

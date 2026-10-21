@@ -35,7 +35,9 @@ public class MainWindow extends UiPart<Stage> {
     // Independent Ui parts residing in this Ui container
     private PersonListPanel personListPanel;
     private TimetablePanel timetablePanel;
+    private ClassListPanel classListPanel;
     private ResultDisplay resultDisplay;
+    private StatusBarFooter statusBarFooter;
     private HelpWindow helpWindow;
 
     @FXML
@@ -115,13 +117,14 @@ public class MainWindow extends UiPart<Stage> {
      * Fills up all the placeholders of this window.
      */
     void fillInnerParts() {
-        personListPanel = new PersonListPanel(logic.getFilteredPersonList());
+        boolean privacyModeEnabled = logic.isPrivacyModeEnabled();
+        personListPanel = new PersonListPanel(logic.getFilteredPersonList(), privacyModeEnabled);
         personListPanelPlaceholder.getChildren().add(personListPanel.getRoot());
 
         resultDisplay = new ResultDisplay();
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
 
-        StatusBarFooter statusBarFooter = new StatusBarFooter(dataFilePath);
+        statusBarFooter = new StatusBarFooter(dataFilePath, privacyModeEnabled);
         statusbarPlaceholder.getChildren().add(statusBarFooter.getRoot());
 
         CommandBox commandBox = new CommandBox(this::executeCommand);
@@ -182,10 +185,12 @@ public class MainWindow extends UiPart<Stage> {
             CommandResult commandResult = logic.execute(commandText);
             logger.info("Result: " + commandResult.getFeedbackToUser());
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
+            updatePrivacyDisplay();
 
             switch (commandResult.getViewChange()) {
                 case TIMETABLE -> showTimetable();
                 case PERSON_LIST -> showPersonList();
+                case CLASS_LIST -> showClassList();
                 case NONE -> {
                     // Keep the current main content.
                 }
@@ -209,11 +214,22 @@ public class MainWindow extends UiPart<Stage> {
     }
 
     private void showTimetable() {
-        timetablePanel = new TimetablePanel(logic.getTimetable());
+        timetablePanel = new TimetablePanel(logic::getCurrentDate, logic::getTimetable);
         personListPanelPlaceholder.getChildren().setAll(timetablePanel.getRoot());
     }
 
     private void showPersonList() {
         personListPanelPlaceholder.getChildren().setAll(personListPanel.getRoot());
+    }
+
+    private void updatePrivacyDisplay() {
+        boolean privacyModeEnabled = logic.isPrivacyModeEnabled();
+        personListPanel.setPrivacyModeEnabled(privacyModeEnabled);
+        statusBarFooter.setPrivacyModeEnabled(privacyModeEnabled);
+    }
+
+    private void showClassList() {
+        classListPanel = new ClassListPanel(logic.getTuitionClassList());
+        personListPanelPlaceholder.getChildren().setAll(classListPanel.getRoot());
     }
 }

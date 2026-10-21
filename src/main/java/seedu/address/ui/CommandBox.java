@@ -22,6 +22,10 @@ public class CommandBox extends UiPart<Region> {
     private static final String FIND_LESSON_HINT =
             "find c/DAY, DATE, or TIME (e.g. Monday 1800; 2026-10-20; time uses HHmm)";
     private static final String FIND_HOME_HINT = "Type 'list' to return to the home page.";
+    private static final String PRIVACY_COMMAND = "privacy";
+    private static final String PRIVACY_FORMAT_HINT = "privacy on | privacy off";
+    private static final String PIN_FORMAT_HINT = "pin INDEX";
+    private static final String UNPIN_FORMAT_HINT = "unpin INDEX";
 
     private final CommandExecutor commandExecutor;
 
@@ -97,8 +101,17 @@ public class CommandBox extends UiPart<Region> {
             return "find";
         }
 
+        if (PRIVACY_COMMAND.startsWith(commandText) && commandText.length() < PRIVACY_COMMAND.length()) {
+            return PRIVACY_COMMAND;
+        }
+
         if (commandText.equals("find") || commandText.equals("find ")) {
             return FIND_FORMAT_HINT;
+        }
+
+        if (commandText.equals(PRIVACY_COMMAND) || commandText.equals(PRIVACY_COMMAND + " ")
+                || commandText.equals(PRIVACY_COMMAND + " o")) {
+            return PRIVACY_FORMAT_HINT;
         }
 
         if (commandText.equals("find t/")) {
@@ -115,6 +128,22 @@ public class CommandBox extends UiPart<Region> {
 
         if (commandText.equals("c/")) {
             return "c/DAY, DATE, or TIME (e.g. Monday 1800; 2026-10-20; time uses HHmm)";
+        }
+
+        if ("pin".startsWith(commandText) && commandText.length() < "pin".length()) {
+            return "pin";
+        }
+
+        if (commandText.equals("pin") || commandText.equals("pin ")) {
+            return PIN_FORMAT_HINT;
+        }
+
+        if ("unpin".startsWith(commandText) && commandText.length() < "unpin".length()) {
+            return "unpin";
+        }
+
+        if (commandText.equals("unpin") || commandText.equals("unpin ")) {
+            return UNPIN_FORMAT_HINT;
         }
 
         return "";

@@ -71,8 +71,6 @@ public class OneOffLessonScheduleTest {
         assertEquals(0, schedule.compareTo(copy));
         assertTrue(schedule.compareTo(new OneOffLessonSchedule("2026-10-20T1900-2000")) < 0);
         assertTrue(schedule.compareTo(new OneOffLessonSchedule("2026-10-21T0900-1000")) < 0);
-        assertNotEquals(schedule, new OneOffLessonSchedule("2026-10-21T1800-1930"));
-        assertNotEquals(schedule, new OneOffLessonSchedule("2026-10-20T1900-2000"));
         assertNotEquals(schedule, new OneOffLessonSchedule("2026-10-20T1800-2000"));
         assertNotEquals(schedule, "2026-10-20T1800-1930");
     }

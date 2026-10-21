@@ -12,15 +12,19 @@ import java.util.logging.Logger;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.logic.commands.ClassListCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.PrivacyCommand;
+import seedu.address.logic.commands.TimetableCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
+import seedu.address.model.lesson.TuitionClass;
 import seedu.address.model.person.Person;
 import seedu.address.model.timetable.TimetableDay;
 import seedu.address.storage.Storage;
@@ -35,7 +39,7 @@ public class LogicManager implements Logic {
             "Could not save data to file %s due to insufficient permissions to write to the file or the folder.";
 
     public static final String MESSAGE_TIMETABLE_READ_ONLY = "Timetable is read-only. Use \"list\" to return to "
-            + "the student view. Only list, help, and exit are available.";
+            + "the student view. Only list, class list, privacy, help, and exit are available.";
 
     private final Logger logger = LogsCenter.getLogger(LogicManager.class);
 
@@ -71,10 +75,17 @@ public class LogicManager implements Logic {
         if (currentView == CommandResult.ViewChange.TIMETABLE && !isAllowedInTimetable(command)) {
             throw new CommandException(MESSAGE_TIMETABLE_READ_ONLY);
         }
+        if (currentView == CommandResult.ViewChange.CLASS_LIST && !isAllowedInClassList(command)) {
+            throw new CommandException("Class list is read-only. Use \"list\" to return to the student view. "
+                    + "Only list, timetable, class list, privacy, help, and exit are available.");
+        }
         commandResult = command.execute(model);
 
         try {
             storage.saveAddressBook(model.getAddressBook());
+            if (command instanceof PrivacyCommand) {
+                storage.saveUserPrefs(model.getUserPrefs());
+            }
         } catch (AccessDeniedException e) {
             throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, e.getMessage()), e);
         } catch (IOException ioe) {
@@ -94,8 +105,19 @@ public class LogicManager implements Logic {
     }
 
     @Override
-    public List<TimetableDay> getTimetable() {
-        return model.getTimetable(LocalDate.now(clock));
+    public LocalDate getCurrentDate() {
+        return LocalDate.now(clock);
+    }
+
+    @Override
+    public List<TimetableDay> getTimetable(LocalDate anchorDate) {
+        requireNonNull(anchorDate);
+        return model.getTimetable(anchorDate);
+    }
+
+    @Override
+    public ObservableList<TuitionClass> getTuitionClassList() {
+        return model.getTuitionClassList();
     }
 
     @Override
@@ -108,7 +130,26 @@ public class LogicManager implements Logic {
         model.setGuiSettings(guiSettings);
     }
 
+    @Override
+    public boolean isPrivacyModeEnabled() {
+        return model.isPrivacyModeEnabled();
+    }
+
+    @Override
+    public void setPrivacyModeEnabled(boolean privacyModeEnabled) {
+        model.setPrivacyModeEnabled(privacyModeEnabled);
+    }
+
     private boolean isAllowedInTimetable(Command command) {
-        return command instanceof ListCommand || command instanceof HelpCommand || command instanceof ExitCommand;
+        return command instanceof ListCommand || command instanceof ClassListCommand
+                || command instanceof PrivacyCommand || command instanceof HelpCommand
+                || command instanceof ExitCommand;
+    }
+
+    private boolean isAllowedInClassList(Command command) {
+        return command instanceof ListCommand || command instanceof TimetableCommand
+                || command instanceof ClassListCommand || command instanceof PrivacyCommand
+                || command instanceof HelpCommand
+                || command instanceof ExitCommand;
     }
 }

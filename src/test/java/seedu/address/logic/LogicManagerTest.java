@@ -1,6 +1,8 @@
 package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.CommandTestUtil.ADDRESS_DESC_AMY;
@@ -12,10 +14,13 @@ import static seedu.address.testutil.TypicalPersons.AMY;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,18 +32,21 @@ import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.PrivacyCommand;
 import seedu.address.logic.commands.TimetableCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
+import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
 import seedu.address.model.lesson.Subject;
 import seedu.address.model.person.Person;
+import seedu.address.model.timetable.TimetableDay;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -83,6 +91,49 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void privacyMode_getAndSet_delegatesToModel() {
+        assertFalse(logic.isPrivacyModeEnabled());
+
+        logic.setPrivacyModeEnabled(true);
+
+        assertTrue(logic.isPrivacyModeEnabled());
+        assertTrue(model.isPrivacyModeEnabled());
+    }
+
+    @Test
+    public void execute_privacyCommand_persistsAcrossRestart() throws Exception {
+        assertEquals(PrivacyCommand.MESSAGE_PRIVACY_MODE_ENABLED,
+                logic.execute("privacy on").getFeedbackToUser());
+
+        UserPrefs reloadedPrefs = storage.readUserPrefs().orElseThrow();
+        Logic restartedLogic = new LogicManager(new ModelManager(model.getAddressBook(), reloadedPrefs), storage);
+
+        assertTrue(restartedLogic.isPrivacyModeEnabled());
+    }
+
+    @Test
+    public void execute_userPrefsStorageThrowsIoException_nonPrivacyCommandSucceeds() throws Exception {
+        JsonAddressBookStorage addressBookStorage =
+                new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        JsonUserPrefsStorage userPrefsStorage =
+                new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json")) {
+                    @Override
+                    public void saveUserPrefs(ReadOnlyUserPrefs userPrefs) throws IOException {
+                        throw DUMMY_IO_EXCEPTION;
+                    }
+                };
+        logic = new LogicManager(model, new StorageManager(addressBookStorage, userPrefsStorage));
+
+        String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
+                + EMAIL_DESC_AMY + ADDRESS_DESC_AMY;
+        Person expectedPerson = new PersonBuilder(AMY).withTags().build();
+
+        assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(expectedPerson)),
+                logic.execute(addCommand).getFeedbackToUser());
+        assertTrue(model.hasPerson(expectedPerson));
+    }
+
+    @Test
     public void execute_storageThrowsIoException_throwsCommandException() {
         assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, String.format(
                 LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
@@ -100,7 +151,7 @@ public class LogicManagerTest {
     }
 
     @Test
-    public void execute_timetableMode_onlyListHelpAndExitAllowed() throws Exception {
+    public void execute_readOnlyViews_onlyNonModifyingCommandsAllowed() throws Exception {
         CommandResult timetableResult = logic.execute(TimetableCommand.COMMAND_WORD);
         assertEquals(CommandResult.ViewChange.TIMETABLE, timetableResult.getViewChange());
 
@@ -116,8 +167,15 @@ public class LogicManagerTest {
 
         assertEquals(HelpCommand.SHOWING_HELP_MESSAGE,
                 logic.execute(HelpCommand.COMMAND_WORD).getFeedbackToUser());
+        assertEquals(PrivacyCommand.MESSAGE_PRIVACY_MODE_ENABLED,
+                logic.execute("privacy on").getFeedbackToUser());
         assertEquals(ExitCommand.MESSAGE_EXIT_ACKNOWLEDGEMENT,
                 logic.execute(ExitCommand.COMMAND_WORD).getFeedbackToUser());
+
+        CommandResult classListResult = logic.execute("class list");
+        assertEquals(CommandResult.ViewChange.CLASS_LIST, classListResult.getViewChange());
+        assertEquals(PrivacyCommand.MESSAGE_PRIVACY_MODE_DISABLED,
+                logic.execute("privacy off").getFeedbackToUser());
 
         CommandResult listResult = logic.execute(ListCommand.COMMAND_WORD);
         assertEquals(CommandResult.ViewChange.PERSON_LIST, listResult.getViewChange());
@@ -125,15 +183,35 @@ public class LogicManagerTest {
     }
 
     @Test
-    public void getTimetable_fixedClock_usesClockDate() {
+    public void getCurrentDate_fixedClock_returnsClockDate() {
+        Clock thursdayClock = Clock.fixed(Instant.parse("2026-10-08T04:00:00Z"), ZoneOffset.UTC);
+        logic = new LogicManager(model, storage, thursdayClock);
+
+        assertEquals(LocalDate.of(2026, 10, 8), logic.getCurrentDate());
+    }
+
+    @Test
+    public void getTimetable_anchorDate_usesRequestedWeekRatherThanClockDate() {
         Lesson fridayLesson = new Lesson(new Subject("Math"), new Cost("30"),
                 new LessonTiming("Friday1800-1930"));
         model.addPerson(new PersonBuilder().withLessons(fridayLesson).build());
         Clock thursdayClock = Clock.fixed(Instant.parse("2026-10-08T04:00:00Z"), ZoneOffset.UTC);
         logic = new LogicManager(model, storage, thursdayClock);
 
-        assertEquals(3, logic.getTimetable().size());
-        assertEquals(1, logic.getTimetable().get(1).getEntries().size());
+        List<TimetableDay> timetable = logic.getTimetable(LocalDate.of(2026, 10, 15));
+
+        assertEquals(LocalDate.of(2026, 10, 11), timetable.get(0).getDate());
+        assertEquals(1, timetable.get(5).getEntries().size());
+    }
+
+    @Test
+    public void timetableQueries_doNotSaveAddressBook() {
+        Path addressBookPath = storage.getAddressBookFilePath();
+
+        logic.getCurrentDate();
+        logic.getTimetable(LocalDate.of(2026, 10, 20));
+
+        assertFalse(Files.exists(addressBookPath));
     }
 
     /**

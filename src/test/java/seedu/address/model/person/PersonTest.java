@@ -12,6 +12,9 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BOB;
 
+import java.util.Optional;
+import java.util.Set;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.model.lesson.Cost;
@@ -22,6 +25,38 @@ import seedu.address.model.lesson.Subject;
 import seedu.address.testutil.PersonBuilder;
 
 public class PersonTest {
+
+    @Test
+    public void hasUnmigratedLegacyLesson_usesTheSameBoundaryAsMigration() {
+        var cost = Optional.of(new seedu.address.model.person.Cost("30"));
+        Person lastMinute = legacyStudent(cost, Optional.of(new seedu.address.model.person.Lesson("Monday2359")));
+        Person lastMigratableMinute = legacyStudent(cost,
+                Optional.of(new seedu.address.model.person.Lesson("Monday2358")));
+        assertTrue(lastMinute.getLessons().isEmpty());
+        assertTrue(lastMinute.hasUnmigratedLegacyLesson());
+        assertEquals("Monday2358-2359", lastMigratableMinute.getLessons().iterator().next()
+                .getSchedule().toStorageString());
+        assertFalse(lastMigratableMinute.hasUnmigratedLegacyLesson());
+        assertFalse(lastMigratableMinute.withLessons(Set.of()).hasUnmigratedLegacyLesson());
+        assertFalse(lastMinute.withLessons(lastMigratableMinute.getLessons()).hasUnmigratedLegacyLesson());
+    }
+
+    @Test
+    public void hasUnmigratedLegacyLesson_partialRecordsRetainSubjectsWithoutInventingClasses() {
+        Person missingCost = legacyStudent(Optional.empty(),
+                Optional.of(new seedu.address.model.person.Lesson("Monday1800")));
+        Person missingStart = legacyStudent(Optional.of(new seedu.address.model.person.Cost("30")), Optional.empty());
+        assertTrue(missingCost.hasUnmigratedLegacyLesson());
+        assertTrue(missingStart.hasUnmigratedLegacyLesson());
+        assertFalse(new PersonBuilder().build().hasUnmigratedLegacyLesson());
+    }
+
+    private Person legacyStudent(Optional<seedu.address.model.person.Cost> cost,
+            Optional<seedu.address.model.person.Lesson> lesson) {
+        Person base = new PersonBuilder().build();
+        return new Person(base.getName(), base.getPhone(), base.getEmail(), base.getAddress(), base.getTags(),
+                Set.of(new seedu.address.model.person.Subject("Math")), cost, lesson);
+    }
 
     @Test
     public void constructor_moreThanTenTags_acceptsLegacyData() {
@@ -57,6 +92,29 @@ public class PersonTest {
         Person person = new PersonBuilder().withLessons(math, computing, paidPhysics).build();
 
         assertEquals("90.5", person.getOutstandingBalance().toPlainString());
+    }
+
+    @Test
+    public void withPinned_updatesOnlyPinnedState() {
+        Person pinnedAlice = ALICE.withPinned(true);
+
+        assertTrue(pinnedAlice.isPinned());
+        assertTrue(ALICE.isSamePerson(pinnedAlice));
+        assertEquals(ALICE.getName(), pinnedAlice.getName());
+        assertEquals(ALICE.getPhone(), pinnedAlice.getPhone());
+        assertEquals(ALICE.getEmail(), pinnedAlice.getEmail());
+        assertEquals(ALICE.getAddress(), pinnedAlice.getAddress());
+        assertEquals(ALICE.getTags(), pinnedAlice.getTags());
+        assertEquals(ALICE.getLessons(), pinnedAlice.getLessons());
+    }
+
+    @Test
+    public void copyOperations_pinnedPerson_preservePinnedState() {
+        Person pinnedPerson = new PersonBuilder(ALICE).withPinned(true).build();
+
+        assertTrue(pinnedPerson.withTags(pinnedPerson.getTags()).isPinned());
+        assertTrue(pinnedPerson.withLessons(pinnedPerson.getLessons()).isPinned());
+        assertTrue(new PersonBuilder(pinnedPerson).build().isPinned());
     }
 
     @Test
@@ -123,6 +181,10 @@ public class PersonTest {
         // different tags -> returns false
         editedAlice = new PersonBuilder(ALICE).withTags(VALID_TAG_HUSBAND).build();
         assertFalse(ALICE.equals(editedAlice));
+
+        // different pin state -> returns false
+        editedAlice = new PersonBuilder(ALICE).withPinned(true).build();
+        assertFalse(ALICE.equals(editedAlice));
     }
 
     @Test
@@ -135,7 +197,8 @@ public class PersonTest {
                 + ", tags=" + ALICE.getTags()
                 + ", subjects=" + ALICE.getSubjects()
                 + ", cost=" + ALICE.getCost()
-                + ", lesson=" + ALICE.getLesson() + "}";
+                + ", lesson=" + ALICE.getLesson()
+                + ", pinned=" + ALICE.isPinned() + "}";
         assertEquals(expected, ALICE.toString());
     }
 

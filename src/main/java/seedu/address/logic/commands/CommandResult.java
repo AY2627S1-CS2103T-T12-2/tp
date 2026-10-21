@@ -15,7 +15,8 @@ public class CommandResult {
     public enum ViewChange {
         NONE,
         PERSON_LIST,
-        TIMETABLE
+        TIMETABLE,
+        CLASS_LIST
     }
 
     private final String feedbackToUser;

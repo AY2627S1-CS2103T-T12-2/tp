@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.FutureTask;
@@ -46,9 +46,9 @@ public class TimetableDayCardTest {
     }
 
     @Test
-    public void formatDay_dayOfWeek_returnsCapitalisedEnglishName() {
-        assertEquals("Monday", TimetableDayCard.formatDay(DayOfWeek.MONDAY));
-        assertEquals("Saturday", TimetableDayCard.formatDay(DayOfWeek.SATURDAY));
+    public void formatDate_date_returnsEnglishHeadingWithoutYear() {
+        assertEquals("Tuesday, 20 Oct", TimetableDayCard.formatDate(LocalDate.of(2026, 10, 20)));
+        assertEquals("Friday, 1 Jan", TimetableDayCard.formatDate(LocalDate.of(2027, 1, 1)));
     }
 
     @Test
@@ -60,9 +60,9 @@ public class TimetableDayCardTest {
 
         runOnFxThread(() -> {
             TimetableDayCard emptyCard = new TimetableDayCard(
-                    new TimetableDay(DayOfWeek.MONDAY, List.of()));
+                    new TimetableDay(LocalDate.of(2026, 10, 19), List.of()), false);
             TimetableDayCard populatedCard = new TimetableDayCard(
-                    new TimetableDay(DayOfWeek.MONDAY, List.of(entry)));
+                    new TimetableDay(LocalDate.of(2026, 10, 19), List.of(entry)), false);
 
             Label dayHeading = (Label) emptyCard.getRoot().lookup("#dayHeading");
             Label emptyMessage = (Label) emptyCard.getRoot().lookup("#emptyMessage");
@@ -70,12 +70,25 @@ public class TimetableDayCardTest {
             Label populatedMessage = (Label) populatedCard.getRoot().lookup("#emptyMessage");
 
             assertNotNull(dayHeading);
-            assertEquals("Monday", dayHeading.getText());
+            assertEquals("Monday, 19 Oct", dayHeading.getText());
             assertTrue(emptyMessage.isVisible());
             assertTrue(emptyMessage.isManaged());
             assertEquals(1, entriesContainer.getChildren().size());
             assertFalse(populatedMessage.isVisible());
             assertFalse(populatedMessage.isManaged());
+        });
+    }
+
+    @Test
+    public void constructor_todayAndOtherDay_appliesHighlightOnlyToToday() throws Exception {
+        TimetableDay day = new TimetableDay(LocalDate.of(2026, 10, 20), List.of());
+
+        runOnFxThread(() -> {
+            TimetableDayCard todayCard = new TimetableDayCard(day, true);
+            TimetableDayCard otherDayCard = new TimetableDayCard(day, false);
+
+            assertTrue(todayCard.getRoot().getStyleClass().contains("timetable-today"));
+            assertFalse(otherDayCard.getRoot().getStyleClass().contains("timetable-today"));
         });
     }
 

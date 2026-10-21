@@ -14,6 +14,7 @@ import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.GuardianContact;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
@@ -36,6 +37,10 @@ class JsonAdaptedPerson {
     private final List<String> subjects = new ArrayList<>();
     private final String cost;
     private final String lesson;
+    private final boolean pinned;
+    private final String guardianName;
+    private final String guardianPhone;
+    private final String guardianEmail;
 
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details.
@@ -47,7 +52,14 @@ class JsonAdaptedPerson {
             @JsonProperty("lessons") List<JsonAdaptedLesson> lessons,
             @JsonProperty("subjects") List<String> subjects,
             @JsonProperty("cost") String cost,
-            @JsonProperty("lesson") String lesson) {
+            @JsonProperty("lesson") String lesson,
+            @JsonProperty("guardianName") String guardianName,
+            @JsonProperty("guardianPhone") String guardianPhone,
+            @JsonProperty("guardianEmail") String guardianEmail, @JsonProperty("pinned") Boolean pinned) {
+        this.pinned = Boolean.TRUE.equals(pinned);
+        this.guardianName = guardianName;
+        this.guardianPhone = guardianPhone;
+        this.guardianEmail = guardianEmail;
         this.name = name;
         this.phone = phone;
         this.email = email;
@@ -65,6 +77,26 @@ class JsonAdaptedPerson {
         }
     }
 
+    /** Retains the guardian-only constructor. */
+    public JsonAdaptedPerson(String name, String phone, String email, String address, List<JsonAdaptedTag> tags,
+            List<JsonAdaptedLesson> lessons, List<String> subjects, String cost, String lesson,
+            String guardianName, String guardianPhone, String guardianEmail) {
+        this(name, phone, email, address, tags, lessons, subjects, cost, lesson,
+                guardianName, guardianPhone, guardianEmail, false);
+    }
+
+    /** Retains the pin-aware constructor for records without guardians. */
+    public JsonAdaptedPerson(String name, String phone, String email, String address, List<JsonAdaptedTag> tags,
+            List<JsonAdaptedLesson> lessons, List<String> subjects, String cost, String lesson, Boolean pinned) {
+        this(name, phone, email, address, tags, lessons, subjects, cost, lesson, null, null, null, pinned);
+    }
+
+    /** Backwards-compatible constructor for records without guardian details. */
+    public JsonAdaptedPerson(String name, String phone, String email, String address, List<JsonAdaptedTag> tags,
+            List<JsonAdaptedLesson> lessons, List<String> subjects, String cost, String lesson) {
+        this(name, phone, email, address, tags, lessons, subjects, cost, lesson, null, null, null);
+    }
+
     /** Backwards-compatible constructor for person data without lesson enrolments. */
     public JsonAdaptedPerson(String name, String phone, String email, String address, List<JsonAdaptedTag> tags) {
         this(name, phone, email, address, tags, null, null, null, null);
@@ -80,6 +112,10 @@ class JsonAdaptedPerson {
      * Converts a given {@code Person} into this class for Jackson use.
      */
     public JsonAdaptedPerson(Person source) {
+        pinned = source.isPinned();
+        guardianName = source.getGuardianContact().name();
+        guardianPhone = source.getGuardianContact().phone();
+        guardianEmail = source.getGuardianContact().email();
         name = source.getName().fullName;
         phone = source.getPhone().value;
         email = source.getEmail().value;
@@ -91,6 +127,16 @@ class JsonAdaptedPerson {
         subjects.addAll(source.getSubjects().stream().map(Subject::toString).sorted().toList());
         cost = source.getCost().map(Object::toString).orElse(null);
         lesson = source.getLesson().map(Object::toString).orElse(null);
+    }
+
+    /** Distinguishes old enrolments without class fields from explicitly supplied empty fields. */
+    boolean hasExplicitClassDetails(Lesson lesson) throws IllegalValueException {
+        for (JsonAdaptedLesson adapted : lessons) {
+            if (adapted.hasExplicitDetails() && adapted.toModelType().equals(lesson)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -168,8 +214,14 @@ class JsonAdaptedPerson {
                     modelSubjects, modelCost, modelLesson);
             modelLessons.addAll(migrated.getLessons());
         }
-        return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags, modelLessons,
-                modelSubjects, modelCost, modelLesson);
+        try {
+            GuardianContact guardian = new GuardianContact(guardianName == null ? "" : guardianName,
+                    guardianPhone == null ? "" : guardianPhone, guardianEmail == null ? "" : guardianEmail);
+            return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags, modelLessons,
+                    modelSubjects, modelCost, modelLesson, guardian, pinned);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalValueException(e.getMessage());
+        }
     }
 
 }
