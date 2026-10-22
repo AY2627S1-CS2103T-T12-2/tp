@@ -14,7 +14,6 @@ import seedu.address.model.lesson.ClassId;
 import seedu.address.model.lesson.ClassMode;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Enrollment;
-import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
 import seedu.address.model.lesson.OneOffLessonSchedule;
 import seedu.address.model.lesson.PaymentStatus;
@@ -26,6 +25,7 @@ import seedu.address.model.person.GuardianContact;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.StudentId;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -66,41 +66,52 @@ public class SampleDataUtil {
         TuitionClass english = classes[1];
         TuitionClass physics = classes[2];
         TuitionClass chemistryWorkshop = classes[3];
+        StudentId alexId = sampleStudentId(1);
+        StudentId berniceId = sampleStudentId(2);
+        StudentId charlotteId = sampleStudentId(3);
+        StudentId davidId = sampleStudentId(4);
+        StudentId irfanId = sampleStudentId(5);
+        StudentId royId = sampleStudentId(6);
 
         return new Person[] {
-            createPerson("Alex Yeoh", "87438807", "alexyeoh@example.com",
+            createPerson(alexId, "Alex Yeoh", "87438807", "alexyeoh@example.com",
                     "Blk 30 Geylang Street 29, #06-40",
                     new GuardianContact("Michelle Yeoh", "81234567", "michelle@example.com"), true,
-                    getLessonSet(new Enrollment(mathematics, PaymentStatus.PAID),
-                            new Enrollment(physics, PaymentStatus.UNPAID)),
+                    getEnrollmentSet(
+                            new Enrollment(alexId, mathematics, mathematics.getDefaultRate(), PaymentStatus.PAID),
+                            new Enrollment(alexId, physics, physics.getDefaultRate(), PaymentStatus.UNPAID)),
                     "priority", "secondary-4"),
-            createPerson("Bernice Yu", "99272758", "berniceyu@example.com",
+            createPerson(berniceId, "Bernice Yu", "99272758", "berniceyu@example.com",
                     "Blk 30 Lorong 3 Serangoon Gardens, #07-18",
                     new GuardianContact("Daniel Yu", "82345678", ""), false,
-                    getLessonSet(new Enrollment(mathematics, PaymentStatus.UNPAID),
-                            new Enrollment(english, PaymentStatus.PAID)),
+                    getEnrollmentSet(new Enrollment(berniceId, mathematics, new Cost("42"), PaymentStatus.UNPAID),
+                            new Enrollment(berniceId, english, english.getDefaultRate(), PaymentStatus.PAID)),
                     "secondary-3", "needs-practice"),
-            createPerson("Charlotte Oliveiro", "93210283", "charlotte@example.com",
+            createPerson(charlotteId, "Charlotte Oliveiro", "93210283", "charlotte@example.com",
                     "Blk 11 Ang Mo Kio Street 74, #11-04",
                     new GuardianContact("Rachel Oliveiro", "83456789", "rachel@example.com"), false,
-                    getLessonSet(new Enrollment(english, PaymentStatus.UNPAID),
-                            new Enrollment(chemistryWorkshop, PaymentStatus.UNPAID)),
+                    getEnrollmentSet(
+                            new Enrollment(charlotteId, english, english.getDefaultRate(), PaymentStatus.UNPAID),
+                            new Enrollment(charlotteId, chemistryWorkshop,
+                                    chemistryWorkshop.getDefaultRate(), PaymentStatus.UNPAID)),
                     "secondary-4", "exam-prep"),
-            createPerson("David Li", "91031282", "lidavid@example.com",
+            createPerson(davidId, "David Li", "91031282", "lidavid@example.com",
                     "Blk 436 Serangoon Gardens Street 26, #16-43",
                     GuardianContact.EMPTY, false,
-                    getLessonSet(new Enrollment(physics, PaymentStatus.PAID),
-                            new Enrollment(chemistryWorkshop, PaymentStatus.PAID)),
+                    getEnrollmentSet(new Enrollment(davidId, physics, physics.getDefaultRate(), PaymentStatus.PAID),
+                            new Enrollment(davidId, chemistryWorkshop,
+                                    chemistryWorkshop.getDefaultRate(), PaymentStatus.PAID)),
                     "junior-college", "science"),
-            createPerson("Irfan Ibrahim", "92492021", "irfan@example.com",
+            createPerson(irfanId, "Irfan Ibrahim", "92492021", "irfan@example.com",
                     "Blk 47 Tampines Street 20, #17-35",
                     new GuardianContact("Nur Ibrahim", "84567890", "nur@example.com"), false,
-                    getLessonSet(new Enrollment(mathematics, PaymentStatus.UNPAID)),
+                    getEnrollmentSet(
+                            new Enrollment(irfanId, mathematics, mathematics.getDefaultRate(), PaymentStatus.UNPAID)),
                     "secondary-2", "new-student"),
-            createPerson("Roy Balakrishnan", "92624417", "royb@example.com",
+            createPerson(royId, "Roy Balakrishnan", "92624417", "royb@example.com",
                     "Blk 45 Aljunied Street 85, #11-31",
                     new GuardianContact("Anita Balakrishnan", "85678901", "anita@example.com"), true,
-                    getLessonSet(), "trial", "not-enrolled")
+                    getEnrollmentSet(), "trial", "not-enrolled")
         };
     }
 
@@ -121,15 +132,21 @@ public class SampleDataUtil {
         return sampleAb;
     }
 
-    private static Person createPerson(String name, String phone, String email, String address,
-            GuardianContact guardianContact, boolean pinned, Set<Lesson> lessons, String... tags) {
-        return new Person(new Name(name), new Phone(phone), new Email(email), new Address(address),
-                getTagSet(tags), lessons, Set.of(), Optional.empty(), Optional.empty(), guardianContact, pinned);
+    private static Person createPerson(StudentId studentId, String name, String phone, String email, String address,
+            GuardianContact guardianContact, boolean pinned, Set<Enrollment> enrollments, String... tags) {
+        return new Person(studentId, new Name(name), new Phone(phone), new Email(email), new Address(address),
+                getTagSet(tags), Set.of(), enrollments, Set.of(), Optional.empty(), Optional.empty(),
+                guardianContact, pinned);
     }
 
-    /** Returns a lesson set that retains the display order of the supplied lessons. */
-    private static Set<Lesson> getLessonSet(Lesson... lessons) {
-        return new LinkedHashSet<>(Arrays.asList(lessons));
+    /** Returns an enrollment set that retains the display order of the supplied enrollments. */
+    private static Set<Enrollment> getEnrollmentSet(Enrollment... enrollments) {
+        return new LinkedHashSet<>(Arrays.asList(enrollments));
+    }
+
+    /** Returns a deterministic ID so regenerated sample data remains stable. */
+    private static StudentId sampleStudentId(int sequence) {
+        return new StudentId(String.format("S-00000000-0000-0000-0000-%012d", sequence));
     }
 
     /**
