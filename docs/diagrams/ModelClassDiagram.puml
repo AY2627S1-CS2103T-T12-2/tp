@@ -15,7 +15,15 @@ Class UserPrefs
 Class UniquePersonList
 Class UniqueTuitionClassList
 Class Person
+Class StudentId
+Class GuardianContact
+Class Enrollment
+Class EnrollmentId
+Enum PaymentStatus
 Class TuitionClass
+Class ClassDetails
+Enum ClassMode
+Class Cost
 Class Lesson
 Class ClassId
 Class Address
@@ -48,9 +56,22 @@ Person *--> Phone
 Person *--> Email
 Person *--> Address
 Person *--> "*" Tag
-Person *--> "*" Lesson
+Person *--> "1" StudentId
+Person *--> "1" GuardianContact
+Person *--> "*" Enrollment
+Person *--> "*" Lesson : legacy records
+Enrollment *--> "1" EnrollmentId
+Enrollment --> "1" StudentId
+Enrollment --> "1" ClassId
+Enrollment --> "0..1" TuitionClass : resolved class
+Enrollment *--> "1" Cost : agreed rate
+Enrollment --> "1" PaymentStatus
 TuitionClass *--> ClassId
+TuitionClass *--> "1" Cost : default rate
+TuitionClass *--> "1" ClassDetails
+ClassDetails --> "1" ClassMode
 Lesson --> "0..1" ClassId
+Lesson --> "1" ClassDetails : legacy / display view
 
 Person -[hidden]up--> I
 UniquePersonList -[hidden]right-> I
