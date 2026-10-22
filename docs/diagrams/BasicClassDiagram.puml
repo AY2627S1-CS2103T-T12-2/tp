@@ -1,20 +1,41 @@
 @startuml
 !include style.puml
+skinparam style strictuml
 
 title Basic Class Diagram
 
 skinparam arrowColor MODEL_COLOR
 skinparam classBackgroundColor MODEL_COLOR
+skinparam arrowThickness 1.1
 
 package Model <<Rectangle>> {
     class ModelManager
     class AddressBook
     class Person
-    class Lesson
+    class Enrollment
+    class TuitionClass
 }
 
 ModelManager --> "1" AddressBook : manages
-AddressBook *--> "*" Person : contains
-Person *--> "*" Lesson : enrols in
+AddressBook --> "*" Person : students
+AddressBook --> "*" TuitionClass : classes
+Person *--> "*" Enrollment : enrollments
+Enrollment --> "0..1" TuitionClass : resolvedClass
+
+note as EnrollmentDetails
+  EnrollmentId identifies the enrollment.
+  StudentId and ClassId link its student and class.
+  resolvedClass can be absent during loading.
+  The enrollment owns agreedRate and paymentStatus.
+end note
+
+Enrollment .. EnrollmentDetails
+
+note as SimplifiedView
+  Simplified view: unique-list containers
+  and legacy lesson views are omitted.
+end note
+
+AddressBook .. SimplifiedView
 
 @enduml
