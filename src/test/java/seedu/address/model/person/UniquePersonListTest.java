@@ -57,6 +57,15 @@ public class UniquePersonListTest {
     }
 
     @Test
+    public void add_duplicateStudentId_throwsDuplicatePersonException() {
+        uniquePersonList.add(ALICE);
+        Person differentPersonWithSameId = new PersonBuilder(BOB)
+                .withStudentId(ALICE.getStudentId()).build();
+
+        assertThrows(DuplicatePersonException.class, () -> uniquePersonList.add(differentPersonWithSameId));
+    }
+
+    @Test
     public void setPerson_nullTargetPerson_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> uniquePersonList.setPerson(null, ALICE));
     }
@@ -105,6 +114,15 @@ public class UniquePersonListTest {
         uniquePersonList.add(ALICE);
         uniquePersonList.add(BOB);
         assertThrows(DuplicatePersonException.class, () -> uniquePersonList.setPerson(ALICE, BOB));
+    }
+
+    @Test
+    public void setPerson_editedPersonHasDuplicateStudentId_throwsDuplicatePersonException() {
+        uniquePersonList.add(ALICE);
+        uniquePersonList.add(BOB);
+        Person editedAlice = new PersonBuilder(ALICE).withStudentId(BOB.getStudentId()).build();
+
+        assertThrows(DuplicatePersonException.class, () -> uniquePersonList.setPerson(ALICE, editedAlice));
     }
 
     @Test
@@ -158,6 +176,15 @@ public class UniquePersonListTest {
     public void setPersons_listWithDuplicatePersons_throwsDuplicatePersonException() {
         List<Person> listWithDuplicatePersons = List.of(ALICE, ALICE);
         assertThrows(DuplicatePersonException.class, () -> uniquePersonList.setPersons(listWithDuplicatePersons));
+    }
+
+    @Test
+    public void setPersons_listWithDuplicateStudentIds_throwsDuplicatePersonException() {
+        Person differentPersonWithSameId = new PersonBuilder(BOB)
+                .withStudentId(ALICE.getStudentId()).build();
+
+        assertThrows(DuplicatePersonException.class, () ->
+                uniquePersonList.setPersons(List.of(ALICE, differentPersonWithSameId)));
     }
 
     @Test

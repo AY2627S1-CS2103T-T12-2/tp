@@ -76,6 +76,12 @@ public class PersonBuilder {
         return this;
     }
 
+    /** Sets the stable student ID of the {@code Person} being built. */
+    public PersonBuilder withStudentId(StudentId studentId) {
+        this.studentId = studentId;
+        return this;
+    }
+
     /**
      * Parses the {@code tags} into a {@code Set<Tag>} and sets it to the {@code Person} that we are building.
      */

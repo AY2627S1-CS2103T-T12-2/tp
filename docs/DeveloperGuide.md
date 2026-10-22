@@ -159,8 +159,8 @@ The `Model` component,
 * stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
 * stores independent `TuitionClass` objects in a `UniqueTuitionClassList`. Each class has a stable `ClassId`, subject,
   cost, and complete lesson timing.
-* represents the student-to-class association using an enrolment value. The enrolment references the class ID and owns
-  the student-specific `PaymentStatus`.
+* represents the student-to-class association using an `Enrollment` value with stable `EnrollmentId`, `StudentId`, and
+  `ClassId` references. The association owns the student-specific agreed rate and `PaymentStatus`.
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
 * stores a `UserPrefs` object that represents the user’s GUI settings and privacy preference. This is exposed to the
   outside as a `ReadOnlyUserPrefs` object.
@@ -300,10 +300,10 @@ when the timetable is open.
 
 ### Independent class management
 
-`class add` validates subject, cost, timing, duplicates, and schedule overlap before allocating the next persisted class
+`class add` validates subject, default rate, timing, duplicates, and schedule overlap before allocating the next persisted class
 ID. IDs use the form `C001`, are case-insensitive at the command boundary, and are never reused. `class edit` resolves a
 class by ID and replaces the immutable central class while updating each associated enrolment without changing its
-payment status. `class delete` removes the central class and cascades to its enrolments.
+agreed rate or payment status. `class delete` removes the central class and cascades to its enrolments.
 
 `JsonSerializableAddressBook` stores central classes and the next ID sequence. When loading an older data file without
 a class collection, it groups existing enrolments by subject and timing, assigns stable IDs, and preserves payment
@@ -311,25 +311,27 @@ statuses. This migration is applied before the model is exposed to commands or U
 
 ### Payment status
 
-Every enrolment stored by a `Person` references a central class through `ClassId` and contains an immutable
-`PaymentStatus` of `PAID` or `UNPAID`. Constructors that do not specify a status default to `UNPAID`, which also provides
-backwards compatibility for saved enrolments created before payment tracking or independent classes were introduced.
+Every enrolment stored by a `Person` has an `EnrollmentId` and references its student and central class through
+`StudentId` and `ClassId`. It contains the student's immutable agreed rate and a `PaymentStatus` of `PAID` or `UNPAID`.
+Constructors that do not specify a status default to `UNPAID`, which also provides backwards compatibility for saved
+enrolments created before payment tracking or independent classes were introduced.
 
 `class payment` parses a displayed student index, stable class ID, and payment status. During execution,
 `ClassPaymentCommand` resolves the student from the filtered list and locates the enrolment by class ID. It replaces
 only that immutable enrolment and then replaces only the selected `Person`; other
 classes and students are not modified. A missing enrolment causes the command to fail before any model mutation.
 
-Full `Lesson#equals` includes payment status so model and UI updates are observable. Logical class operations use
-`Lesson#isSameClass`, which excludes cost and payment status. `TimetableBuilder` and overlap detection therefore group
-by logical class identity explicitly, ensuring students with different payment statuses still appear in one class.
+`Enrollment#equals` includes its stable IDs, agreed rate, and payment status. The shared class reference is resolved by
+`ClassId` and deliberately excluded from the association value. Presentation code obtains read-only `Lesson` projections.
+`TimetableBuilder` and overlap detection group those projections by logical class identity, ensuring students with
+different agreed rates or payment statuses still appear in one class.
 
 `JsonAdaptedLesson` stores the status as `paymentStatus`. A missing property is interpreted as `UNPAID`, while an
 unrecognised value is rejected as invalid data.
 
-The outstanding balance is derived rather than stored. `Person#getOutstandingBalance` sums the cost of each enrolment
-whose status is `UNPAID`, excluding paid enrolments. Recomputing it from the immutable lesson values prevents a stored
-balance from becoming stale after `class payment`, enrolment, unenrolment, or class deletion operations.
+The outstanding balance is derived rather than stored. `Person#getOutstandingBalance` sums the agreed rate of each
+enrolment whose status is `UNPAID`, excluding paid enrolments. Recomputing it from the immutable associations prevents a
+stored balance from becoming stale after `class payment`, enrolment, unenrolment, or class deletion operations.
 
 ### Adding class and guardian attributes
 
@@ -343,10 +345,11 @@ A contact added with a complete lesson can include `mode/online|offline`, `link/
 classes may omit the link; offline classes reject non-empty links. Links must be absolute HTTP(S)
 URIs with a host and no credentials. Location and notes are limited to 500 single-line characters.
 
-`TuitionClass` owns the shared `ClassDetails`. `Enrollment` carries the stable class ID, a snapshot
-of shared details, and the student's individual payment status. All lesson copy operations retain
-both the ID and details. Model normalization and class edits build enrolments from the canonical
-class instead of resetting their attributes. Class listing and timetable entries display the same values.
+`TuitionClass` owns the shared subject, schedule, default rate, and `ClassDetails`. `Enrollment` stores only stable
+association, student, and class IDs together with the student's agreed rate and payment status. It resolves its
+referenced class through the central collection instead of copying shared class fields. Class edits re-resolve affected
+associations while retaining their IDs, agreed rates, and payment statuses. Class listing, student cards, and timetable
+entries therefore display the current shared class values without duplicating them in each enrolment.
 
 Subject search delegates legacy fallback eligibility to `Person#hasUnmigratedLegacyLesson`.
 The same end-time calculation drives migration and fallback, so a valid legacy `Monday2359`
@@ -362,12 +365,12 @@ are retained. Ordinary contact edits preserve guardian data. ID enrolments inher
 class edits preserve those attributes and payments. Unenrolling the last student retains the class
 and its metadata until the class itself is deleted.
 
-`JsonAdaptedPerson` stores `guardianName`, `guardianPhone`, and `guardianEmail`.
-`JsonAdaptedTuitionClass` and `JsonAdaptedLesson` retain `mode`, `meetingLink`, `location`, and `notes`
-for compatibility with both catalogue files and pre-catalogue v1.4 files. During loading the central
-class is canonical. Explicit conflicting enrolment details fail validation; old enrolments that omit
-these fields inherit them from the stored class. Attribute-only v1.4 lessons create canonical classes
-without losing details, guardians, or payment statuses. Empty classes also retain attributes in JSON.
+`JsonAdaptedPerson` stores the stable student ID together with `guardianName`, `guardianPhone`, and `guardianEmail`.
+Canonical associations use a compact `JsonAdaptedLesson` representation containing enrolment, student, and class IDs,
+the agreed rate, and payment status. Shared class fields remain only in `JsonAdaptedTuitionClass`. The same adapter still
+accepts legacy lesson records containing `mode`, `meetingLink`, `location`, and `notes`; loading migrates those records to
+canonical classes and associations without losing details, guardians, agreed rates, or payment statuses. Duplicate
+student or enrolment IDs and missing class references are rejected. Empty classes also retain attributes in JSON.
 Missing contact/text fields default to empty strings; missing modes are inferred from existing links.
 
 Automated coverage includes first-contact catalogue enrichment, ID enrolment, class edits, last-student

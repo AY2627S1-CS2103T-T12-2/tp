@@ -316,6 +316,22 @@ public class JsonSerializableAddressBookTest {
     }
 
     @Test
+    public void toModelType_duplicateStudentIds_throwsIllegalValueException() {
+        String duplicateStudentId = "S-00000000-0000-0000-0000-000000000001";
+        JsonAdaptedPerson alice = new JsonAdaptedPerson("Alice", "91234567",
+                "alice@example.com", "One Street", List.of(), null, null, null, null,
+                null, null, null, false, duplicateStudentId);
+        JsonAdaptedPerson bob = new JsonAdaptedPerson("Bob", "92345678",
+                "bob@example.com", "Two Street", List.of(), null, null, null, null,
+                null, null, null, false, duplicateStudentId);
+        JsonSerializableAddressBook data = new JsonSerializableAddressBook(
+                List.of(alice, bob), List.of(), 1);
+
+        assertThrows(IllegalValueException.class,
+                JsonSerializableAddressBook.MESSAGE_DUPLICATE_STUDENT_ID, data::toModelType);
+    }
+
+    @Test
     public void toModelType_legacyEnrollmentMatchesSecondStoredClass() throws Exception {
         TuitionClass earlierPhysics = new TuitionClass(new ClassId("C001"), new Subject("Physics"),
                 new Cost("30"), new LessonTiming("Monday1800-1930"));

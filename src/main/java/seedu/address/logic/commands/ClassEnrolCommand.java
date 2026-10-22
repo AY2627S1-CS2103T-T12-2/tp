@@ -55,9 +55,6 @@ public class ClassEnrolCommand extends ClassCommand {
     public static final String MESSAGE_CLASS_NOT_FOUND = "No class exists with ID %s.";
     public static final String MESSAGE_BATCH_COST_NOT_ALLOWED =
             "Do not provide cost/ when enrolling multiple students. Use an existing class's subject and schedule.";
-    public static final String MESSAGE_CLASS_COST_CONFLICT =
-            "This class already exists with a different cost. Students in the same class must have the same cost.";
-
     private final List<Index> personIndexes;
     private final ClassId classId;
     private final Lesson legacyLesson;

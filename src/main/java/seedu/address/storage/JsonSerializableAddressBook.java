@@ -17,6 +17,7 @@ import seedu.address.model.lesson.EnrollmentId;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.TuitionClass;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.StudentId;
 
 /**
  * An Immutable AddressBook that is serializable to JSON format.
@@ -25,10 +26,9 @@ import seedu.address.model.person.Person;
 class JsonSerializableAddressBook {
 
     public static final String MESSAGE_DUPLICATE_PERSON = "Persons list contains duplicate person(s).";
+    public static final String MESSAGE_DUPLICATE_STUDENT_ID = "Persons list contains duplicate student IDs.";
     public static final String MESSAGE_DUPLICATE_ENROLMENT =
             "A student has duplicate enrolments for the same class.";
-    public static final String MESSAGE_CLASS_COST_CONFLICT = "Students in the same class have different costs.";
-
     public static final String MESSAGE_CLASS_DETAILS_CONFLICT = "Students in the same class have different details.";
 
     private final List<JsonAdaptedPerson> persons = new ArrayList<>();
@@ -84,8 +84,12 @@ class JsonSerializableAddressBook {
             addressBook.addTuitionClass(tuitionClass);
         }
         java.util.Set<EnrollmentId> enrollmentIds = new java.util.HashSet<>();
+        java.util.Set<StudentId> studentIds = new java.util.HashSet<>();
         for (JsonAdaptedPerson jsonAdaptedPerson : persons) {
             Person person = jsonAdaptedPerson.toModelType();
+            if (!studentIds.add(person.getStudentId())) {
+                throw new IllegalValueException(MESSAGE_DUPLICATE_STUDENT_ID);
+            }
             if (addressBook.hasPerson(person)) {
                 throw new IllegalValueException(MESSAGE_DUPLICATE_PERSON);
             }

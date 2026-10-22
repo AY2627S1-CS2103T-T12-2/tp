@@ -13,10 +13,9 @@ import seedu.address.model.person.exceptions.PersonNotFoundException;
 
 /**
  * A list of persons that enforces uniqueness between its elements and does not allow nulls.
- * A person is considered unique by comparing using {@code Person#isSamePerson(Person)}. As such, adding and updating of
- * persons uses Person#isSamePerson(Person) for equality so as to ensure that the person being added or updated is
- * unique in terms of identity in the UniquePersonList. However, the removal of a person uses Person#equals(Object) so
- * as to ensure that the person with exactly the same fields will be removed.
+ * A person is considered unique by both the user-facing identity defined by
+ * {@code Person#isSamePerson(Person)} and the persisted {@code StudentId}. However, the removal of a person uses
+ * Person#equals(Object) so as to ensure that the person with exactly the same fields will be removed.
  *
  * Supports a minimal set of list operations.
  *
@@ -42,7 +41,7 @@ public class UniquePersonList implements Iterable<Person> {
      */
     public void add(Person toAdd) {
         requireNonNull(toAdd);
-        if (contains(toAdd)) {
+        if (contains(toAdd) || containsStudentId(toAdd.getStudentId())) {
             throw new DuplicatePersonException();
         }
         internalList.add(toAdd);
@@ -61,7 +60,9 @@ public class UniquePersonList implements Iterable<Person> {
             throw new PersonNotFoundException();
         }
 
-        if (!target.isSamePerson(editedPerson) && contains(editedPerson)) {
+        List<Person> updatedPersons = new java.util.ArrayList<>(internalList);
+        updatedPersons.set(index, editedPerson);
+        if (!personsAreUnique(updatedPersons)) {
             throw new DuplicatePersonException();
         }
 
@@ -139,11 +140,16 @@ public class UniquePersonList implements Iterable<Person> {
     private boolean personsAreUnique(List<Person> persons) {
         for (int i = 0; i < persons.size() - 1; i++) {
             for (int j = i + 1; j < persons.size(); j++) {
-                if (persons.get(i).isSamePerson(persons.get(j))) {
+                if (persons.get(i).isSamePerson(persons.get(j))
+                        || persons.get(i).getStudentId().equals(persons.get(j).getStudentId())) {
                     return false;
                 }
             }
         }
         return true;
+    }
+
+    private boolean containsStudentId(StudentId studentId) {
+        return internalList.stream().anyMatch(person -> person.getStudentId().equals(studentId));
     }
 }

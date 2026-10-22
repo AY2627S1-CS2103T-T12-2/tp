@@ -313,8 +313,9 @@ public class Person {
     }
 
     /**
-     * Returns true if both persons have the same identity and data fields.
-     * This defines a stronger notion of equality between two persons.
+     * Returns true if both persons have the same user-visible identity and data fields.
+     * Stable persistence IDs are deliberately excluded so independently migrated legacy records
+     * remain value-equal; their uniqueness is enforced by the containing address book.
      */
     @Override
     public boolean equals(Object other) {
