@@ -84,7 +84,11 @@ public class AttributesIntegrationTest {
         assertEquals(PaymentStatus.PAID, lesson(0).getPaymentStatus());
         assertEquals(PaymentStatus.UNPAID, lesson(1).getPaymentStatus());
         assertEquals(GuardianContact.EMPTY, student(1).getGuardianContact());
-        var monday = model.getTimetable(LocalDate.of(2026, 10, 19)).getFirst();
+        LocalDate mondayDate = LocalDate.of(2026, 10, 19);
+        var monday = model.getTimetable(mondayDate).stream()
+                .filter(day -> day.getDate().equals(mondayDate))
+                .findFirst()
+                .orElseThrow();
         assertEquals(1, monday.getEntries().size());
         assertEquals(2, monday.getEntries().getFirst().getStudents().size());
         assertEquals(LINK, monday.getEntries().getFirst().getLesson().getDetails().meetingLink());
