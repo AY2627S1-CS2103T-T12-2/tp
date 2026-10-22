@@ -149,6 +149,18 @@ public class PersonTest {
     }
 
     @Test
+    public void withEnrollments_duplicateEnrollmentId_throwsIllegalArgumentException() {
+        Person person = new PersonBuilder().build();
+        EnrollmentId duplicateId = new EnrollmentId("E-00000000-0000-0000-0000-000000000001");
+        Enrollment first = new Enrollment(duplicateId, person.getStudentId(),
+                new ClassId("C001"), new Cost("30"), PaymentStatus.UNPAID);
+        Enrollment second = new Enrollment(duplicateId, person.getStudentId(),
+                new ClassId("C002"), new Cost("40"), PaymentStatus.UNPAID);
+
+        assertThrows(IllegalArgumentException.class, () -> person.withEnrollments(Set.of(first, second)));
+    }
+
+    @Test
     public void withPinned_updatesOnlyPinnedState() {
         Person pinnedAlice = ALICE.withPinned(true);
 

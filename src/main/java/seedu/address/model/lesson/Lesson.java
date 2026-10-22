@@ -94,8 +94,8 @@ public class Lesson {
     }
 
     /**
-     * Returns true if both lessons represent the same class. Cost is excluded because every student
-     * in the same class must share one cost.
+     * Returns true if both lessons represent the same class. Cost is excluded because each student's
+     * agreed rate is specific to their enrolment and does not define the shared class.
      */
     public boolean isSameClass(Lesson otherLesson) {
         if (otherLesson == this) {

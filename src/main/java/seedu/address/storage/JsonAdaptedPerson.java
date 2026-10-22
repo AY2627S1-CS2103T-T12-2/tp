@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.lesson.Enrollment;
+import seedu.address.model.lesson.EnrollmentId;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
@@ -29,6 +30,8 @@ import seedu.address.model.tag.Tag;
 class JsonAdaptedPerson {
 
     public static final String MISSING_FIELD_MESSAGE_FORMAT = "Person's %s field is missing!";
+    public static final String MESSAGE_DUPLICATE_ENROLLMENT_ID =
+            "Person's enrollments contain duplicate enrollment IDs.";
 
     private final String name;
     private final String phone;
@@ -215,11 +218,15 @@ class JsonAdaptedPerson {
         }
         final Set<Lesson> modelLessons = new LinkedHashSet<>();
         final Set<Enrollment> modelEnrollments = new LinkedHashSet<>();
+        final Set<EnrollmentId> enrollmentIds = new LinkedHashSet<>();
         for (JsonAdaptedLesson adaptedLesson : lessons) {
             if (adaptedLesson.isAssociationRecord()) {
                 Enrollment enrollment = adaptedLesson.toEnrollmentModelType();
                 if (!modelStudentId.equals(enrollment.getStudentId())) {
                     throw new IllegalValueException("Enrollment refers to a different student.");
+                }
+                if (!enrollmentIds.add(enrollment.getEnrollmentId())) {
+                    throw new IllegalValueException(MESSAGE_DUPLICATE_ENROLLMENT_ID);
                 }
                 modelEnrollments.add(enrollment);
             } else {

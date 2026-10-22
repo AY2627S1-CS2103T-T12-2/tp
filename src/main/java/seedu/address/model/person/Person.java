@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Optional;
@@ -13,6 +14,7 @@ import java.util.Set;
 
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.model.lesson.Enrollment;
+import seedu.address.model.lesson.EnrollmentId;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.tag.Tag;
@@ -102,8 +104,14 @@ public class Person {
             boolean pinned) {
         requireAllNonNull(studentId, name, phone, email, address, tags, legacyLessons, enrollments,
                 legacySubjects, legacyCost, legacyLesson, guardianContact);
-        if (enrollments.stream().anyMatch(enrollment -> !studentId.equals(enrollment.getStudentId()))) {
-            throw new IllegalArgumentException("Every enrollment must belong to this student.");
+        Set<EnrollmentId> enrollmentIds = new HashSet<>();
+        for (Enrollment enrollment : enrollments) {
+            if (!studentId.equals(enrollment.getStudentId())) {
+                throw new IllegalArgumentException("Every enrollment must belong to this student.");
+            }
+            if (!enrollmentIds.add(enrollment.getEnrollmentId())) {
+                throw new IllegalArgumentException("Enrollment IDs must be unique.");
+            }
         }
         long distinctClasses = enrollments.stream().map(Enrollment::getClassId).distinct().count();
         if (distinctClasses != enrollments.size()) {

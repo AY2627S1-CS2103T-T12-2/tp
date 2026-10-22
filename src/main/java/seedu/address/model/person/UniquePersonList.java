@@ -3,19 +3,24 @@ package seedu.address.model.person;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import seedu.address.model.lesson.Enrollment;
+import seedu.address.model.lesson.EnrollmentId;
 import seedu.address.model.person.exceptions.DuplicatePersonException;
 import seedu.address.model.person.exceptions.PersonNotFoundException;
 
 /**
  * A list of persons that enforces uniqueness between its elements and does not allow nulls.
  * A person is considered unique by both the user-facing identity defined by
- * {@code Person#isSamePerson(Person)} and the persisted {@code StudentId}. However, the removal of a person uses
- * Person#equals(Object) so as to ensure that the person with exactly the same fields will be removed.
+ * {@code Person#isSamePerson(Person)}, persisted {@code StudentId}, and persisted {@code EnrollmentId} values.
+ * However, the removal of a person uses Person#equals(Object) so as to ensure that the person with exactly the same
+ * fields will be removed.
  *
  * Supports a minimal set of list operations.
  *
@@ -41,7 +46,7 @@ public class UniquePersonList implements Iterable<Person> {
      */
     public void add(Person toAdd) {
         requireNonNull(toAdd);
-        if (contains(toAdd) || containsStudentId(toAdd.getStudentId())) {
+        if (contains(toAdd) || containsStudentId(toAdd.getStudentId()) || hasDuplicateEnrollmentId(toAdd)) {
             throw new DuplicatePersonException();
         }
         internalList.add(toAdd);
@@ -82,7 +87,7 @@ public class UniquePersonList implements Iterable<Person> {
 
     public void setPersons(UniquePersonList replacement) {
         requireNonNull(replacement);
-        internalList.setAll(replacement.internalList);
+        setPersons(replacement.internalList);
     }
 
     /**
@@ -138,10 +143,20 @@ public class UniquePersonList implements Iterable<Person> {
      * Returns true if {@code persons} contains only unique persons.
      */
     private boolean personsAreUnique(List<Person> persons) {
-        for (int i = 0; i < persons.size() - 1; i++) {
-            for (int j = i + 1; j < persons.size(); j++) {
-                if (persons.get(i).isSamePerson(persons.get(j))
-                        || persons.get(i).getStudentId().equals(persons.get(j).getStudentId())) {
+        Set<StudentId> studentIds = new HashSet<>();
+        Set<EnrollmentId> enrollmentIds = new HashSet<>();
+        for (int i = 0; i < persons.size(); i++) {
+            Person person = persons.get(i);
+            if (!studentIds.add(person.getStudentId())) {
+                return false;
+            }
+            for (Enrollment enrollment : person.getEnrollments()) {
+                if (!enrollmentIds.add(enrollment.getEnrollmentId())) {
+                    return false;
+                }
+            }
+            for (int j = 0; j < i; j++) {
+                if (person.isSamePerson(persons.get(j))) {
                     return false;
                 }
             }
@@ -151,5 +166,13 @@ public class UniquePersonList implements Iterable<Person> {
 
     private boolean containsStudentId(StudentId studentId) {
         return internalList.stream().anyMatch(person -> person.getStudentId().equals(studentId));
+    }
+
+    private boolean hasDuplicateEnrollmentId(Person person) {
+        return person.getEnrollments().stream()
+                .map(Enrollment::getEnrollmentId)
+                .anyMatch(enrollmentId -> internalList.stream()
+                        .flatMap(existingPerson -> existingPerson.getEnrollments().stream())
+                        .anyMatch(existingEnrollment -> existingEnrollment.getEnrollmentId().equals(enrollmentId)));
     }
 }

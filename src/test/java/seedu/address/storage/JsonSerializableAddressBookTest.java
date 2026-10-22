@@ -296,21 +296,21 @@ public class JsonSerializableAddressBookTest {
 
     @Test
     public void toModelType_duplicateEnrollmentIds_throwsIllegalValueException() {
-        AddressBook addressBook = new AddressBook();
         TuitionClass tuitionClass = new TuitionClass(new ClassId("C001"), new Subject("Math"),
                 new Cost("30"), new LessonTiming("Monday1800-1930"));
-        addressBook.addTuitionClass(tuitionClass);
-        EnrollmentId duplicateId = new EnrollmentId("E-00000000-0000-0000-0000-000000000001");
-        Person first = new PersonBuilder().withName("Alice").build();
-        Person second = new PersonBuilder().withName("Bob").build();
-        Enrollment firstEnrollment = new Enrollment(duplicateId, first.getStudentId(),
-                tuitionClass.getClassId(), new Cost("30"), PaymentStatus.UNPAID);
-        Enrollment secondEnrollment = new Enrollment(duplicateId, second.getStudentId(),
-                tuitionClass.getClassId(), new Cost("30"), PaymentStatus.UNPAID);
-        addressBook.addPerson(first.withEnrollments(java.util.Set.of(firstEnrollment)));
-        addressBook.addPerson(second.withEnrollments(java.util.Set.of(secondEnrollment)));
-
-        JsonSerializableAddressBook data = new JsonSerializableAddressBook(addressBook);
+        String enrollmentId = "E-00000000-0000-0000-0000-000000000001";
+        String firstStudentId = "S-00000000-0000-0000-0000-000000000001";
+        String secondStudentId = "S-00000000-0000-0000-0000-000000000002";
+        JsonAdaptedLesson firstEnrollment = new JsonAdaptedLesson(null, "30", null, "UNPAID",
+                null, null, null, null, "C001", null, null, enrollmentId, firstStudentId);
+        JsonAdaptedLesson secondEnrollment = new JsonAdaptedLesson(null, "30", null, "UNPAID",
+                null, null, null, null, "C001", null, null, enrollmentId, secondStudentId);
+        JsonAdaptedPerson first = new JsonAdaptedPerson("Alice", "91234567", "alice@example.com", "One Street",
+                List.of(), List.of(firstEnrollment), null, null, null, null, null, null, false, firstStudentId);
+        JsonAdaptedPerson second = new JsonAdaptedPerson("Bob", "92345678", "bob@example.com", "Two Street",
+                List.of(), List.of(secondEnrollment), null, null, null, null, null, null, false, secondStudentId);
+        JsonSerializableAddressBook data = new JsonSerializableAddressBook(List.of(first, second),
+                List.of(new JsonAdaptedTuitionClass(tuitionClass)), 2);
 
         assertThrows(IllegalValueException.class, data::toModelType);
     }

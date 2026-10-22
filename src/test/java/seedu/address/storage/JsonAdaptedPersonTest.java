@@ -199,4 +199,20 @@ public class JsonAdaptedPersonTest {
         assertThrows(IllegalValueException.class, person::toModelType);
     }
 
+    @Test
+    public void toModelType_duplicateEnrollmentIds_throwsIllegalValueException() {
+        String personId = "S-00000000-0000-0000-0000-000000000001";
+        String enrollmentId = "E-00000000-0000-0000-0000-000000000001";
+        JsonAdaptedLesson first = new JsonAdaptedLesson(null, "25", null, "UNPAID",
+                null, null, null, null, "C001", null, null, enrollmentId, personId);
+        JsonAdaptedLesson exactDuplicate = new JsonAdaptedLesson(null, "25", null, "UNPAID",
+                null, null, null, null, "C001", null, null, enrollmentId, personId);
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
+                VALID_ADDRESS, VALID_TAGS, List.of(first, exactDuplicate), null, null, null,
+                null, null, null, false, personId);
+
+        assertThrows(IllegalValueException.class, JsonAdaptedPerson.MESSAGE_DUPLICATE_ENROLLMENT_ID,
+                person::toModelType);
+    }
+
 }

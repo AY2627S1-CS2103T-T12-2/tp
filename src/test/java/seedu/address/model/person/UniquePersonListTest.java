@@ -13,6 +13,11 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.model.lesson.ClassId;
+import seedu.address.model.lesson.Cost;
+import seedu.address.model.lesson.Enrollment;
+import seedu.address.model.lesson.EnrollmentId;
+import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.person.exceptions.DuplicatePersonException;
 import seedu.address.model.person.exceptions.PersonNotFoundException;
 import seedu.address.testutil.PersonBuilder;
@@ -63,6 +68,16 @@ public class UniquePersonListTest {
                 .withStudentId(ALICE.getStudentId()).build();
 
         assertThrows(DuplicatePersonException.class, () -> uniquePersonList.add(differentPersonWithSameId));
+    }
+
+    @Test
+    public void add_duplicateEnrollmentId_throwsDuplicatePersonException() {
+        EnrollmentId duplicateId = new EnrollmentId("E-00000000-0000-0000-0000-000000000001");
+        Person alice = withEnrollment(ALICE, duplicateId);
+        Person bob = withEnrollment(BOB, duplicateId);
+        uniquePersonList.add(alice);
+
+        assertThrows(DuplicatePersonException.class, () -> uniquePersonList.add(bob));
     }
 
     @Test
@@ -126,6 +141,18 @@ public class UniquePersonListTest {
     }
 
     @Test
+    public void setPerson_editedPersonHasDuplicateEnrollmentId_throwsDuplicatePersonException() {
+        EnrollmentId duplicateId = new EnrollmentId("E-00000000-0000-0000-0000-000000000001");
+        Person bob = withEnrollment(BOB, duplicateId);
+        Person editedAlice = withEnrollment(ALICE, duplicateId);
+        uniquePersonList.add(ALICE);
+        uniquePersonList.add(bob);
+
+        assertThrows(DuplicatePersonException.class, () -> uniquePersonList.setPerson(ALICE, editedAlice));
+        assertEquals(List.of(ALICE, bob), uniquePersonList.asUnmodifiableObservableList());
+    }
+
+    @Test
     public void remove_nullPerson_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> uniquePersonList.remove(null));
     }
@@ -173,9 +200,27 @@ public class UniquePersonListTest {
     }
 
     @Test
+    public void setPersons_listWithDistinctPersons_replacesOwnList() {
+        List<Person> persons = List.of(ALICE, BOB);
+
+        uniquePersonList.setPersons(persons);
+
+        assertEquals(persons, uniquePersonList.asUnmodifiableObservableList());
+    }
+
+    @Test
     public void setPersons_listWithDuplicatePersons_throwsDuplicatePersonException() {
         List<Person> listWithDuplicatePersons = List.of(ALICE, ALICE);
         assertThrows(DuplicatePersonException.class, () -> uniquePersonList.setPersons(listWithDuplicatePersons));
+    }
+
+    @Test
+    public void setPersons_listWithSameIdentityAndDifferentStudentIds_throwsDuplicatePersonException() {
+        Person sameIdentityWithDifferentStudentId = new PersonBuilder(ALICE)
+                .withStudentId(new StudentId("S-00000000-0000-0000-0000-000000000003")).build();
+
+        assertThrows(DuplicatePersonException.class, () ->
+                uniquePersonList.setPersons(List.of(ALICE, sameIdentityWithDifferentStudentId)));
     }
 
     @Test
@@ -188,6 +233,15 @@ public class UniquePersonListTest {
     }
 
     @Test
+    public void setPersons_listWithDuplicateEnrollmentIds_throwsDuplicatePersonException() {
+        EnrollmentId duplicateId = new EnrollmentId("E-00000000-0000-0000-0000-000000000001");
+        Person alice = withEnrollment(ALICE, duplicateId);
+        Person bob = withEnrollment(BOB, duplicateId);
+
+        assertThrows(DuplicatePersonException.class, () -> uniquePersonList.setPersons(List.of(alice, bob)));
+    }
+
+    @Test
     public void asUnmodifiableObservableList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, ()
             -> uniquePersonList.asUnmodifiableObservableList().remove(0));
@@ -196,5 +250,11 @@ public class UniquePersonListTest {
     @Test
     public void toStringMethod() {
         assertEquals(uniquePersonList.asUnmodifiableObservableList().toString(), uniquePersonList.toString());
+    }
+
+    private Person withEnrollment(Person person, EnrollmentId enrollmentId) {
+        Enrollment enrollment = new Enrollment(enrollmentId, person.getStudentId(),
+                new ClassId("C001"), new Cost("30"), PaymentStatus.UNPAID);
+        return new PersonBuilder(person).withEnrollments(enrollment).build();
     }
 }
