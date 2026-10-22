@@ -72,8 +72,10 @@ public class AttributesStorageTest {
         ModelManager model = populatedModel();
         var bob = model.getAddressBook().getPersonList().get(1);
         var originalLesson = bob.getLessons().iterator().next();
-        model.setPerson(bob, bob.withLessons(java.util.Set.of(originalLesson.withDetails(ClassDetails.EMPTY))));
-        JsonSerializableAddressBook data = new JsonSerializableAddressBook(model.getAddressBook());
+        AddressBook inconsistent = new AddressBook(model.getAddressBook());
+        inconsistent.setPerson(bob,
+                bob.withLessons(java.util.Set.of(originalLesson.withDetails(ClassDetails.EMPTY))));
+        JsonSerializableAddressBook data = new JsonSerializableAddressBook(inconsistent);
         var exception = assertThrows(IllegalValueException.class, data::toModelType);
         assertEquals(JsonSerializableAddressBook.MESSAGE_CLASS_DETAILS_CONFLICT, exception.getMessage());
     }

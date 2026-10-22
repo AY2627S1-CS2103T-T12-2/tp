@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import seedu.address.model.lesson.Enrollment;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonSchedule;
 import seedu.address.model.lesson.Subject;
@@ -43,7 +42,9 @@ public final class TimetableBuilder {
 
         for (TuitionClass tuitionClass : tuitionClasses) {
             if (visibleDates.stream().anyMatch(tuitionClass.getSchedule()::occursOn)) {
-                Lesson lesson = new Enrollment(tuitionClass);
+                Lesson lesson = new Lesson(tuitionClass.getClassId(), tuitionClass.getSubject(),
+                        tuitionClass.getCost(), tuitionClass.getSchedule(),
+                        seedu.address.model.lesson.PaymentStatus.UNPAID, tuitionClass.getDetails());
                 groupsByClass.put(new ClassIdentity(lesson.getSubject(), lesson.getSchedule()), new ClassGroup(lesson));
             }
         }

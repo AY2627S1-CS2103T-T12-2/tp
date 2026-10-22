@@ -13,6 +13,7 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.lesson.ClassDetails;
 import seedu.address.model.lesson.Enrollment;
+import seedu.address.model.lesson.EnrollmentId;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.TuitionClass;
 import seedu.address.model.person.Person;
@@ -82,47 +83,31 @@ class JsonSerializableAddressBook {
             }
             addressBook.addTuitionClass(tuitionClass);
         }
+        java.util.Set<EnrollmentId> enrollmentIds = new java.util.HashSet<>();
         for (JsonAdaptedPerson jsonAdaptedPerson : persons) {
             Person person = jsonAdaptedPerson.toModelType();
             if (addressBook.hasPerson(person)) {
                 throw new IllegalValueException(MESSAGE_DUPLICATE_PERSON);
             }
-            boolean hasInternalCostConflict = person.getLessons().stream().anyMatch(first ->
-                    person.getLessons().stream().anyMatch(second -> first != second && first.isSameClass(second)
-                            && !first.getCost().equals(second.getCost())));
-            if (hasInternalCostConflict) {
-                throw new IllegalValueException(MESSAGE_CLASS_COST_CONFLICT);
-            }
-            boolean hasDuplicateEnrolment = person.getLessons().stream().anyMatch(first ->
-                    person.getLessons().stream().anyMatch(second -> first != second && first.isSameClass(second)));
-            if (hasDuplicateEnrolment) {
-                throw new IllegalValueException(MESSAGE_DUPLICATE_ENROLMENT);
-            }
-            boolean hasCostConflict = addressBook.getPersonList().stream()
-                    .flatMap(existingPerson -> existingPerson.getLessons().stream())
-                    .anyMatch(existingLesson -> person.getLessons().stream().anyMatch(candidateLesson ->
-                            existingLesson.isSameClass(candidateLesson)
-                                    && !existingLesson.getCost().equals(candidateLesson.getCost())));
-            if (hasCostConflict) {
-                throw new IllegalValueException(MESSAGE_CLASS_COST_CONFLICT);
-            }
             java.util.Set<Lesson> explicitlyDetailedLessons = new java.util.HashSet<>();
-            for (Lesson lesson : person.getLessons()) {
+            for (Lesson lesson : person.getLegacyLessons()) {
                 if (jsonAdaptedPerson.hasExplicitClassDetails(lesson)) {
                     explicitlyDetailedLessons.add(lesson);
                 }
             }
-            boolean hasDetailsConflict = addressBook.getPersonList().stream()
-                    .flatMap(existingPerson -> existingPerson.getLessons().stream())
-                    .anyMatch(existingLesson -> person.getLessons().stream().anyMatch(candidateLesson ->
-                            explicitlyDetailedLessons.contains(candidateLesson)
-                                    && existingLesson.isSameClass(candidateLesson)
-                                    && !existingLesson.getDetails().equals(candidateLesson.getDetails())));
-            if (hasDetailsConflict) {
-                throw new IllegalValueException(MESSAGE_CLASS_DETAILS_CONFLICT);
+            java.util.Set<Enrollment> linkedEnrollments = new java.util.LinkedHashSet<>();
+            for (Enrollment enrollment : person.getEnrollments()) {
+                if (!enrollmentIds.add(enrollment.getEnrollmentId())) {
+                    throw new IllegalValueException("Enrollments list contains duplicate enrollment IDs.");
+                }
+                if (!addressBook.hasTuitionClass(enrollment.getClassId())) {
+                    throw new IllegalValueException("Enrollment refers to a class that does not exist: "
+                            + enrollment.getClassId());
+                }
+                linkedEnrollments.add(enrollment.resolveWith(
+                        addressBook.getTuitionClass(enrollment.getClassId())));
             }
-            java.util.Set<Lesson> linkedLessons = new java.util.LinkedHashSet<>();
-            for (Lesson lesson : person.getLessons()) {
+            for (Lesson lesson : person.getLegacyLessons()) {
                 TuitionClass tuitionClass = null;
                 if (lesson.getClassId() != null && addressBook.hasTuitionClass(lesson.getClassId())) {
                     tuitionClass = addressBook.getTuitionClass(lesson.getClassId());
@@ -140,14 +125,11 @@ class JsonSerializableAddressBook {
                             lesson.getDetails());
                     addressBook.addTuitionClass(tuitionClass);
                 }
-                if (!tuitionClass.getCost().equals(lesson.getCost())) {
-                    throw new IllegalValueException(MESSAGE_CLASS_COST_CONFLICT);
-                }
                 if (explicitlyDetailedLessons.contains(lesson)
                         && !tuitionClass.getDetails().equals(lesson.getDetails())) {
                     TuitionClass selected = tuitionClass;
                     boolean hasStudents = addressBook.getPersonList().stream()
-                            .flatMap(student -> student.getLessons().stream())
+                            .flatMap(student -> student.getEnrollments().stream())
                             .anyMatch(item -> selected.getClassId().equals(item.getClassId()));
                     if (tuitionClass.getDetails().equals(ClassDetails.EMPTY) && !hasStudents) {
                         TuitionClass updated = tuitionClass.withDetails(lesson.getDetails());
@@ -157,9 +139,16 @@ class JsonSerializableAddressBook {
                         throw new IllegalValueException(MESSAGE_CLASS_DETAILS_CONFLICT);
                     }
                 }
-                linkedLessons.add(new Enrollment(tuitionClass, lesson.getPaymentStatus()));
+                Enrollment migrated = new Enrollment(person.getStudentId(), tuitionClass,
+                        lesson.getCost(), lesson.getPaymentStatus());
+                enrollmentIds.add(migrated.getEnrollmentId());
+                linkedEnrollments.add(migrated);
             }
-            addressBook.addPerson(person.withLessons(linkedLessons));
+            long distinctClasses = linkedEnrollments.stream().map(Enrollment::getClassId).distinct().count();
+            if (distinctClasses != linkedEnrollments.size()) {
+                throw new IllegalValueException(MESSAGE_DUPLICATE_ENROLMENT);
+            }
+            addressBook.addPerson(person.withEnrollments(linkedEnrollments));
         }
         int minimumNext = addressBook.getTuitionClassList().stream()
                 .mapToInt(item -> item.getClassId().getSequence()).max().orElse(0) + 1;

@@ -42,7 +42,8 @@ public class ClassAttributesIntegrationTest {
         addAlice();
         assertEquals(DETAILS, model.getTuitionClassList().getFirst().getDetails());
         assertEquals(DETAILS, firstLesson().getDetails());
-        assertTrue(firstLesson() instanceof Enrollment);
+        assertTrue(model.getAddressBook().getPersonList().getFirst()
+                .getEnrollments().iterator().next() instanceof Enrollment);
         assertEquals(new ClassId("C001"), firstLesson().getClassId());
         assertEquals(new GuardianContact("Mary", "99999999", ""),
                 model.getAddressBook().getPersonList().getFirst().getGuardianContact());
@@ -74,7 +75,7 @@ public class ClassAttributesIntegrationTest {
             assertEquals(DETAILS, lesson.getDetails());
             assertEquals(new ClassId("C001"), lesson.getClassId());
             assertEquals("Advanced Math", lesson.getSubject().value);
-            assertEquals("35", lesson.getCost().toString());
+            assertEquals("30", lesson.getCost().toString());
         }
         assertEquals(PaymentStatus.PAID, firstLesson().getPaymentStatus());
         var bob = model.getAddressBook().getPersonList().get(1);

@@ -107,17 +107,17 @@ public class ClassEnrolCommand extends ClassCommand {
                 .map(index -> persons.get(index.getZeroBased()))
                 .toList();
         TuitionClass tuitionClass = resolveTuitionClass(model);
-        Lesson enrollment = new Enrollment(tuitionClass);
-
         List<Person> alreadyEnrolledPersons = selectedPersons.stream()
-                .filter(person -> person.getLessons().stream().anyMatch(existing -> existing.isSameClass(enrollment)))
+                .filter(person -> person.getEnrollments().stream()
+                        .anyMatch(existing -> existing.getClassId().equals(tuitionClass.getClassId())))
                 .toList();
         if (!isBatchExistingClassCommand() && !alreadyEnrolledPersons.isEmpty()) {
             throw new CommandException(MESSAGE_DUPLICATE_CLASS);
         }
 
         List<Person> personsToEnrol = selectedPersons.stream()
-                .filter(person -> person.getLessons().stream().noneMatch(existing -> existing.isSameClass(enrollment)))
+                .filter(person -> person.getEnrollments().stream()
+                        .noneMatch(existing -> existing.getClassId().equals(tuitionClass.getClassId())))
                 .toList();
         if (personsToEnrol.isEmpty()) {
             return new CommandResult(String.format(MESSAGE_BATCH_ALL_ALREADY_ENROLLED,
@@ -125,13 +125,19 @@ public class ClassEnrolCommand extends ClassCommand {
         }
 
         for (Person person : personsToEnrol) {
-            Set<Lesson> updatedLessons = new LinkedHashSet<>(person.getLessons());
-            updatedLessons.add(enrollment);
-            model.setPerson(person, person.withLessons(updatedLessons));
+            Set<Enrollment> updatedEnrollments = new LinkedHashSet<>(person.getEnrollments());
+            seedu.address.model.lesson.Cost agreedRate = legacyLesson == null
+                    ? tuitionClass.getCost() : legacyLesson.getCost();
+            updatedEnrollments.add(new Enrollment(person.getStudentId(), tuitionClass, agreedRate,
+                    seedu.address.model.lesson.PaymentStatus.UNPAID));
+            model.setPerson(person, person.withEnrollments(updatedEnrollments));
         }
 
         if (!isBatchExistingClassCommand()) {
-            Lesson displayedLesson = legacyLesson != null ? legacyLesson : enrollment;
+            Lesson displayedLesson = legacyLesson != null ? legacyLesson
+                    : new Lesson(tuitionClass.getClassId(), tuitionClass.getSubject(), tuitionClass.getDefaultRate(),
+                            tuitionClass.getSchedule(), seedu.address.model.lesson.PaymentStatus.UNPAID,
+                            tuitionClass.getDetails());
             return new CommandResult(String.format(MESSAGE_SUCCESS, selectedPersons.get(0).getName(), displayedLesson));
         }
         String enrolledStudentNames = formatStudentNames(personsToEnrol);
@@ -164,9 +170,6 @@ public class ClassEnrolCommand extends ClassCommand {
         if (legacyLesson == null) {
             return model.findTuitionClass(subject, schedule)
                     .orElseThrow(() -> new CommandException(MESSAGE_EXISTING_CLASS_NOT_FOUND));
-        }
-        if (model.hasClassCostConflict(legacyLesson)) {
-            throw new CommandException(MESSAGE_CLASS_COST_CONFLICT);
         }
         TuitionClass existingClass = model.findTuitionClass(legacyLesson.getSubject(), legacyLesson.getSchedule())
                 .orElse(null);

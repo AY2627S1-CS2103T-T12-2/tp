@@ -12,9 +12,12 @@ import org.junit.jupiter.api.Test;
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.commons.util.JsonUtil;
 import seedu.address.model.AddressBook;
+import seedu.address.model.lesson.ClassDetails;
 import seedu.address.model.lesson.ClassId;
+import seedu.address.model.lesson.ClassMode;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Enrollment;
+import seedu.address.model.lesson.EnrollmentId;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
 import seedu.address.model.lesson.OneOffLessonSchedule;
@@ -74,14 +77,37 @@ public class JsonSerializableAddressBookTest {
         TuitionClass tuitionClass = new TuitionClass(classId, new Subject("Math"), new Cost("30"),
                 new LessonTiming("Monday1800-1930"));
         original.addTuitionClass(tuitionClass);
-        Lesson lesson = new Enrollment(tuitionClass, PaymentStatus.PAID);
         Person firstPerson = original.getPersonList().get(0);
-        original.setPerson(firstPerson, new PersonBuilder(firstPerson).withLessons(lesson).build());
+        Enrollment enrollment = new Enrollment(firstPerson.getStudentId(), tuitionClass,
+                tuitionClass.getCost(), PaymentStatus.PAID);
+        original.setPerson(firstPerson, new PersonBuilder(firstPerson).withEnrollments(enrollment).build());
 
         String json = JsonUtil.toJsonString(new JsonSerializableAddressBook(original));
         JsonSerializableAddressBook restoredData = JsonUtil.fromJsonString(json, JsonSerializableAddressBook.class);
 
         assertEquals(original, restoredData.toModelType());
+    }
+
+    @Test
+    public void toModelType_mixedAssociationAndLegacyLesson_migratesBoth() throws Exception {
+        String studentId = "S-00000000-0000-0000-0000-000000000001";
+        JsonAdaptedLesson association = new JsonAdaptedLesson(null, "35", null, "PAID",
+                null, null, null, null, "C001", null, null,
+                "E-00000000-0000-0000-0000-000000000001", studentId);
+        JsonAdaptedLesson legacyLesson = new JsonAdaptedLesson("Physics", "40",
+                "Tuesday1800-1930", "UNPAID", "https://example.com/physics", "", "", "ONLINE");
+        JsonAdaptedPerson student = new JsonAdaptedPerson("Alice", "91234567",
+                "alice@example.com", "One Street", List.of(), List.of(association, legacyLesson),
+                null, null, null, null, null, null, false, studentId);
+        JsonAdaptedTuitionClass tuitionClass = new JsonAdaptedTuitionClass(
+                "C001", "Math", "30", "Monday1800-1930");
+        JsonSerializableAddressBook data = new JsonSerializableAddressBook(
+                List.of(student), List.of(tuitionClass), 2);
+
+        AddressBook restored = data.toModelType();
+
+        assertEquals(2, restored.getPersonList().getFirst().getEnrollments().size());
+        assertEquals(2, restored.getTuitionClassList().size());
     }
 
     @Test
@@ -91,9 +117,9 @@ public class JsonSerializableAddressBookTest {
         TuitionClass tuitionClass = new TuitionClass(classId, new Subject("Math"), new Cost("30"),
                 new OneOffLessonSchedule("2026-10-20T1800-1930"));
         original.addTuitionClass(tuitionClass);
-        Lesson lesson = new Enrollment(tuitionClass);
         Person firstPerson = original.getPersonList().get(0);
-        original.setPerson(firstPerson, new PersonBuilder(firstPerson).withLessons(lesson).build());
+        Enrollment enrollment = new Enrollment(firstPerson.getStudentId(), tuitionClass);
+        original.setPerson(firstPerson, new PersonBuilder(firstPerson).withEnrollments(enrollment).build());
 
         String json = JsonUtil.toJsonString(new JsonSerializableAddressBook(original));
         JsonSerializableAddressBook restoredData = JsonUtil.fromJsonString(json, JsonSerializableAddressBook.class);
@@ -117,7 +143,7 @@ public class JsonSerializableAddressBookTest {
     }
 
     @Test
-    public void toModelType_sameClassWithDifferentCosts_throwsIllegalValueException() {
+    public void toModelType_sameClassWithDifferentCosts_preservesAgreedRates() throws Exception {
         AddressBook addressBook = TypicalPersons.getTypicalAddressBook();
         Lesson firstCost = new Lesson(new Subject("Math"), new Cost("30"),
                 new LessonTiming("Monday1800-1930"));
@@ -128,9 +154,12 @@ public class JsonSerializableAddressBookTest {
         addressBook.setPerson(firstPerson, new PersonBuilder(firstPerson).withLessons(firstCost).build());
         addressBook.setPerson(secondPerson, new PersonBuilder(secondPerson).withLessons(secondCost).build());
 
-        JsonSerializableAddressBook data = new JsonSerializableAddressBook(addressBook);
-        assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_CLASS_COST_CONFLICT,
-                data::toModelType);
+        AddressBook restored = new JsonSerializableAddressBook(addressBook).toModelType();
+
+        assertEquals(new Cost("30"), restored.getPersonList().get(0)
+                .getEnrollments().iterator().next().getAgreedRate());
+        assertEquals(new Cost("40"), restored.getPersonList().get(1)
+                .getEnrollments().iterator().next().getAgreedRate());
     }
 
     @Test
@@ -145,7 +174,7 @@ public class JsonSerializableAddressBookTest {
                 new PersonBuilder(firstPerson).withLessons(firstCost, secondCost).build());
 
         JsonSerializableAddressBook data = new JsonSerializableAddressBook(addressBook);
-        assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_CLASS_COST_CONFLICT,
+        assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_DUPLICATE_ENROLMENT,
                 data::toModelType);
     }
 
@@ -235,7 +264,7 @@ public class JsonSerializableAddressBookTest {
     }
 
     @Test
-    public void toModelType_storedClassAndEnrolmentCostsDiffer_throwsIllegalValueException() {
+    public void toModelType_storedClassAndEnrolmentCostsDiffer_preservesAgreedRate() throws Exception {
         TuitionClass tuitionClass = new TuitionClass(new ClassId("C001"), new Subject("Math"), new Cost("30"),
                 new LessonTiming("Monday1800-1930"));
         Lesson lesson = new Lesson(new ClassId("C001"), new Subject("Math"), new Cost("40"),
@@ -244,7 +273,102 @@ public class JsonSerializableAddressBookTest {
         JsonSerializableAddressBook data = new JsonSerializableAddressBook(List.of(new JsonAdaptedPerson(person)),
                 List.of(new JsonAdaptedTuitionClass(tuitionClass)), null);
 
-        assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_CLASS_COST_CONFLICT,
+        AddressBook restored = data.toModelType();
+
+        assertEquals(new Cost("30"), restored.getTuitionClassList().getFirst().getCost());
+        assertEquals(new Cost("40"), restored.getPersonList().getFirst()
+                .getEnrollments().iterator().next().getAgreedRate());
+    }
+
+    @Test
+    public void toModelType_associationReferencesMissingClass_throwsIllegalValueException() {
+        AddressBook addressBook = new AddressBook();
+        Person person = new PersonBuilder().build();
+        Enrollment enrollment = new Enrollment(
+                new EnrollmentId("E-00000000-0000-0000-0000-000000000001"),
+                person.getStudentId(), new ClassId("C999"), new Cost("30"), PaymentStatus.UNPAID);
+        addressBook.addPerson(person.withEnrollments(java.util.Set.of(enrollment)));
+
+        JsonSerializableAddressBook data = new JsonSerializableAddressBook(addressBook);
+
+        assertThrows(IllegalValueException.class, data::toModelType);
+    }
+
+    @Test
+    public void toModelType_duplicateEnrollmentIds_throwsIllegalValueException() {
+        AddressBook addressBook = new AddressBook();
+        TuitionClass tuitionClass = new TuitionClass(new ClassId("C001"), new Subject("Math"),
+                new Cost("30"), new LessonTiming("Monday1800-1930"));
+        addressBook.addTuitionClass(tuitionClass);
+        EnrollmentId duplicateId = new EnrollmentId("E-00000000-0000-0000-0000-000000000001");
+        Person first = new PersonBuilder().withName("Alice").build();
+        Person second = new PersonBuilder().withName("Bob").build();
+        Enrollment firstEnrollment = new Enrollment(duplicateId, first.getStudentId(),
+                tuitionClass.getClassId(), new Cost("30"), PaymentStatus.UNPAID);
+        Enrollment secondEnrollment = new Enrollment(duplicateId, second.getStudentId(),
+                tuitionClass.getClassId(), new Cost("30"), PaymentStatus.UNPAID);
+        addressBook.addPerson(first.withEnrollments(java.util.Set.of(firstEnrollment)));
+        addressBook.addPerson(second.withEnrollments(java.util.Set.of(secondEnrollment)));
+
+        JsonSerializableAddressBook data = new JsonSerializableAddressBook(addressBook);
+
+        assertThrows(IllegalValueException.class, data::toModelType);
+    }
+
+    @Test
+    public void toModelType_legacyEnrollmentMatchesSecondStoredClass() throws Exception {
+        TuitionClass earlierPhysics = new TuitionClass(new ClassId("C001"), new Subject("Physics"),
+                new Cost("30"), new LessonTiming("Monday1800-1930"));
+        TuitionClass physics = new TuitionClass(new ClassId("C002"), new Subject("Physics"),
+                new Cost("40"), new LessonTiming("Tuesday1800-1930"));
+        Person person = new PersonBuilder().withLessons(new Lesson(new Subject("physics"),
+                new Cost("35"), physics.getSchedule())).build();
+        JsonSerializableAddressBook data = new JsonSerializableAddressBook(
+                List.of(new JsonAdaptedPerson(person)),
+                List.of(new JsonAdaptedTuitionClass(earlierPhysics),
+                        new JsonAdaptedTuitionClass(physics)), 3);
+
+        AddressBook restored = data.toModelType();
+
+        assertEquals(physics.getClassId(), restored.getPersonList().getFirst()
+                .getEnrollments().iterator().next().getClassId());
+        assertEquals(new Cost("35"), restored.getPersonList().getFirst()
+                .getEnrollments().iterator().next().getAgreedRate());
+    }
+
+    @Test
+    public void toModelType_explicitDetailsForDifferentClasses_doNotConflict() throws Exception {
+        ClassDetails online = new ClassDetails(ClassMode.ONLINE, "https://example.com", "", "");
+        Person first = new PersonBuilder().withName("Alice").withLessons(new Lesson(new Subject("Math"),
+                new Cost("30"), new LessonTiming("Monday1800-1930"), PaymentStatus.UNPAID, online)).build();
+        Person second = new PersonBuilder().withName("Bob").withLessons(new Lesson(new Subject("Physics"),
+                new Cost("40"), new LessonTiming("Tuesday1800-1930"), PaymentStatus.UNPAID, online)).build();
+        AddressBook addressBook = new AddressBook();
+        addressBook.addPerson(first);
+        addressBook.addPerson(second);
+
+        AddressBook restored = new JsonSerializableAddressBook(addressBook).toModelType();
+
+        assertEquals(2, restored.getTuitionClassList().size());
+    }
+
+    @Test
+    public void toModelType_occupiedEmptyClassRejectsLaterDetailReplacement() {
+        AddressBook addressBook = new AddressBook();
+        TuitionClass tuitionClass = new TuitionClass(new ClassId("C001"), new Subject("Math"),
+                new Cost("30"), new LessonTiming("Monday1800-1930"));
+        addressBook.addTuitionClass(tuitionClass);
+        Person first = new PersonBuilder().withName("Alice").build();
+        Enrollment firstEnrollment = new Enrollment(first.getStudentId(), tuitionClass);
+        Person second = new PersonBuilder().withName("Bob").withLessons(new Lesson(new Subject("Math"),
+                new Cost("35"), tuitionClass.getSchedule(), PaymentStatus.UNPAID,
+                new ClassDetails(ClassMode.OFFLINE, "", "Room 2", ""))).build();
+        addressBook.addPerson(first.withEnrollments(java.util.Set.of(firstEnrollment)));
+        addressBook.addPerson(second);
+
+        JsonSerializableAddressBook data = new JsonSerializableAddressBook(addressBook);
+
+        assertThrows(IllegalValueException.class, JsonSerializableAddressBook.MESSAGE_CLASS_DETAILS_CONFLICT,
                 data::toModelType);
     }
 

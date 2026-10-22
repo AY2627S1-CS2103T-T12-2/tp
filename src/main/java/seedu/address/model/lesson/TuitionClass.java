@@ -12,7 +12,7 @@ public final class TuitionClass {
     private final ClassDetails details;
     private final ClassId classId;
     private final Subject subject;
-    private final Cost cost;
+    private final Cost defaultRate;
     private final LessonSchedule schedule;
 
     /** Creates an immutable class with a stable ID. */
@@ -26,7 +26,7 @@ public final class TuitionClass {
         this.details = details;
         this.classId = classId;
         this.subject = subject;
-        this.cost = cost;
+        this.defaultRate = cost;
         this.schedule = schedule;
     }
 
@@ -36,7 +36,7 @@ public final class TuitionClass {
 
     /** Returns the same class ID and schedule with additional details replaced. */
     public TuitionClass withDetails(ClassDetails updatedDetails) {
-        return new TuitionClass(classId, subject, cost, schedule, updatedDetails);
+        return new TuitionClass(classId, subject, defaultRate, schedule, updatedDetails);
     }
 
     public ClassId getClassId() {
@@ -48,7 +48,12 @@ public final class TuitionClass {
     }
 
     public Cost getCost() {
-        return cost;
+        return defaultRate;
+    }
+
+    /** Returns the rate offered by default to students who enrol in this class. */
+    public Cost getDefaultRate() {
+        return defaultRate;
     }
 
     public LessonSchedule getSchedule() {
@@ -70,18 +75,18 @@ public final class TuitionClass {
         return other == this || other instanceof TuitionClass otherClass
                 && classId.equals(otherClass.classId)
                 && subject.equals(otherClass.subject)
-                && cost.equals(otherClass.cost)
+                && defaultRate.equals(otherClass.defaultRate)
                 && schedule.equals(otherClass.schedule) && details.equals(otherClass.details);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(classId, subject, cost, schedule, details);
+        return Objects.hash(classId, subject, defaultRate, schedule, details);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this).add("id", classId).add("subject", subject)
-                .add("cost", cost).add("schedule", schedule).toString();
+                .add("cost", defaultRate).add("schedule", schedule).toString();
     }
 }

@@ -22,11 +22,16 @@ import org.junit.jupiter.api.Test;
 
 import javafx.collections.ListChangeListener;
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.model.lesson.ClassId;
 import seedu.address.model.lesson.Cost;
+import seedu.address.model.lesson.Enrollment;
+import seedu.address.model.lesson.EnrollmentId;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
 import seedu.address.model.lesson.OneOffLessonSchedule;
+import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.lesson.Subject;
+import seedu.address.model.lesson.TuitionClass;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.exceptions.DuplicatePersonException;
@@ -289,6 +294,82 @@ public class ModelManagerTest {
     @Test
     public void findOverlappingClasses_nullCandidate_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> modelManager.findOverlappingClasses(null));
+    }
+
+    @Test
+    public void addPerson_enrollmentReferencesMissingClass_throwsIllegalArgumentException() {
+        Person person = new PersonBuilder().build();
+        Enrollment enrollment = new Enrollment(
+                new EnrollmentId("E-00000000-0000-0000-0000-000000000001"),
+                person.getStudentId(), new ClassId("C999"), new Cost("30"), PaymentStatus.UNPAID);
+
+        assertThrows(IllegalArgumentException.class, () ->
+                modelManager.addPerson(person.withEnrollments(java.util.Set.of(enrollment))));
+    }
+
+    @Test
+    public void addPerson_legacyLessonWithUnusedClassId_preservesClassId() {
+        Lesson lesson = new Lesson(new ClassId("C007"), new Subject("Chemistry"),
+                new Cost("45"), new LessonTiming("Friday1600-1730"), PaymentStatus.UNPAID);
+        Person person = new PersonBuilder().withLessons(lesson).build();
+
+        modelManager.addPerson(person);
+
+        assertTrue(modelManager.hasTuitionClass(new ClassId("C007")));
+        assertEquals(new ClassId("C007"), modelManager.getAddressBook().getPersonList().getFirst()
+                .getEnrollments().iterator().next().getClassId());
+    }
+
+    @Test
+    public void constructor_unresolvedEnrollment_resolvesAssociationAgainstCatalogue() {
+        AddressBook addressBook = new AddressBook();
+        TuitionClass tuitionClass = new TuitionClass(new ClassId("C001"), new Subject("Math"),
+                new Cost("30"), new LessonTiming("Monday1800-1930"));
+        addressBook.addTuitionClass(tuitionClass);
+        Person person = new PersonBuilder().build();
+        Enrollment unresolved = new Enrollment(
+                new EnrollmentId("E-00000000-0000-0000-0000-000000000001"),
+                person.getStudentId(), tuitionClass.getClassId(), new Cost("25"), PaymentStatus.UNPAID);
+        addressBook.addPerson(person.withEnrollments(java.util.Set.of(unresolved)));
+
+        ModelManager normalized = new ModelManager(addressBook, new UserPrefs());
+
+        Enrollment restored = normalized.getAddressBook().getPersonList().getFirst()
+                .getEnrollments().iterator().next();
+        assertTrue(restored.isResolved());
+        assertEquals(tuitionClass, restored.getTuitionClass());
+        assertEquals(new Cost("25"), restored.getAgreedRate());
+    }
+
+    @Test
+    public void setTuitionClass_updatesOnlyMatchingEnrollmentReferenceAndPreservesRates() {
+        TuitionClass math = new TuitionClass(new ClassId("C001"), new Subject("Math"),
+                new Cost("30"), new LessonTiming("Monday1800-1930"));
+        TuitionClass physics = new TuitionClass(new ClassId("C002"), new Subject("Physics"),
+                new Cost("40"), new LessonTiming("Tuesday1800-1930"));
+        modelManager.addTuitionClass(math);
+        modelManager.addTuitionClass(physics);
+        Person student = new PersonBuilder().withLessons(
+                new Lesson(math.getClassId(), math.getSubject(), new Cost("25"), math.getSchedule(),
+                        PaymentStatus.UNPAID),
+                new Lesson(physics.getClassId(), physics.getSubject(), new Cost("35"), physics.getSchedule(),
+                        PaymentStatus.UNPAID)).build();
+        modelManager.addPerson(student);
+        TuitionClass editedMath = new TuitionClass(math.getClassId(), new Subject("Advanced Math"),
+                new Cost("50"), math.getSchedule());
+
+        modelManager.setTuitionClass(math, editedMath);
+
+        var enrollments = modelManager.getAddressBook().getPersonList().getFirst().getEnrollments();
+        assertEquals(new Cost("25"), enrollments.stream()
+                .filter(item -> item.getClassId().equals(math.getClassId())).findFirst().orElseThrow()
+                .getAgreedRate());
+        assertEquals(new Subject("Advanced Math"), enrollments.stream()
+                .filter(item -> item.getClassId().equals(math.getClassId())).findFirst().orElseThrow()
+                .getTuitionClass().getSubject());
+        assertEquals(physics, enrollments.stream()
+                .filter(item -> item.getClassId().equals(physics.getClassId())).findFirst().orElseThrow()
+                .getTuitionClass());
     }
 
     @Test

@@ -17,11 +17,15 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.model.lesson.ClassId;
 import seedu.address.model.lesson.Cost;
+import seedu.address.model.lesson.Enrollment;
+import seedu.address.model.lesson.EnrollmentId;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
 import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.lesson.Subject;
+import seedu.address.model.lesson.TuitionClass;
 import seedu.address.testutil.PersonBuilder;
 
 public class PersonTest {
@@ -92,6 +96,56 @@ public class PersonTest {
         Person person = new PersonBuilder().withLessons(math, computing, paidPhysics).build();
 
         assertEquals("90.5", person.getOutstandingBalance().toPlainString());
+    }
+
+    @Test
+    public void withEnrollments_validAssociations_exposesImmutableResolvedViewsAndBalance() {
+        Person person = new PersonBuilder().build();
+        TuitionClass math = new TuitionClass(new ClassId("C001"), new Subject("Math"),
+                new Cost("30"), new LessonTiming("Monday1800-1930"));
+        TuitionClass physics = new TuitionClass(new ClassId("C002"), new Subject("Physics"),
+                new Cost("40"), new LessonTiming("Tuesday1800-1930"));
+        Enrollment unpaid = new Enrollment(person.getStudentId(), math, new Cost("25"), PaymentStatus.UNPAID);
+        Enrollment paid = new Enrollment(person.getStudentId(), physics, new Cost("35"), PaymentStatus.PAID);
+
+        Person enrolled = person.withEnrollments(Set.of(unpaid, paid));
+
+        assertEquals(person.getStudentId(), enrolled.getStudentId());
+        assertEquals(Set.of(unpaid, paid), enrolled.getEnrollments());
+        assertEquals(2, enrolled.getLessons().size());
+        assertEquals("25", enrolled.getOutstandingBalance().toPlainString());
+        assertTrue(enrolled.getLegacyLessons().isEmpty());
+        assertThrows(UnsupportedOperationException.class, () -> enrolled.getEnrollments().clear());
+        assertThrows(UnsupportedOperationException.class, () -> enrolled.getLegacyLessons().clear());
+    }
+
+    @Test
+    public void withEnrollments_unresolvedAssociation_isRetainedButNotPresentedAsLesson() {
+        Person person = new PersonBuilder().build();
+        Enrollment unresolved = new Enrollment(
+                new EnrollmentId("E-00000000-0000-0000-0000-000000000001"),
+                person.getStudentId(), new ClassId("C001"), new Cost("25"), PaymentStatus.UNPAID);
+
+        Person enrolled = person.withEnrollments(Set.of(unresolved));
+
+        assertEquals(Set.of(unresolved), enrolled.getEnrollments());
+        assertTrue(enrolled.getLessons().isEmpty());
+        assertEquals("25", enrolled.getOutstandingBalance().toPlainString());
+    }
+
+    @Test
+    public void withEnrollments_invalidStudentOrDuplicateClass_throwsIllegalArgumentException() {
+        Person person = new PersonBuilder().build();
+        TuitionClass math = new TuitionClass(new ClassId("C001"), new Subject("Math"),
+                new Cost("30"), new LessonTiming("Monday1800-1930"));
+        Enrollment wrongStudent = new Enrollment(StudentId.generate(), math);
+        Enrollment first = new Enrollment(person.getStudentId(), math);
+        Enrollment second = new Enrollment(person.getStudentId(), math);
+
+        assertThrows(IllegalArgumentException.class, () ->
+                person.withEnrollments(Set.of(wrongStudent)));
+        assertThrows(IllegalArgumentException.class, () ->
+                person.withEnrollments(Set.of(first, second)));
     }
 
     @Test
@@ -182,6 +236,11 @@ public class PersonTest {
         editedAlice = new PersonBuilder(ALICE).withTags(VALID_TAG_HUSBAND).build();
         assertFalse(ALICE.equals(editedAlice));
 
+        // different lessons -> returns false
+        editedAlice = new PersonBuilder(ALICE)
+                .withLessons(lesson("Math", "30", "Monday1800-1930")).build();
+        assertFalse(ALICE.equals(editedAlice));
+
         // different pin state -> returns false
         editedAlice = new PersonBuilder(ALICE).withPinned(true).build();
         assertFalse(ALICE.equals(editedAlice));
@@ -200,6 +259,21 @@ public class PersonTest {
                 + ", lesson=" + ALICE.getLesson()
                 + ", pinned=" + ALICE.isPinned() + "}";
         assertEquals(expected, ALICE.toString());
+
+        Person enrolled = new PersonBuilder(ALICE)
+                .withLessons(lesson("Math", "30", "Monday1800-1930")).build();
+        assertTrue(enrolled.toString().contains("lessons="));
+
+        Person base = new PersonBuilder().build();
+        Set<Lesson> lessons = Set.of(lesson("Math", "30", "Monday1800-1930"));
+        Person retainedCost = new Person(base.getName(), base.getPhone(), base.getEmail(),
+                base.getAddress(), base.getTags(), lessons, Set.of(),
+                Optional.of(new seedu.address.model.person.Cost("30")), Optional.empty());
+        Person retainedLesson = new Person(base.getName(), base.getPhone(), base.getEmail(),
+                base.getAddress(), base.getTags(), lessons, Set.of(), Optional.empty(),
+                Optional.of(new seedu.address.model.person.Lesson("Monday1800")));
+        assertFalse(retainedCost.toString().contains("lessons="));
+        assertFalse(retainedLesson.toString().contains("lessons="));
     }
 
     private static Lesson lesson(String subject, String cost, String timing) {

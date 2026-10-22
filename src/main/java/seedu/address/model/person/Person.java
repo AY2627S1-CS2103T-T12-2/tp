@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.model.lesson.Enrollment;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.tag.Tag;
@@ -22,6 +23,7 @@ import seedu.address.model.tag.Tag;
  */
 public class Person {
 
+    private final StudentId studentId;
     private final GuardianContact guardianContact;
 
     // Identity fields
@@ -32,7 +34,8 @@ public class Person {
     // Data fields
     private final Address address;
     private final Set<Tag> tags = new LinkedHashSet<>();
-    private final Set<Lesson> lessons = new LinkedHashSet<>();
+    private final Set<Lesson> legacyLessons = new LinkedHashSet<>();
+    private final Set<Enrollment> enrollments = new LinkedHashSet<>();
     private final Set<Subject> legacySubjects;
     private final Optional<Cost> legacyCost;
     private final Optional<seedu.address.model.person.Lesson> legacyLesson;
@@ -84,15 +87,37 @@ public class Person {
     public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags, Set<Lesson> lessons,
             Set<Subject> legacySubjects, Optional<Cost> legacyCost,
             Optional<seedu.address.model.person.Lesson> legacyLesson, GuardianContact guardianContact, boolean pinned) {
-        requireAllNonNull(name, phone, email, address, tags, lessons,
+        this(StudentId.generate(), name, phone, email, address, tags, lessons, Set.of(),
+                legacySubjects, legacyCost, legacyLesson, guardianContact, pinned);
+    }
+
+    /**
+     * Creates a student with an explicit stable ID and canonical enrolment associations.
+     * Legacy lessons are retained only until model-level migration completes.
+     */
+    public Person(StudentId studentId, Name name, Phone phone, Email email, Address address,
+            Set<Tag> tags, Set<Lesson> legacyLessons, Set<Enrollment> enrollments,
+            Set<Subject> legacySubjects, Optional<Cost> legacyCost,
+            Optional<seedu.address.model.person.Lesson> legacyLesson, GuardianContact guardianContact,
+            boolean pinned) {
+        requireAllNonNull(studentId, name, phone, email, address, tags, legacyLessons, enrollments,
                 legacySubjects, legacyCost, legacyLesson, guardianContact);
+        if (enrollments.stream().anyMatch(enrollment -> !studentId.equals(enrollment.getStudentId()))) {
+            throw new IllegalArgumentException("Every enrollment must belong to this student.");
+        }
+        long distinctClasses = enrollments.stream().map(Enrollment::getClassId).distinct().count();
+        if (distinctClasses != enrollments.size()) {
+            throw new IllegalArgumentException("A student cannot be enrolled in the same class twice.");
+        }
+        this.studentId = studentId;
         this.guardianContact = guardianContact;
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.address = address;
         this.tags.addAll(tags);
-        this.lessons.addAll(lessons);
+        this.legacyLessons.addAll(legacyLessons);
+        this.enrollments.addAll(enrollments);
         this.legacySubjects = Set.copyOf(legacySubjects);
         this.legacyCost = legacyCost;
         this.legacyLesson = legacyLesson;
@@ -147,7 +172,7 @@ public class Person {
 
     /** Returns whether retained legacy subjects could not become current lesson enrolments. */
     public boolean hasUnmigratedLegacyLesson() {
-        return lessons.isEmpty() && !legacySubjects.isEmpty()
+        return legacyLessons.isEmpty() && enrollments.isEmpty() && !legacySubjects.isEmpty()
                 && (legacyCost.isEmpty() || legacyLessonEnd(legacyLesson).isEmpty());
     }
 
@@ -155,10 +180,13 @@ public class Person {
         return guardianContact;
     }
 
+    public StudentId getStudentId() {
+        return studentId;
+    }
+
     /** Returns a copy with only its guardian details replaced. */
     public Person withGuardianContact(GuardianContact updatedContact) {
-        return new Person(name, phone, email, address, tags, lessons,
-                legacySubjects, legacyCost, legacyLesson, updatedContact, pinned);
+        return copy(tags, legacyLessons, enrollments, updatedContact, pinned);
     }
 
     public Name getName() {
@@ -190,28 +218,53 @@ public class Person {
      */
     public Person withTags(Set<Tag> updatedTags) {
         requireAllNonNull(updatedTags);
-        return new Person(name, phone, email, address, updatedTags, lessons,
-                legacySubjects, legacyCost, legacyLesson, guardianContact, pinned);
+        return copy(updatedTags, legacyLessons, enrollments, guardianContact, pinned);
     }
 
-    /** Returns the immutable set of lessons in which this person is enrolled. */
+    /**
+     * Returns read-only lesson views for compatibility with presentation code and legacy callers.
+     * Canonical enrolment data is available through {@link #getEnrollments()}.
+     */
     public Set<Lesson> getLessons() {
-        return Collections.unmodifiableSet(lessons);
+        Set<Lesson> views = new LinkedHashSet<>(legacyLessons);
+        enrollments.stream().filter(Enrollment::isResolved).map(Enrollment::toLessonView).forEach(views::add);
+        return Collections.unmodifiableSet(views);
+    }
+
+    /** Returns immutable legacy lesson records that still require migration. */
+    public Set<Lesson> getLegacyLessons() {
+        return Collections.unmodifiableSet(legacyLessons);
+    }
+
+    /** Returns this student's immutable canonical enrolment associations. */
+    public Set<Enrollment> getEnrollments() {
+        return Collections.unmodifiableSet(enrollments);
     }
 
     /** Returns the total cost of this person's unpaid lesson enrolments. */
     public BigDecimal getOutstandingBalance() {
-        return lessons.stream()
-                .filter(lesson -> lesson.getPaymentStatus() == PaymentStatus.UNPAID)
-                .map(lesson -> lesson.getCost().value)
+        BigDecimal enrollmentBalance = enrollments.stream()
+                .filter(enrollment -> enrollment.getPaymentStatus() == PaymentStatus.UNPAID)
+                .map(enrollment -> enrollment.getAgreedRate().value)
                 .reduce(BigDecimal.ZERO, BigDecimal::add)
                 .stripTrailingZeros();
+        BigDecimal legacyBalance = legacyLessons.stream()
+                .filter(lesson -> lesson.getPaymentStatus() == PaymentStatus.UNPAID)
+                .map(lesson -> lesson.getCost().value)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return enrollmentBalance.add(legacyBalance).stripTrailingZeros();
     }
 
     /** Returns a copy of this person with {@code updatedLessons} replacing the current lessons. */
     public Person withLessons(Set<Lesson> updatedLessons) {
-        return new Person(name, phone, email, address, tags, updatedLessons,
-                legacySubjects, legacyCost, legacyLesson, guardianContact, pinned);
+        requireAllNonNull(updatedLessons);
+        return copy(tags, updatedLessons, Set.of(), guardianContact, pinned);
+    }
+
+    /** Returns a copy whose legacy lessons have been replaced by canonical enrolments. */
+    public Person withEnrollments(Set<Enrollment> updatedEnrollments) {
+        requireAllNonNull(updatedEnrollments);
+        return copy(tags, Set.of(), updatedEnrollments, guardianContact, pinned);
     }
 
     /** Returns whether this person is pinned. */
@@ -221,8 +274,14 @@ public class Person {
 
     /** Returns a copy of this person with the specified pin state. */
     public Person withPinned(boolean pinned) {
-        return new Person(name, phone, email, address, tags, lessons,
-                legacySubjects, legacyCost, legacyLesson, guardianContact, pinned);
+        return copy(tags, legacyLessons, enrollments, guardianContact, pinned);
+    }
+
+    /** Returns a copy while preserving this student's stable identity and legacy student fields. */
+    private Person copy(Set<Tag> updatedTags, Set<Lesson> updatedLegacyLessons,
+            Set<Enrollment> updatedEnrollments, GuardianContact updatedContact, boolean updatedPinned) {
+        return new Person(studentId, name, phone, email, address, updatedTags, updatedLegacyLessons,
+                updatedEnrollments, legacySubjects, legacyCost, legacyLesson, updatedContact, updatedPinned);
     }
 
     /** Returns subjects retained from the previous student model. */
@@ -273,7 +332,7 @@ public class Person {
                 && email.equals(otherPerson.email)
                 && address.equals(otherPerson.address)
                 && tags.equals(otherPerson.tags)
-                && lessons.equals(otherPerson.lessons)
+                && getLessons().equals(otherPerson.getLessons())
                 && legacySubjects.equals(otherPerson.legacySubjects)
                 && legacyCost.equals(otherPerson.legacyCost)
                 && legacyLesson.equals(otherPerson.legacyLesson)
@@ -283,7 +342,7 @@ public class Person {
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, address, tags, lessons,
+        return Objects.hash(name, phone, email, address, tags, getLessons(),
                 legacySubjects, legacyCost, legacyLesson, guardianContact, pinned);
     }
 
@@ -295,8 +354,9 @@ public class Person {
                 .add("email", email)
                 .add("address", address)
                 .add("tags", tags);
-        if (!lessons.isEmpty() && legacySubjects.isEmpty() && legacyCost.isEmpty() && legacyLesson.isEmpty()) {
-            builder.add("lessons", lessons);
+        Set<Lesson> lessonViews = getLessons();
+        if (!lessonViews.isEmpty() && legacySubjects.isEmpty() && legacyCost.isEmpty() && legacyLesson.isEmpty()) {
+            builder.add("lessons", lessonViews);
         }
         builder.add("subjects", legacySubjects)
                 .add("cost", legacyCost)

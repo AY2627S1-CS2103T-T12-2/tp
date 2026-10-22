@@ -98,10 +98,9 @@ public class LessonTest {
 
         Lesson linkedLesson = paidLesson.withTuitionClass(tuitionClass);
 
-        assertTrue(linkedLesson instanceof Enrollment);
         assertEquals(tuitionClass.getClassId(), linkedLesson.getClassId());
         assertEquals(tuitionClass.getSubject(), linkedLesson.getSubject());
-        assertEquals(tuitionClass.getCost(), linkedLesson.getCost());
+        assertEquals(paidLesson.getCost(), linkedLesson.getCost());
         assertEquals(tuitionClass.getSchedule(), linkedLesson.getSchedule());
         assertEquals(PaymentStatus.PAID, linkedLesson.getPaymentStatus());
         assertThrows(NullPointerException.class, () -> paidLesson.withTuitionClass(null));

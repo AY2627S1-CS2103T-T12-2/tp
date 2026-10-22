@@ -89,7 +89,8 @@ public class Lesson {
     /** Returns a copy linked to the supplied central class while retaining payment status. */
     public Lesson withTuitionClass(TuitionClass tuitionClass) {
         requireAllNonNull(tuitionClass);
-        return new Enrollment(tuitionClass, paymentStatus);
+        return new Lesson(tuitionClass.getClassId(), tuitionClass.getSubject(), cost,
+                tuitionClass.getSchedule(), paymentStatus, tuitionClass.getDetails());
     }
 
     /**

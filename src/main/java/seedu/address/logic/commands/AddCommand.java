@@ -74,11 +74,6 @@ public class AddCommand extends Command {
             throw new CommandException(MESSAGE_DUPLICATE_PERSON);
         }
         for (Lesson lesson : toAdd.getLessons()) {
-            if (model.hasClassCostConflict(lesson)) {
-                throw new CommandException(MESSAGE_CLASS_COST_CONFLICT);
-            }
-        }
-        for (Lesson lesson : toAdd.getLessons()) {
             List<Lesson> overlappingClasses = model.findOverlappingClasses(lesson);
             if (!overlappingClasses.isEmpty()) {
                 throw new CommandException(Messages.getClassOverlapMessage(lesson, overlappingClasses));
