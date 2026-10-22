@@ -1,3 +1,10 @@
 {
-    "java.configuration.updateBuildConfiguration": "interactive"
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "plantuml.render": "Local",
+    "plantuml.java": "/usr/bin/java",
+    "plantuml.diagramsRoot": "docs/diagrams",
+    "plantuml.includepaths": [
+        "docs/diagrams"
+    ],
+    "plantuml.lintDiagramNoName": false
 }
