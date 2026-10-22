@@ -1,5 +1,6 @@
 @startuml
 !include style.puml
+skinparam style strictuml
 skinparam arrowThickness 1.1
 skinparam arrowColor STORAGE_COLOR
 skinparam classBackgroundColor STORAGE_COLOR
@@ -32,9 +33,26 @@ StorageManager -down-> "1" JsonUserPrefsStorage
 StorageManager -down-> "1" JsonAddressBookStorage
 
 JsonAddressBookStorage ..> JsonSerializableAddressBook
-JsonSerializableAddressBook --> "*" JsonAdaptedPerson
-JsonSerializableAddressBook --> "*" JsonAdaptedTuitionClass
-JsonAdaptedPerson --> "*" JsonAdaptedTag
-JsonAdaptedPerson --> "*" JsonAdaptedLesson
+JsonSerializableAddressBook --> "*" JsonAdaptedPerson : persons
+JsonSerializableAddressBook --> "*" JsonAdaptedTuitionClass : classes
+JsonAdaptedPerson --> "*" JsonAdaptedTag : tags
+JsonAdaptedPerson --> "*" JsonAdaptedLesson : lessons
+
+note as EnrollmentStorageNote
+  JsonAdaptedLesson stores Enrollment records in "lessons":
+  enrollmentId, studentId, classId, cost (agreed rate),
+  and paymentStatus. It also reads legacy lesson records.
+
+  JsonAdaptedTuitionClass stores shared class data
+  and the default rate (saved as "cost").
+
+  JsonSerializableAddressBook loads shared classes first,
+  resolves class IDs, validates identities,
+  and migrates legacy lesson records.
+end note
+
+JsonAdaptedLesson ..down. EnrollmentStorageNote
+' Keep the note below both adapter branches without adding model relationships.
+JsonAdaptedTag -[hidden]down-> EnrollmentStorageNote
 
 @enduml
