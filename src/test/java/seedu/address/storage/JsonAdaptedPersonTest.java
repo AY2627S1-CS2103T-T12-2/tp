@@ -169,4 +169,50 @@ public class JsonAdaptedPersonTest {
         assertEquals(11, person.toModelType().getTags().size());
     }
 
+    @Test
+    public void toModelType_partialLegacyStudentFields_doNotInventEnrollment() throws Exception {
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
+                VALID_ADDRESS, VALID_TAGS, null, List.of("Math"), "30", null);
+
+        assertTrue(person.toModelType().getEnrollments().isEmpty());
+    }
+
+    @Test
+    public void toModelType_invalidStudentId_throwsIllegalValueException() {
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
+                VALID_ADDRESS, VALID_TAGS, null, null, null, null, null, null, null, false, "S-1");
+
+        assertThrows(IllegalValueException.class, person::toModelType);
+    }
+
+    @Test
+    public void toModelType_enrollmentForDifferentStudent_throwsIllegalValueException() {
+        String personId = "S-00000000-0000-0000-0000-000000000001";
+        String otherStudentId = "S-00000000-0000-0000-0000-000000000002";
+        JsonAdaptedLesson enrollment = new JsonAdaptedLesson(null, "25", null, "PAID",
+                null, null, null, null, "C001", null, null,
+                "E-00000000-0000-0000-0000-000000000001", otherStudentId);
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
+                VALID_ADDRESS, VALID_TAGS, List.of(enrollment), null, null, null,
+                null, null, null, false, personId);
+
+        assertThrows(IllegalValueException.class, person::toModelType);
+    }
+
+    @Test
+    public void toModelType_duplicateEnrollmentIds_throwsIllegalValueException() {
+        String personId = "S-00000000-0000-0000-0000-000000000001";
+        String enrollmentId = "E-00000000-0000-0000-0000-000000000001";
+        JsonAdaptedLesson first = new JsonAdaptedLesson(null, "25", null, "UNPAID",
+                null, null, null, null, "C001", null, null, enrollmentId, personId);
+        JsonAdaptedLesson exactDuplicate = new JsonAdaptedLesson(null, "25", null, "UNPAID",
+                null, null, null, null, "C001", null, null, enrollmentId, personId);
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
+                VALID_ADDRESS, VALID_TAGS, List.of(first, exactDuplicate), null, null, null,
+                null, null, null, false, personId);
+
+        assertThrows(IllegalValueException.class, JsonAdaptedPerson.MESSAGE_DUPLICATE_ENROLLMENT_ID,
+                person::toModelType);
+    }
+
 }

@@ -155,16 +155,6 @@ public interface Model {
     /** Returns the timetable derived from all persons for the complete week containing {@code anchorDate}. */
     List<TimetableDay> getTimetable(LocalDate anchorDate);
 
-    /** Returns whether an existing class has the same class with a different cost. */
-    default boolean hasClassCostConflict(Lesson candidate) {
-        requireNonNull(candidate);
-        return getTuitionClassList().stream()
-                .anyMatch(existing ->
-                        existing.getSubject().value.equalsIgnoreCase(candidate.getSubject().value)
-                                && existing.getSchedule().equals(candidate.getSchedule())
-                                && !existing.getCost().equals(candidate.getCost()));
-    }
-
     /**
      * Returns the distinct existing classes that overlap {@code candidate}, ordered
      * by schedule, then subject. Copies of the same group class are returned once.

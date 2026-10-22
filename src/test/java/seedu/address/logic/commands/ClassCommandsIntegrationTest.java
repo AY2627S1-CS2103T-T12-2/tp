@@ -90,6 +90,17 @@ public class ClassCommandsIntegrationTest {
     }
 
     @Test
+    public void enrol_sameSubjectAtDifferentTime_createsSeparateClass() throws CommandException {
+        Lesson tuesdayMath = new Lesson(new Subject("Math"), new Cost("30"),
+                new LessonTiming("Tuesday1800-1930"));
+        new ClassEnrolCommand(Index.fromOneBased(1), tuesdayMath).execute(model);
+
+        new ClassEnrolCommand(Index.fromOneBased(2), LESSON).execute(model);
+
+        assertEquals(2, model.getTuitionClassList().size());
+    }
+
+    @Test
     public void enrolMultiple_existingClass_addsClassWithExistingCostToEverySelectedStudent()
             throws CommandException {
         new ClassEnrolCommand(Index.fromOneBased(1), LESSON).execute(model);
@@ -238,13 +249,35 @@ public class ClassCommandsIntegrationTest {
     }
 
     @Test
-    public void enrol_sameClassWithDifferentCost_failure() throws CommandException {
+    public void paymentAndUnenrol_legacyLookupRequiresBothSubjectAndSchedule() throws CommandException {
+        new ClassEnrolCommand(Index.fromOneBased(1), LESSON).execute(model);
+        Subject physics = new Subject("Physics");
+        LessonTiming tuesday = new LessonTiming("Tuesday1800-1930");
+
+        assertCommandFailure(new ClassPaymentCommand(Index.fromOneBased(1), physics,
+                LESSON.getSchedule(), PaymentStatus.PAID), model,
+                String.format(ClassPaymentCommand.MESSAGE_NOT_ENROLLED, physics, LESSON.getSchedule()));
+        assertCommandFailure(new ClassPaymentCommand(Index.fromOneBased(1), LESSON.getSubject(),
+                tuesday, PaymentStatus.PAID), model,
+                String.format(ClassPaymentCommand.MESSAGE_NOT_ENROLLED, LESSON.getSubject(), tuesday));
+        assertCommandFailure(new ClassUnenrolCommand(Index.fromOneBased(1), physics,
+                LESSON.getSchedule()), model, ClassUnenrolCommand.MESSAGE_NOT_ENROLLED);
+        assertCommandFailure(new ClassUnenrolCommand(Index.fromOneBased(1), LESSON.getSubject(),
+                tuesday), model, ClassUnenrolCommand.MESSAGE_NOT_ENROLLED);
+    }
+
+    @Test
+    public void enrol_sameClassWithDifferentCost_preservesAgreedRate() throws CommandException {
         new ClassEnrolCommand(Index.fromOneBased(1), LESSON).execute(model);
         Lesson conflictingLesson = new Lesson(new Subject("Math"), new Cost("40"),
                 new LessonTiming("Monday1800-1930"));
 
-        assertCommandFailure(new ClassEnrolCommand(Index.fromOneBased(2), conflictingLesson), model,
-                ClassEnrolCommand.MESSAGE_CLASS_COST_CONFLICT);
+        new ClassEnrolCommand(Index.fromOneBased(2), conflictingLesson).execute(model);
+
+        assertEquals(new Cost("30"), model.getAddressBook().getPersonList().get(0)
+                .getEnrollments().iterator().next().getAgreedRate());
+        assertEquals(new Cost("40"), model.getAddressBook().getPersonList().get(1)
+                .getEnrollments().iterator().next().getAgreedRate());
     }
 
     @Test
@@ -269,6 +302,14 @@ public class ClassCommandsIntegrationTest {
     }
 
     @Test
+    public void enrol_missingClassId_failure() {
+        ClassId missingId = new ClassId("C099");
+
+        assertCommandFailure(new ClassEnrolCommand(Index.fromOneBased(1), missingId), model,
+                String.format(ClassEnrolCommand.MESSAGE_CLASS_NOT_FOUND, missingId));
+    }
+
+    @Test
     public void enrol_sameClassForSameStudent_failure() throws CommandException {
         ClassEnrolCommand command = new ClassEnrolCommand(Index.fromOneBased(1), LESSON);
         command.execute(model);
@@ -289,6 +330,11 @@ public class ClassCommandsIntegrationTest {
         assertNotEquals(command, new ClassEnrolCommand(List.of(Index.fromOneBased(1)),
                 LESSON.getSubject(), LESSON.getSchedule()));
         assertNotEquals(command, null);
+
+        ClassEnrolCommand idCommand = new ClassEnrolCommand(Index.fromOneBased(1), new ClassId("C001"));
+        assertEquals(idCommand, new ClassEnrolCommand(Index.fromOneBased(1), new ClassId("C001")));
+        assertNotEquals(idCommand, new ClassEnrolCommand(Index.fromOneBased(1), new ClassId("C002")));
+        assertNotEquals(idCommand, command);
     }
 
     @Test
@@ -424,6 +470,8 @@ public class ClassCommandsIntegrationTest {
                 Index.fromOneBased(1), OTHER_LESSON.getSubject(), LESSON.getSchedule()));
         assertNotEquals(command, new ClassUnenrolCommand(
                 Index.fromOneBased(1), LESSON.getSubject(), OTHER_LESSON.getSchedule()));
+        assertNotEquals(new ClassUnenrolCommand(Index.fromOneBased(1), new ClassId("C001")),
+                new ClassUnenrolCommand(Index.fromOneBased(1), new ClassId("C002")));
         assertNotEquals(command, null);
     }
 
@@ -520,6 +568,8 @@ public class ClassCommandsIntegrationTest {
                 LESSON.getSubject(), OTHER_LESSON.getSchedule(), PaymentStatus.PAID));
         assertNotEquals(command, new ClassPaymentCommand(Index.fromOneBased(1),
                 LESSON.getSubject(), LESSON.getSchedule(), PaymentStatus.UNPAID));
+        assertNotEquals(new ClassPaymentCommand(Index.fromOneBased(1), new ClassId("C001"), PaymentStatus.PAID),
+                new ClassPaymentCommand(Index.fromOneBased(1), new ClassId("C002"), PaymentStatus.PAID));
         assertNotEquals(command, null);
     }
 
@@ -566,6 +616,8 @@ public class ClassCommandsIntegrationTest {
         assertEquals(command, new ClassDeleteCommand(new Subject("math"), LESSON.getSchedule()));
         assertNotEquals(command, new ClassDeleteCommand(OTHER_LESSON.getSubject(), LESSON.getSchedule()));
         assertNotEquals(command, new ClassDeleteCommand(LESSON.getSubject(), OTHER_LESSON.getSchedule()));
+        assertNotEquals(new ClassDeleteCommand(new ClassId("C001")),
+                new ClassDeleteCommand(new ClassId("C002")));
         assertNotEquals(command, null);
     }
 
@@ -609,7 +661,7 @@ public class ClassCommandsIntegrationTest {
         TuitionClass edited = model.getTuitionClass(classId);
         Lesson enrollment = model.getAddressBook().getPersonList().get(0).getLessons().iterator().next();
         assertEquals(new Subject("Advanced Math"), edited.getSubject());
-        assertEquals(new Cost("35"), enrollment.getCost());
+        assertEquals(new Cost("30"), enrollment.getCost());
         assertEquals(classId, enrollment.getClassId());
         assertEquals(PaymentStatus.PAID, enrollment.getPaymentStatus());
     }

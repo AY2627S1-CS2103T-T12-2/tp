@@ -326,6 +326,18 @@ public class ClassCommandParserTest {
     }
 
     @Test
+    public void parse_listWithArguments_failure() {
+        String expected = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ClassListCommand.MESSAGE_USAGE);
+        assertParseFailure(parser, " list unexpected", expected);
+    }
+
+    @Test
+    public void parse_idBasedCommandWithInvalidId_failure() {
+        assertParseFailure(parser, " delete id/not-an-id", ClassId.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, " unenrol 1 id/C000", ClassId.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
     public void parse_noSubcommand_failure() {
         String expected = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ClassCommand.MESSAGE_USAGE);
         assertParseFailure(parser, "   ", expected);

@@ -3,8 +3,6 @@ package seedu.address.model;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.util.Set;
-
 import org.junit.jupiter.api.Test;
 
 import seedu.address.model.lesson.ClassDetails;
@@ -40,17 +38,19 @@ public class ClassAttributesModelTest {
     }
 
     @Test
-    public void incompatibleCostOrExplicitMetadata_rejectsNewContactWithoutChangingCatalogue() {
+    public void differentAgreedRateAcceptedButExplicitMetadataRejected() {
         ModelManager model = modelWithClass(ONLINE);
-        AddressBook before = new AddressBook(model.getAddressBook());
         Lesson wrongCost = new Lesson(SUBJECT, new Cost("40"), TIMING);
+        model.addPerson(new PersonBuilder().withLessons(wrongCost).build());
+        assertEquals(new Cost("40"), model.getAddressBook().getPersonList().getFirst()
+                .getEnrollments().iterator().next().getAgreedRate());
+
+        AddressBook before = new AddressBook(model.getAddressBook());
         Lesson wrongDetails = new Lesson(SUBJECT, new Cost("30"), TIMING,
                 PaymentStatus.UNPAID, new ClassDetails("", "Room 2", ""));
-        for (Lesson lesson : Set.of(wrongCost, wrongDetails)) {
-            assertThrows(IllegalArgumentException.class, () -> model.addPerson(
-                    new PersonBuilder().withLessons(lesson).build()));
-            assertEquals(before, model.getAddressBook());
-        }
+        assertThrows(IllegalArgumentException.class, () -> model.addPerson(
+                new PersonBuilder().withName("Bob").withLessons(wrongDetails).build()));
+        assertEquals(before, model.getAddressBook());
     }
 
     @Test

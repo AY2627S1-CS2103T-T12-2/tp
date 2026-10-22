@@ -3,36 +3,224 @@
 skinparam arrowThickness 1.1
 skinparam arrowColor LOGIC_COLOR_T4
 skinparam classBackgroundColor LOGIC_COLOR
+left to right direction
 
-Class "{abstract}\nCommand" as Command
-Class XYZCommand
+package "Parser classes" {
+    Class "<<interface>>\nParser<T extends Command>" as Parser
+    Class AddressBookParser
 
-package "Parser classes"{
-Class "<<interface>>\nParser" as Parser
-Class AddressBookParser
-Class XYZCommandParser
-Class CliSyntax
-Class ParserUtil
-Class ArgumentMultimap
-Class ArgumentTokenizer
-Class Prefix
+    package "Command parsers" {
+        Class AddCommandParser
+        Class EditCommandParser
+        Class DeleteCommandParser
+        Class SubjectFindCommandParser
+        Class FindCommandParser
+        Class PinCommandParser
+        Class UnpinCommandParser
+        Class PrivacyCommandParser
+        Class TagCommandParser
+        Class UntagCommandParser
+    }
+
+    package "Class command parsers" {
+        Class ClassCommandParser
+        Class ClassAddCommandParser
+        Class ClassEditCommandParser
+        Class ClassDeleteCommandParser
+        Class ClassEnrolCommandParser
+        Class ClassUnenrolCommandParser
+        Class ClassPaymentCommandParser
+    }
+
+    package "Parsing utilities" {
+        Class CliSyntax
+        Class Prefix
+        Class ArgumentTokenizer
+        Class "ArgumentTokenizer.PrefixPosition" as PrefixPosition
+        Class ArgumentMultimap
+        Class ParserUtil
+    }
 }
 
-Class HiddenOutside #FFFFFF
-HiddenOutside ..> AddressBookParser
+package "Command classes" {
+    Class "{abstract}\nCommand" as Command
+    Class AddCommand
+    Class EditCommand
+    Class DeleteCommand
+    Class FindCommand
+    Class PinCommand
+    Class UnpinCommand
+    Class PrivacyCommand
+    Class TagCommand
+    Class UntagCommand
+    Class ClearCommand
+    Class ListCommand
+    Class TimetableCommand
+    Class ExitCommand
+    Class HelpCommand
 
-AddressBookParser .down.> XYZCommandParser: <<create>>
+    Class "{abstract}\nClassCommand" as ClassCommand
+    Class ClassAddCommand
+    Class ClassEditCommand
+    Class ClassDeleteCommand
+    Class ClassListCommand
+    Class ClassEnrolCommand
+    Class ClassUnenrolCommand
+    Class ClassPaymentCommand
+}
 
-XYZCommandParser ..> XYZCommand : <<create>>
-AddressBookParser ..> Command : <<use>>
-XYZCommandParser .up.|> Parser
-XYZCommandParser ..> ArgumentMultimap
-XYZCommandParser ..> ArgumentTokenizer
-ArgumentTokenizer .left.> ArgumentMultimap
-XYZCommandParser ..> CliSyntax
-CliSyntax ..> Prefix
-XYZCommandParser ..> ParserUtil
-ParserUtil .down.> Prefix
-ArgumentTokenizer .down.> Prefix
-XYZCommand -up-|> Command
+Class LogicManager
+LogicManager --> "1" AddressBookParser
+
+' Parser interface implementations
+AddCommandParser .up.|> Parser
+EditCommandParser .up.|> Parser
+DeleteCommandParser .up.|> Parser
+SubjectFindCommandParser .up.|> Parser
+FindCommandParser .up.|> Parser
+PinCommandParser .up.|> Parser
+UnpinCommandParser .up.|> Parser
+PrivacyCommandParser .up.|> Parser
+TagCommandParser .up.|> Parser
+UntagCommandParser .up.|> Parser
+ClassCommandParser .up.|> Parser
+ClassAddCommandParser .up.|> Parser
+ClassEditCommandParser .up.|> Parser
+ClassDeleteCommandParser .up.|> Parser
+ClassEnrolCommandParser .up.|> Parser
+ClassUnenrolCommandParser .up.|> Parser
+ClassPaymentCommandParser .up.|> Parser
+Parser ..> Command : <<use>>
+
+' AddressBookParser dispatches to parsers for commands that require arguments.
+AddressBookParser ..> AddCommandParser : <<create>>
+AddressBookParser ..> EditCommandParser : <<create>>
+AddressBookParser ..> DeleteCommandParser : <<create>>
+AddressBookParser ..> SubjectFindCommandParser : <<create>>
+AddressBookParser ..> PinCommandParser : <<create>>
+AddressBookParser ..> UnpinCommandParser : <<create>>
+AddressBookParser ..> PrivacyCommandParser : <<create>>
+AddressBookParser ..> TagCommandParser : <<create>>
+AddressBookParser ..> UntagCommandParser : <<create>>
+AddressBookParser ..> ClassCommandParser : <<create>>
+
+' Commands without arguments are created directly by AddressBookParser.
+AddressBookParser ..> ClearCommand : <<create>>
+AddressBookParser ..> ListCommand : <<create>>
+AddressBookParser ..> TimetableCommand : <<create>>
+AddressBookParser ..> ExitCommand : <<create>>
+AddressBookParser ..> HelpCommand : <<create>>
+AddressBookParser ..> Command : <<return>>
+
+' Each command parser creates its corresponding command.
+AddCommandParser ..> AddCommand : <<create>>
+EditCommandParser ..> EditCommand : <<create>>
+DeleteCommandParser ..> DeleteCommand : <<create>>
+SubjectFindCommandParser ..> FindCommand : <<create>>
+SubjectFindCommandParser ..> FindCommandParser : <<create>>
+FindCommandParser ..> FindCommand : <<create>>
+PinCommandParser ..> PinCommand : <<create>>
+UnpinCommandParser ..> UnpinCommand : <<create>>
+PrivacyCommandParser ..> PrivacyCommand : <<create>>
+TagCommandParser ..> TagCommand : <<create>>
+UntagCommandParser ..> UntagCommand : <<create>>
+
+' ClassCommandParser delegates to a parser for each class subcommand.
+ClassCommandParser ..> ClassAddCommandParser : <<create>>
+ClassCommandParser ..> ClassEditCommandParser : <<create>>
+ClassCommandParser ..> ClassDeleteCommandParser : <<create>>
+ClassCommandParser ..> ClassEnrolCommandParser : <<create>>
+ClassCommandParser ..> ClassUnenrolCommandParser : <<create>>
+ClassCommandParser ..> ClassPaymentCommandParser : <<create>>
+ClassCommandParser ..> ClassListCommand : <<create>>
+ClassAddCommandParser ..> ClassAddCommand : <<create>>
+ClassEditCommandParser ..> ClassEditCommand : <<create>>
+ClassDeleteCommandParser ..> ClassDeleteCommand : <<create>>
+ClassEnrolCommandParser ..> ClassEnrolCommand : <<create>>
+ClassUnenrolCommandParser ..> ClassUnenrolCommand : <<create>>
+ClassPaymentCommandParser ..> ClassPaymentCommand : <<create>>
+
+' Token-based parsers share the tokenizer, CLI prefixes, and parsing helpers.
+AddCommandParser ..> ArgumentTokenizer
+AddCommandParser ..> ArgumentMultimap
+AddCommandParser ..> CliSyntax
+AddCommandParser ..> ParserUtil
+EditCommandParser ..> ArgumentTokenizer
+EditCommandParser ..> ArgumentMultimap
+EditCommandParser ..> CliSyntax
+EditCommandParser ..> ParserUtil
+FindCommandParser ..> ArgumentTokenizer
+FindCommandParser ..> ArgumentMultimap
+FindCommandParser ..> CliSyntax
+FindCommandParser ..> ParserUtil
+SubjectFindCommandParser ..> ArgumentTokenizer
+SubjectFindCommandParser ..> ArgumentMultimap
+SubjectFindCommandParser ..> CliSyntax
+SubjectFindCommandParser ..> ParserUtil
+TagCommandParser ..> ArgumentTokenizer
+TagCommandParser ..> ArgumentMultimap
+TagCommandParser ..> CliSyntax
+TagCommandParser ..> ParserUtil
+UntagCommandParser ..> ParserUtil
+DeleteCommandParser ..> ParserUtil
+PinCommandParser ..> ParserUtil
+UnpinCommandParser ..> ParserUtil
+
+ClassAddCommandParser ..> ArgumentTokenizer
+ClassAddCommandParser ..> ArgumentMultimap
+ClassAddCommandParser ..> CliSyntax
+ClassAddCommandParser ..> ParserUtil
+ClassEditCommandParser ..> ArgumentTokenizer
+ClassEditCommandParser ..> ArgumentMultimap
+ClassEditCommandParser ..> CliSyntax
+ClassEditCommandParser ..> ParserUtil
+ClassDeleteCommandParser ..> ArgumentTokenizer
+ClassDeleteCommandParser ..> ArgumentMultimap
+ClassDeleteCommandParser ..> CliSyntax
+ClassDeleteCommandParser ..> ParserUtil
+ClassEnrolCommandParser ..> ArgumentTokenizer
+ClassEnrolCommandParser ..> ArgumentMultimap
+ClassEnrolCommandParser ..> CliSyntax
+ClassEnrolCommandParser ..> ParserUtil
+ClassUnenrolCommandParser ..> ArgumentTokenizer
+ClassUnenrolCommandParser ..> ArgumentMultimap
+ClassUnenrolCommandParser ..> CliSyntax
+ClassUnenrolCommandParser ..> ParserUtil
+ClassPaymentCommandParser ..> ArgumentTokenizer
+ClassPaymentCommandParser ..> ArgumentMultimap
+ClassPaymentCommandParser ..> CliSyntax
+ClassPaymentCommandParser ..> ParserUtil
+
+' Utility-class relationships.
+CliSyntax ..> Prefix : <<create>>
+ArgumentTokenizer ..> ArgumentMultimap : <<create>>
+ArgumentTokenizer ..> PrefixPosition : <<create>>
+ArgumentTokenizer ..> Prefix : <<create>>
+PrefixPosition --> Prefix
+ArgumentMultimap --> "0..*" Prefix
+
+' Command inheritance hierarchy.
+AddCommand -up-|> Command
+EditCommand -up-|> Command
+DeleteCommand -up-|> Command
+FindCommand -up-|> Command
+PinCommand -up-|> Command
+UnpinCommand -up-|> Command
+PrivacyCommand -up-|> Command
+TagCommand -up-|> Command
+UntagCommand -up-|> Command
+ClearCommand -up-|> Command
+ListCommand -up-|> Command
+TimetableCommand -up-|> Command
+ExitCommand -up-|> Command
+HelpCommand -up-|> Command
+ClassCommand -up-|> Command
+ClassAddCommand -up-|> ClassCommand
+ClassEditCommand -up-|> ClassCommand
+ClassDeleteCommand -up-|> ClassCommand
+ClassListCommand -up-|> ClassCommand
+ClassEnrolCommand -up-|> ClassCommand
+ClassUnenrolCommand -up-|> ClassCommand
+ClassPaymentCommand -up-|> ClassCommand
+
 @enduml

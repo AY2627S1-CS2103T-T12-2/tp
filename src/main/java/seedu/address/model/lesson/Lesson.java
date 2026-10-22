@@ -89,12 +89,13 @@ public class Lesson {
     /** Returns a copy linked to the supplied central class while retaining payment status. */
     public Lesson withTuitionClass(TuitionClass tuitionClass) {
         requireAllNonNull(tuitionClass);
-        return new Enrollment(tuitionClass, paymentStatus);
+        return new Lesson(tuitionClass.getClassId(), tuitionClass.getSubject(), cost,
+                tuitionClass.getSchedule(), paymentStatus, tuitionClass.getDetails());
     }
 
     /**
-     * Returns true if both lessons represent the same class. Cost is excluded because every student
-     * in the same class must share one cost.
+     * Returns true if both lessons represent the same class. Cost is excluded because each student's
+     * agreed rate is specific to their enrolment and does not define the shared class.
      */
     public boolean isSameClass(Lesson otherLesson) {
         if (otherLesson == this) {

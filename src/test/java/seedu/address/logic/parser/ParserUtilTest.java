@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.lesson.ClassId;
 import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
@@ -240,6 +241,7 @@ public class ParserUtilTest {
                 ParserUtil.parseLessonStart("  Monday1800  "));
         assertEquals(PaymentStatus.PAID, ParserUtil.parsePaymentStatus("  paid  "));
         assertEquals(PaymentStatus.UNPAID, ParserUtil.parsePaymentStatus("UNPAID"));
+        assertEquals(new ClassId("C001"), ParserUtil.parseClassId("  c1  "));
     }
 
     @Test
@@ -251,5 +253,11 @@ public class ParserUtilTest {
         assertThrows(ParseException.class, () -> ParserUtil.parseLessonSchedule("2026-02-29T1800-1930"));
         assertThrows(ParseException.class, () -> ParserUtil.parseLessonStart("Monday2400"));
         assertThrows(ParseException.class, () -> ParserUtil.parsePaymentStatus("pending"));
+        assertThrows(ParseException.class, () -> ParserUtil.parseClassId("C000"));
+    }
+
+    @Test
+    public void parseClassId_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseClassId(null));
     }
 }

@@ -1,8 +1,10 @@
 package seedu.address.testutil;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
+import seedu.address.model.lesson.Enrollment;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
@@ -10,6 +12,7 @@ import seedu.address.model.person.GuardianContact;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.StudentId;
 import seedu.address.model.tag.Tag;
 import seedu.address.model.util.SampleDataUtil;
 
@@ -24,24 +27,28 @@ public class PersonBuilder {
     public static final String DEFAULT_ADDRESS = "123, Jurong West Ave 6, #08-111";
 
     private GuardianContact guardianContact = GuardianContact.EMPTY;
+    private StudentId studentId;
     private Name name;
     private Phone phone;
     private Email email;
     private Address address;
     private Set<Tag> tags;
     private Set<Lesson> lessons;
+    private Set<Enrollment> enrollments;
     private boolean pinned;
 
     /**
      * Creates a {@code PersonBuilder} with the default details.
      */
     public PersonBuilder() {
+        studentId = StudentId.generate();
         name = new Name(DEFAULT_NAME);
         phone = new Phone(DEFAULT_PHONE);
         email = new Email(DEFAULT_EMAIL);
         address = new Address(DEFAULT_ADDRESS);
         tags = new HashSet<>();
         lessons = new HashSet<>();
+        enrollments = new HashSet<>();
         pinned = false;
     }
 
@@ -49,13 +56,15 @@ public class PersonBuilder {
      * Initializes the PersonBuilder with the data of {@code personToCopy}.
      */
     public PersonBuilder(Person personToCopy) {
+        studentId = personToCopy.getStudentId();
         guardianContact = personToCopy.getGuardianContact();
         name = personToCopy.getName();
         phone = personToCopy.getPhone();
         email = personToCopy.getEmail();
         address = personToCopy.getAddress();
         tags = new HashSet<>(personToCopy.getTags());
-        lessons = new HashSet<>(personToCopy.getLessons());
+        lessons = new HashSet<>(personToCopy.getLegacyLessons());
+        enrollments = new HashSet<>(personToCopy.getEnrollments());
         pinned = personToCopy.isPinned();
     }
 
@@ -64,6 +73,12 @@ public class PersonBuilder {
      */
     public PersonBuilder withName(String name) {
         this.name = new Name(name);
+        return this;
+    }
+
+    /** Sets the stable student ID of the {@code Person} being built. */
+    public PersonBuilder withStudentId(StudentId studentId) {
+        this.studentId = studentId;
         return this;
     }
 
@@ -102,6 +117,14 @@ public class PersonBuilder {
     /** Sets the person's lessons. */
     public PersonBuilder withLessons(Lesson ... lessons) {
         this.lessons = new HashSet<>(java.util.Arrays.asList(lessons));
+        enrollments.clear();
+        return this;
+    }
+
+    /** Sets the person's canonical enrollment associations. */
+    public PersonBuilder withEnrollments(Enrollment ... enrollments) {
+        this.enrollments = new HashSet<>(java.util.Arrays.asList(enrollments));
+        lessons.clear();
         return this;
     }
 
@@ -117,8 +140,10 @@ public class PersonBuilder {
         return this;
     }
 
+    /** Builds the person with its stable ID, legacy lessons, and canonical associations. */
     public Person build() {
-        return new Person(name, phone, email, address, tags, lessons, pinned).withGuardianContact(guardianContact);
+        return new Person(studentId, name, phone, email, address, tags, lessons, enrollments,
+                Set.of(), Optional.empty(), Optional.empty(), guardianContact, pinned);
     }
 
 }

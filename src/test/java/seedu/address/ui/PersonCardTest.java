@@ -83,6 +83,8 @@ public class PersonCardTest {
                     getClassGroups(card).stream().map(PersonCardTest::getClassDetails).toList());
             assertEquals(List.of("Unpaid", "Paid"),
                     getClassGroups(card).stream().map(PersonCardTest::getPaymentStatus).toList());
+            assertEquals(List.of("Offline", "Offline"),
+                    getClassGroups(card).stream().map(PersonCardTest::getClassMode).toList());
             assertTrue(getClassPane(card).isVisible());
             assertTrue(getClassPane(card).isManaged());
             assertTrue(getClassPane(card).getParent() instanceof VBox);
@@ -95,6 +97,7 @@ public class PersonCardTest {
                 assertEquals(5, group.getSpacing());
                 assertTrue(getClassBadge(group).getStyleClass().contains("enrolled-class-badge"));
                 assertTrue(getColorStyleClass(group).startsWith(ClassColorPalette.STYLE_CLASS_PREFIX));
+                assertTrue(getModeLabel(group).getStyleClass().contains("class-mode-offline"));
             });
             assertTrue(getPaymentLabel(getClassGroups(card).get(0)).getStyleClass()
                     .contains("payment-status-unpaid"));
@@ -248,13 +251,18 @@ public class PersonCardTest {
                     .withLessons(lesson("Math", "30", "Monday1800-1930").withDetails(details)).build();
             PersonCard card = new PersonCard(person, 1);
             assertLabel(card, "guardian", "Guardian: Mary Tan | 98765432 | mary@example.com", true);
-            VBox detailsPane = (VBox) card.getRoot().lookup("#classDetails");
-            assertEquals(1, detailsPane.getChildren().size());
-            Label label = (Label) detailsPane.getChildren().getFirst();
-            assertEquals("Math · Mon 18:00–19:30\n" + details, label.getText());
+            VBox classItem = getClassItems(card).getFirst();
+            assertEquals(2, classItem.getChildren().size());
+            HBox classGroup = (HBox) classItem.getChildren().getFirst();
+            assertEquals("Online", getClassMode(classGroup));
+            assertTrue(getModeLabel(classGroup).getStyleClass().contains("class-mode-online"));
+            Label label = (Label) classItem.getChildren().get(1);
+            assertEquals("Link: https://example.com/math | Location: Room 2 | Notes: Bring calculator",
+                    label.getText());
             assertTrue(label.isWrapText());
-            assertTrue(detailsPane.isVisible());
-            assertTrue(detailsPane.isManaged());
+            assertTrue(label.getStyleClass().contains("enrolled-class-details"));
+            assertFalse(label.getText().contains("Math · Mon 18:00–19:30"));
+            assertFalse(label.getText().contains("Mode:"));
         });
     }
 
@@ -280,9 +288,7 @@ public class PersonCardTest {
         runOnFxThread(() -> {
             PersonCard card = new PersonCard(new PersonBuilder().build(), 1);
             assertLabel(card, "guardian", "", false);
-            VBox detailsPane = (VBox) card.getRoot().lookup("#classDetails");
-            assertFalse(detailsPane.isVisible());
-            assertFalse(detailsPane.isManaged());
+            assertTrue(getClassItems(card).isEmpty());
         });
     }
 
@@ -310,8 +316,13 @@ public class PersonCardTest {
         return email;
     }
 
+    private static List<VBox> getClassItems(PersonCard card) {
+        return getClassPane(card).getChildren().stream().map(node -> (VBox) node).toList();
+    }
+
     private static List<HBox> getClassGroups(PersonCard card) {
-        return getClassPane(card).getChildren().stream().map(node -> (HBox) node).toList();
+        return getClassItems(card).stream()
+                .map(item -> (HBox) item.getChildren().getFirst()).toList();
     }
 
     private static String getClassDetails(HBox classGroup) {
@@ -333,8 +344,16 @@ public class PersonCardTest {
         return getPaymentLabel(classGroup).getText();
     }
 
-    private static Label getPaymentLabel(HBox classGroup) {
+    private static String getClassMode(HBox classGroup) {
+        return getModeLabel(classGroup).getText();
+    }
+
+    private static Label getModeLabel(HBox classGroup) {
         return (Label) classGroup.getChildren().get(1);
+    }
+
+    private static Label getPaymentLabel(HBox classGroup) {
+        return (Label) classGroup.getChildren().get(2);
     }
 
     private static void assertLabel(PersonCard card, String id, String text, boolean shown) {

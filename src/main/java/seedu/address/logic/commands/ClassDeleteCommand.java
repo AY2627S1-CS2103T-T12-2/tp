@@ -54,8 +54,8 @@ public class ClassDeleteCommand extends ClassCommand {
         }
 
         int affectedStudents = (int) model.getAddressBook().getPersonList().stream()
-                .filter(person -> person.getLessons().stream()
-                        .anyMatch(lesson -> target.getClassId().equals(lesson.getClassId())))
+                .filter(person -> person.getEnrollments().stream()
+                        .anyMatch(enrollment -> target.getClassId().equals(enrollment.getClassId())))
                 .count();
         model.deleteTuitionClass(target);
         String studentLabel = affectedStudents == 1 ? "student" : "students";

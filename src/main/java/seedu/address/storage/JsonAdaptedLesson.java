@@ -8,6 +8,8 @@ import seedu.address.model.lesson.ClassDetails;
 import seedu.address.model.lesson.ClassId;
 import seedu.address.model.lesson.ClassMode;
 import seedu.address.model.lesson.Cost;
+import seedu.address.model.lesson.Enrollment;
+import seedu.address.model.lesson.EnrollmentId;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonSchedule;
 import seedu.address.model.lesson.LessonTiming;
@@ -15,6 +17,7 @@ import seedu.address.model.lesson.OneOffLessonSchedule;
 import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.lesson.ScheduleType;
 import seedu.address.model.lesson.Subject;
+import seedu.address.model.person.StudentId;
 
 /** Jackson-friendly version of {@link Lesson}. */
 class JsonAdaptedLesson {
@@ -22,6 +25,8 @@ class JsonAdaptedLesson {
     public static final String MISSING_FIELD_MESSAGE_FORMAT = "Lesson's %s field is missing!";
 
     private final String scheduleType;
+    private final String enrollmentId;
+    private final String studentId;
     private final String classId;
     private final String subject;
     private final String cost;
@@ -39,8 +44,12 @@ class JsonAdaptedLesson {
             @JsonProperty("meetingLink") String meetingLink,
             @JsonProperty("location") String location, @JsonProperty("notes") String notes,
             @JsonProperty("mode") String mode, @JsonProperty("classId") String classId,
-            @JsonProperty("scheduleType") String scheduleType, @JsonProperty("schedule") String savedSchedule) {
+            @JsonProperty("scheduleType") String scheduleType, @JsonProperty("schedule") String savedSchedule,
+            @JsonProperty("enrollmentId") String enrollmentId,
+            @JsonProperty("studentId") String studentId) {
         this.scheduleType = scheduleType;
+        this.enrollmentId = enrollmentId;
+        this.studentId = studentId;
         this.classId = classId;
         this.mode = mode;
         this.meetingLink = meetingLink;
@@ -50,6 +59,14 @@ class JsonAdaptedLesson {
         this.cost = cost;
         this.timing = timing == null ? savedSchedule : timing;
         this.paymentStatus = paymentStatus;
+    }
+
+    /** Retains the pre-association JSON constructor. */
+    public JsonAdaptedLesson(String subject, String cost, String timing, String paymentStatus,
+            String meetingLink, String location, String notes, String mode, String classId,
+            String scheduleType, String savedSchedule) {
+        this(subject, cost, timing, paymentStatus, meetingLink, location, notes, mode, classId,
+                scheduleType, savedSchedule, null, null);
     }
 
     /** Retains the canonical timing-based constructor. */
@@ -98,6 +115,8 @@ class JsonAdaptedLesson {
     }
 
     public JsonAdaptedLesson(Lesson source) {
+        enrollmentId = null;
+        studentId = null;
         scheduleType = source.getSchedule().getType().name();
         classId = source.getClassId() == null ? null : source.getClassId().toString();
         subject = source.getSubject().value;
@@ -108,6 +127,26 @@ class JsonAdaptedLesson {
         mode = source.getDetails().mode().name();
         location = source.getDetails().location();
         notes = source.getDetails().notes();
+    }
+
+    /** Converts a canonical enrolment association into its compact storage representation. */
+    public JsonAdaptedLesson(Enrollment source) {
+        enrollmentId = source.getEnrollmentId().toString();
+        studentId = source.getStudentId().toString();
+        classId = source.getClassId().toString();
+        cost = source.getAgreedRate().toString();
+        paymentStatus = source.getPaymentStatus().name();
+        scheduleType = null;
+        subject = null;
+        timing = null;
+        meetingLink = null;
+        mode = null;
+        location = null;
+        notes = null;
+    }
+
+    boolean isAssociationRecord() {
+        return enrollmentId != null || studentId != null;
     }
 
     /** Returns whether this record explicitly stores additional class fields. */
@@ -147,6 +186,32 @@ class JsonAdaptedLesson {
         } catch (IllegalArgumentException e) {
             throw new IllegalValueException(e.getMessage());
         }
+    }
+
+    /** Converts a compact association record without resolving its referenced class. */
+    public Enrollment toEnrollmentModelType() throws IllegalValueException {
+        requireField(enrollmentId, EnrollmentId.class);
+        requireField(studentId, StudentId.class);
+        requireField(classId, ClassId.class);
+        requireField(cost, Cost.class);
+        requireField(paymentStatus, PaymentStatus.class);
+        if (!EnrollmentId.isValidEnrollmentId(enrollmentId)) {
+            throw new IllegalValueException(EnrollmentId.MESSAGE_CONSTRAINTS);
+        }
+        if (!StudentId.isValidStudentId(studentId)) {
+            throw new IllegalValueException(StudentId.MESSAGE_CONSTRAINTS);
+        }
+        if (!ClassId.isValidClassId(classId)) {
+            throw new IllegalValueException(ClassId.MESSAGE_CONSTRAINTS);
+        }
+        if (!Cost.isValidCost(cost)) {
+            throw new IllegalValueException(Cost.MESSAGE_CONSTRAINTS);
+        }
+        if (!PaymentStatus.isValidPaymentStatus(paymentStatus)) {
+            throw new IllegalValueException(PaymentStatus.MESSAGE_CONSTRAINTS);
+        }
+        return new Enrollment(new EnrollmentId(enrollmentId), new StudentId(studentId),
+                new ClassId(classId), new Cost(cost), PaymentStatus.fromString(paymentStatus));
     }
 
     private LessonSchedule parseSchedule() throws IllegalValueException {

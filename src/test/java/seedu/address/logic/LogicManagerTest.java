@@ -26,6 +26,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.CommandResult;
@@ -183,8 +184,34 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_classListMode_onlyReadOnlyNavigationCommandsAllowed() throws Exception {
+        CommandResult classListResult = logic.execute("class list");
+        assertEquals(CommandResult.ViewChange.CLASS_LIST, classListResult.getViewChange());
+
+        assertCommandException("clear", "Class list is read-only. Use \"list\" to return to the student view. "
+                + "Only list, timetable, class list, privacy, help, and exit are available.");
+        assertEquals(HelpCommand.SHOWING_HELP_MESSAGE,
+                logic.execute(HelpCommand.COMMAND_WORD).getFeedbackToUser());
+        assertEquals(ExitCommand.MESSAGE_EXIT_ACKNOWLEDGEMENT,
+                logic.execute(ExitCommand.COMMAND_WORD).getFeedbackToUser());
+        assertEquals(CommandResult.ViewChange.CLASS_LIST, logic.execute("class list").getViewChange());
+        assertEquals(CommandResult.ViewChange.TIMETABLE, logic.execute("timetable").getViewChange());
+        assertEquals(CommandResult.ViewChange.PERSON_LIST, logic.execute("list").getViewChange());
+    }
+
+    @Test
+    public void accessors_delegateToModel() {
+        GuiSettings settings = new GuiSettings(800, 600, 10, 20);
+        logic.setGuiSettings(settings);
+
+        assertEquals(settings, logic.getGuiSettings());
+        assertEquals(model.getTuitionClassList(), logic.getTuitionClassList());
+    }
+
+    @Test
     public void getCurrentDate_fixedClock_returnsClockDate() {
-        Clock thursdayClock = Clock.fixed(Instant.parse("2026-10-08T04:00:00Z"), ZoneOffset.UTC);
+        Clock thursdayClock = Clock.fixed(
+                Instant.parse("2026-10-08T04:00:00Z"), ZoneOffset.UTC);
         logic = new LogicManager(model, storage, thursdayClock);
 
         assertEquals(LocalDate.of(2026, 10, 8), logic.getCurrentDate());
@@ -195,10 +222,12 @@ public class LogicManagerTest {
         Lesson fridayLesson = new Lesson(new Subject("Math"), new Cost("30"),
                 new LessonTiming("Friday1800-1930"));
         model.addPerson(new PersonBuilder().withLessons(fridayLesson).build());
-        Clock thursdayClock = Clock.fixed(Instant.parse("2026-10-08T04:00:00Z"), ZoneOffset.UTC);
+        Clock thursdayClock = Clock.fixed(
+                Instant.parse("2026-10-08T04:00:00Z"), ZoneOffset.UTC);
         logic = new LogicManager(model, storage, thursdayClock);
 
-        List<TimetableDay> timetable = logic.getTimetable(LocalDate.of(2026, 10, 15));
+        List<TimetableDay> timetable =
+                logic.getTimetable(LocalDate.of(2026, 10, 15));
 
         assertEquals(LocalDate.of(2026, 10, 11), timetable.get(0).getDate());
         assertEquals(1, timetable.get(5).getEntries().size());
