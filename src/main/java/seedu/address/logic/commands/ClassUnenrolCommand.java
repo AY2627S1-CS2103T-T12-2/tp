@@ -3,7 +3,7 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS_ID;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -12,7 +12,7 @@ import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.lesson.ClassId;
-import seedu.address.model.lesson.Lesson;
+import seedu.address.model.lesson.Enrollment;
 import seedu.address.model.lesson.LessonSchedule;
 import seedu.address.model.lesson.Subject;
 import seedu.address.model.person.Person;
@@ -60,14 +60,16 @@ public class ClassUnenrolCommand extends ClassCommand {
         }
 
         Person person = persons.get(personIndex.getZeroBased());
-        Set<Lesson> updatedLessons = new HashSet<>(person.getLessons());
-        boolean wasRemoved = updatedLessons.removeIf(lesson -> classId != null
-                ? classId.equals(lesson.getClassId()) : lesson.isSameClass(subject, schedule));
+        Set<Enrollment> updatedEnrollments = new LinkedHashSet<>(person.getEnrollments());
+        boolean wasRemoved = updatedEnrollments.removeIf(enrollment -> classId != null
+                ? classId.equals(enrollment.getClassId())
+                : enrollment.getTuitionClass().getSubject().equals(subject)
+                        && enrollment.getTuitionClass().getSchedule().equals(schedule));
         if (!wasRemoved) {
             throw new CommandException(MESSAGE_NOT_ENROLLED);
         }
 
-        model.setPerson(person, person.withLessons(updatedLessons));
+        model.setPerson(person, person.withEnrollments(updatedEnrollments));
         String message = classId != null
                 ? String.format(MESSAGE_SUCCESS_BY_ID, person.getName(), classId)
                 : String.format(MESSAGE_SUCCESS, person.getName(), subject, schedule);

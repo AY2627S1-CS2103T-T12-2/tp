@@ -11,6 +11,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import seedu.address.commons.exceptions.IllegalValueException;
+import seedu.address.model.lesson.Enrollment;
+import seedu.address.model.lesson.EnrollmentId;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
@@ -18,6 +20,7 @@ import seedu.address.model.person.GuardianContact;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.StudentId;
 import seedu.address.model.person.Subject;
 import seedu.address.model.tag.Tag;
 
@@ -27,6 +30,8 @@ import seedu.address.model.tag.Tag;
 class JsonAdaptedPerson {
 
     public static final String MISSING_FIELD_MESSAGE_FORMAT = "Person's %s field is missing!";
+    public static final String MESSAGE_DUPLICATE_ENROLLMENT_ID =
+            "Person's enrollments contain duplicate enrollment IDs.";
 
     private final String name;
     private final String phone;
@@ -41,6 +46,7 @@ class JsonAdaptedPerson {
     private final String guardianName;
     private final String guardianPhone;
     private final String guardianEmail;
+    private final String studentId;
 
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details.
@@ -55,8 +61,10 @@ class JsonAdaptedPerson {
             @JsonProperty("lesson") String lesson,
             @JsonProperty("guardianName") String guardianName,
             @JsonProperty("guardianPhone") String guardianPhone,
-            @JsonProperty("guardianEmail") String guardianEmail, @JsonProperty("pinned") Boolean pinned) {
+            @JsonProperty("guardianEmail") String guardianEmail, @JsonProperty("pinned") Boolean pinned,
+            @JsonProperty("studentId") String studentId) {
         this.pinned = Boolean.TRUE.equals(pinned);
+        this.studentId = studentId;
         this.guardianName = guardianName;
         this.guardianPhone = guardianPhone;
         this.guardianEmail = guardianEmail;
@@ -75,6 +83,15 @@ class JsonAdaptedPerson {
         if (subjects != null) {
             this.subjects.addAll(subjects);
         }
+    }
+
+    /** Retains the constructor used before stable student IDs were persisted. */
+    public JsonAdaptedPerson(String name, String phone, String email, String address,
+            List<JsonAdaptedTag> tags, List<JsonAdaptedLesson> lessons, List<String> subjects,
+            String cost, String lesson, String guardianName, String guardianPhone,
+            String guardianEmail, Boolean pinned) {
+        this(name, phone, email, address, tags, lessons, subjects, cost, lesson,
+                guardianName, guardianPhone, guardianEmail, pinned, null);
     }
 
     /** Retains the guardian-only constructor. */
@@ -112,6 +129,7 @@ class JsonAdaptedPerson {
      * Converts a given {@code Person} into this class for Jackson use.
      */
     public JsonAdaptedPerson(Person source) {
+        studentId = source.getStudentId().toString();
         pinned = source.isPinned();
         guardianName = source.getGuardianContact().name();
         guardianPhone = source.getGuardianContact().phone();
@@ -123,7 +141,10 @@ class JsonAdaptedPerson {
         tags.addAll(source.getTags().stream()
                 .map(JsonAdaptedTag::new)
                 .collect(Collectors.toList()));
-        lessons.addAll(source.getLessons().stream().map(JsonAdaptedLesson::new).collect(Collectors.toList()));
+        lessons.addAll(source.getEnrollments().stream()
+                .map(JsonAdaptedLesson::new).collect(Collectors.toList()));
+        lessons.addAll(source.getLegacyLessons().stream()
+                .map(JsonAdaptedLesson::new).collect(Collectors.toList()));
         subjects.addAll(source.getSubjects().stream().map(Subject::toString).sorted().toList());
         cost = source.getCost().map(Object::toString).orElse(null);
         lesson = source.getLesson().map(Object::toString).orElse(null);
@@ -132,7 +153,8 @@ class JsonAdaptedPerson {
     /** Distinguishes old enrolments without class fields from explicitly supplied empty fields. */
     boolean hasExplicitClassDetails(Lesson lesson) throws IllegalValueException {
         for (JsonAdaptedLesson adapted : lessons) {
-            if (adapted.hasExplicitDetails() && adapted.toModelType().equals(lesson)) {
+            if (!adapted.isAssociationRecord()
+                    && adapted.hasExplicitDetails() && adapted.toModelType().equals(lesson)) {
                 return true;
             }
         }
@@ -186,9 +208,30 @@ class JsonAdaptedPerson {
         if (modelTags.size() != personTags.size()) {
             throw new IllegalValueException(Tag.MESSAGE_DUPLICATE_TAGS);
         }
+        final StudentId modelStudentId;
+        if (studentId == null) {
+            modelStudentId = StudentId.generate();
+        } else if (!StudentId.isValidStudentId(studentId)) {
+            throw new IllegalValueException(StudentId.MESSAGE_CONSTRAINTS);
+        } else {
+            modelStudentId = new StudentId(studentId);
+        }
         final Set<Lesson> modelLessons = new LinkedHashSet<>();
-        for (JsonAdaptedLesson lesson : lessons) {
-            modelLessons.add(lesson.toModelType());
+        final Set<Enrollment> modelEnrollments = new LinkedHashSet<>();
+        final Set<EnrollmentId> enrollmentIds = new LinkedHashSet<>();
+        for (JsonAdaptedLesson adaptedLesson : lessons) {
+            if (adaptedLesson.isAssociationRecord()) {
+                Enrollment enrollment = adaptedLesson.toEnrollmentModelType();
+                if (!modelStudentId.equals(enrollment.getStudentId())) {
+                    throw new IllegalValueException("Enrollment refers to a different student.");
+                }
+                if (!enrollmentIds.add(enrollment.getEnrollmentId())) {
+                    throw new IllegalValueException(MESSAGE_DUPLICATE_ENROLLMENT_ID);
+                }
+                modelEnrollments.add(enrollment);
+            } else {
+                modelLessons.add(adaptedLesson.toModelType());
+            }
         }
 
         final Set<Subject> modelSubjects = new LinkedHashSet<>();
@@ -209,7 +252,8 @@ class JsonAdaptedPerson {
         Optional<seedu.address.model.person.Lesson> modelLesson = Optional.ofNullable(lesson)
                 .map(seedu.address.model.person.Lesson::new);
 
-        if (modelLessons.isEmpty() && !modelSubjects.isEmpty() && modelCost.isPresent() && modelLesson.isPresent()) {
+        if (modelLessons.isEmpty() && modelEnrollments.isEmpty()
+                && !modelSubjects.isEmpty() && modelCost.isPresent() && modelLesson.isPresent()) {
             Person migrated = new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags,
                     modelSubjects, modelCost, modelLesson);
             modelLessons.addAll(migrated.getLessons());
@@ -217,8 +261,9 @@ class JsonAdaptedPerson {
         try {
             GuardianContact guardian = new GuardianContact(guardianName == null ? "" : guardianName,
                     guardianPhone == null ? "" : guardianPhone, guardianEmail == null ? "" : guardianEmail);
-            return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags, modelLessons,
-                    modelSubjects, modelCost, modelLesson, guardian, pinned);
+            return new Person(modelStudentId, modelName, modelPhone, modelEmail, modelAddress,
+                    modelTags, modelLessons, modelEnrollments, modelSubjects, modelCost,
+                    modelLesson, guardian, pinned);
         } catch (IllegalArgumentException e) {
             throw new IllegalValueException(e.getMessage());
         }

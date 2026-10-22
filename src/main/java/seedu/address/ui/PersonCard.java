@@ -34,6 +34,7 @@ public class PersonCard extends UiPart<Region> {
     private static final String FXML = "PersonListCard.fxml";
     private static final String ENROLLED_CLASS_GROUP_STYLE_CLASS = "enrolled-class-group";
     private static final String ENROLLED_CLASS_BADGE_STYLE_CLASS = "enrolled-class-badge";
+    private static final String CLASS_MODE_STYLE_CLASS = "class-mode";
     private static final String PAYMENT_STATUS_STYLE_CLASS = "payment-status";
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("d MMM uuuu", Locale.ENGLISH);
@@ -64,8 +65,6 @@ public class PersonCard extends UiPart<Region> {
     private FlowPane tags;
     @FXML
     private Label guardian;
-    @FXML
-    private VBox classDetails;
     @FXML
     private VBox classes;
     @FXML
@@ -125,17 +124,8 @@ public class PersonCard extends UiPart<Region> {
 
         person.getLessons().stream()
                 .sorted(LESSON_COMPARATOR)
-                .map(enrolledClass -> createClassGroup(enrolledClass, classColorPalette))
+                .map(enrolledClass -> createClassItem(enrolledClass, classColorPalette))
                 .forEach(classes.getChildren()::add);
-        person.getLessons().stream().sorted(LESSON_COMPARATOR)
-                .forEach(enrolledClass -> {
-                    Label details = new Label(formatClassBadge(enrolledClass) + "\n" + enrolledClass.getDetails());
-                    details.setWrapText(true);
-                    details.getStyleClass().add("cell_small_label");
-                    classDetails.getChildren().add(details);
-                });
-        classDetails.setVisible(!classDetails.getChildren().isEmpty());
-        classDetails.setManaged(classDetails.isVisible());
         boolean hasEnrolledClasses = !classes.getChildren().isEmpty();
         classes.setVisible(hasEnrolledClasses);
         classes.setManaged(hasEnrolledClasses);
@@ -168,18 +158,44 @@ public class PersonCard extends UiPart<Region> {
         label.textProperty().bind(Bindings.when(privacyModeEnabled).then(maskedValue).otherwise(value));
     }
 
-    private static HBox createClassGroup(Lesson enrolledClass, ClassColorPalette classColorPalette) {
+    private static VBox createClassItem(Lesson enrolledClass, ClassColorPalette classColorPalette) {
+        VBox classItem = new VBox(2);
+        classItem.getStyleClass().add("enrolled-class-item");
         HBox classGroup = new HBox(5);
         classGroup.setAlignment(Pos.CENTER_LEFT);
         classGroup.getStyleClass().add(ENROLLED_CLASS_GROUP_STYLE_CLASS);
         Label classBadge = new Label(formatClassBadge(enrolledClass));
         classBadge.getStyleClass().addAll(ENROLLED_CLASS_BADGE_STYLE_CLASS,
                 classColorPalette.getStyleClass(enrolledClass));
+        Label classMode = new Label(enrolledClass.getDetails().mode().toDisplayString());
+        classMode.getStyleClass().addAll(CLASS_MODE_STYLE_CLASS,
+                CLASS_MODE_STYLE_CLASS + "-" + enrolledClass.getDetails().mode().name().toLowerCase(Locale.ROOT));
         Label paymentStatus = new Label(enrolledClass.getPaymentStatus().toDisplayString());
         paymentStatus.getStyleClass().addAll(PAYMENT_STATUS_STYLE_CLASS,
                 PAYMENT_STATUS_STYLE_CLASS + "-" + enrolledClass.getPaymentStatus().toString());
-        classGroup.getChildren().addAll(classBadge, paymentStatus);
-        return classGroup;
+        classGroup.getChildren().addAll(classBadge, classMode, paymentStatus);
+        classItem.getChildren().add(classGroup);
+
+        String supplementaryDetails = formatSupplementaryDetails(enrolledClass);
+        if (!supplementaryDetails.isEmpty()) {
+            Label details = new Label(supplementaryDetails);
+            details.setWrapText(true);
+            details.getStyleClass().addAll("cell_small_label", "enrolled-class-details");
+            classItem.getChildren().add(details);
+        }
+        return classItem;
+    }
+
+    private static String formatSupplementaryDetails(Lesson enrolledClass) {
+        return java.util.stream.Stream.of(
+                        enrolledClass.getDetails().meetingLink().isEmpty()
+                                ? "" : "Link: " + enrolledClass.getDetails().meetingLink(),
+                        enrolledClass.getDetails().location().isEmpty()
+                                ? "" : "Location: " + enrolledClass.getDetails().location(),
+                        enrolledClass.getDetails().notes().isEmpty()
+                                ? "" : "Notes: " + enrolledClass.getDetails().notes())
+                .filter(value -> !value.isEmpty())
+                .collect(Collectors.joining(" | "));
     }
 
     static String formatClassBadge(Lesson enrolledClass) {

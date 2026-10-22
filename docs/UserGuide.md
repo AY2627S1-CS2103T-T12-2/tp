@@ -130,7 +130,8 @@ omitted fields inherit the class catalogue's values even when the class has no e
 If the catalogue class has no students and no extra details, the first contact may fill its mode,
 link, location, and notes. For classes already in use, explicit values must agree with the shared values.
 Existing classmates, guardian contacts, and payment statuses are not changed by adding a contact.
-Mode and details appear on student cards and timetable entries and are saved with the enrolments.
+Mode and details appear on student cards and timetable entries and are saved once in the shared class catalogue.
+Each student's enrolment stores only its class reference, agreed rate, and payment status.
 Older saved classes without a mode default to offline, or online if they already contain a link.
 
 The new field-entry scope is `add` only. `edit` and `class enrol` retain their existing syntax;
@@ -165,8 +166,9 @@ open the timetable.
 
 ### Editing a class: `class edit`
 
-Updates a class while retaining its stable ID and enrolments. Supply at least one field to change. Payment statuses are
-preserved, and the new details appear for every enrolled student.
+Updates a class while retaining its stable ID and enrolments. Supply at least one field to change. Payment statuses and
+existing students' agreed rates are preserved, and the new shared details appear for every enrolled student. Changing
+`cost/` changes the default rate offered to future enrolments; it does not rewrite existing agreed rates.
 
 Format: `class edit id/CLASS_ID [sub/SUBJECT] [cost/COST] [c/SCHEDULE]`
 
@@ -198,9 +200,10 @@ The existing single-student format that supplies the class cost is also supporte
 
 `class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/SCHEDULE`
 
-The same class can be assigned to multiple students, but its cost must be consistent. A student cannot be enrolled in
-the same class more than once. For subject-and-timing batch enrolment, TutEasy obtains the cost from its independently
-stored class collection. This also supports classes that currently have no enrolled students.
+The same class can be assigned to multiple students, and each enrolment keeps its own agreed rate. A student cannot be
+enrolled in the same class more than once. The single-student format records the supplied `cost/` as that student's
+agreed rate. For ID-based and subject-and-timing enrolment, TutEasy uses the class catalogue's current default rate.
+This also supports classes that currently have no enrolled students.
 
 Batch enrolment validates every index and the target class before changing any student. Repeated or invalid indexes
 and a missing class cause the command to fail without changing any student. Selected students who are already enrolled
@@ -212,7 +215,7 @@ Enrolled classes appear as coloured badges below each student's email. Each badg
 timing, and students enrolled in the same class receive a badge with the same colour. When a student has multiple
 classes, each badge group appears on its own row.
 
-A subdued balance badge beside each student's name shows the total cost of that student's unpaid lesson enrolments.
+A subdued balance badge beside each student's name shows the total agreed rates of that student's unpaid enrolments.
 Paid enrolments are excluded. The badge remains visible as `Balance: 0` when the student has no unpaid enrolments.
 
 ### Unenrolling a student from a class: `class unenrol`

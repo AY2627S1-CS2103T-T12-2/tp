@@ -118,8 +118,7 @@ public class ModelManager implements Model {
     @Override
     public void setPerson(Person target, Person editedPerson) {
         requireAllNonNull(target, editedPerson);
-
-        addressBook.setPerson(target, editedPerson);
+        addressBook.setPerson(target, linkLessonsToClasses(editedPerson));
     }
 
     @Override
@@ -137,17 +136,31 @@ public class ModelManager implements Model {
             if (targetIndex == -1) {
                 throw new PersonNotFoundException();
             }
-            updatedPersons.set(targetIndex, replacement.getValue());
+            updatedPersons.set(targetIndex, linkLessonsToClasses(replacement.getValue()));
         }
         addressBook.setPersons(updatedPersons);
     }
 
     private Person linkLessonsToClasses(Person person) {
-        java.util.Set<Lesson> linkedLessons = new java.util.LinkedHashSet<>();
-        for (Lesson lesson : person.getLessons()) {
+        requireNonNull(person);
+        java.util.Set<Enrollment> linkedEnrollments = new java.util.LinkedHashSet<>();
+        for (Enrollment enrollment : person.getEnrollments()) {
+            if (!addressBook.hasTuitionClass(enrollment.getClassId())) {
+                throw new IllegalArgumentException("Enrollment refers to a class that does not exist: "
+                        + enrollment.getClassId());
+            }
+            linkedEnrollments.add(enrollment.resolveWith(addressBook.getTuitionClass(enrollment.getClassId())));
+        }
+        for (Lesson lesson : person.getLegacyLessons()) {
             TuitionClass tuitionClass;
-            if (lesson.getClassId() != null && addressBook.hasTuitionClass(lesson.getClassId())) {
-                tuitionClass = addressBook.getTuitionClass(lesson.getClassId());
+            if (lesson.getClassId() != null) {
+                if (addressBook.hasTuitionClass(lesson.getClassId())) {
+                    tuitionClass = addressBook.getTuitionClass(lesson.getClassId());
+                } else {
+                    tuitionClass = new TuitionClass(lesson.getClassId(), lesson.getSubject(),
+                            lesson.getCost(), lesson.getSchedule(), lesson.getDetails());
+                    addressBook.addTuitionClass(tuitionClass);
+                }
             } else {
                 tuitionClass = addressBook.getTuitionClassList().stream()
                         .filter(item -> item.getSubject().value.equalsIgnoreCase(lesson.getSubject().value)
@@ -159,14 +172,11 @@ public class ModelManager implements Model {
                             return created;
                         });
             }
-            if (!tuitionClass.getCost().equals(lesson.getCost())) {
-                throw new IllegalArgumentException("Students in the same class have different costs.");
-            }
             if (!lesson.getDetails().equals(ClassDetails.EMPTY)
                     && !tuitionClass.getDetails().equals(lesson.getDetails())) {
                 TuitionClass selected = tuitionClass;
                 boolean hasStudents = addressBook.getPersonList().stream()
-                        .flatMap(student -> student.getLessons().stream())
+                        .flatMap(student -> student.getEnrollments().stream())
                         .anyMatch(item -> selected.getClassId().equals(item.getClassId()));
                 if (tuitionClass.getDetails().equals(ClassDetails.EMPTY) && !hasStudents) {
                     TuitionClass updated = tuitionClass.withDetails(lesson.getDetails());
@@ -176,18 +186,18 @@ public class ModelManager implements Model {
                     throw new IllegalArgumentException("Students in the same class have different details.");
                 }
             }
-            linkedLessons.add(new Enrollment(tuitionClass, lesson.getPaymentStatus()));
+            linkedEnrollments.add(new Enrollment(person.getStudentId(), tuitionClass,
+                    lesson.getCost(), lesson.getPaymentStatus()));
         }
-        return person.withLessons(linkedLessons);
+        return person.withEnrollments(linkedEnrollments);
     }
 
     private void normalizeExistingLessons() {
         for (Person person : List.copyOf(addressBook.getPersonList())) {
             Person linked = linkLessonsToClasses(person);
-            if (!linked.getLessons().equals(person.getLessons())
-                    || linked.getLessons().stream().anyMatch(lesson -> lesson.getClassId() != null
-                    && person.getLessons().stream().noneMatch(original -> lesson.getClassId() != null
-                    && lesson.getClassId().equals(original.getClassId())))) {
+            boolean needsNormalization = !person.getLegacyLessons().isEmpty()
+                    || person.getEnrollments().stream().anyMatch(enrollment -> !enrollment.isResolved());
+            if (needsNormalization) {
                 addressBook.setPerson(person, linked);
             }
         }
@@ -222,12 +232,12 @@ public class ModelManager implements Model {
     public void setTuitionClass(TuitionClass target, TuitionClass edited) {
         addressBook.setTuitionClass(target, edited);
         for (Person person : List.copyOf(addressBook.getPersonList())) {
-            java.util.Set<Lesson> updated = person.getLessons().stream()
-                    .map(lesson -> target.getClassId().equals(lesson.getClassId())
-                            ? new Enrollment(edited, lesson.getPaymentStatus()) : lesson)
+            java.util.Set<Enrollment> updated = person.getEnrollments().stream()
+                    .map(enrollment -> target.getClassId().equals(enrollment.getClassId())
+                            ? enrollment.resolveWith(edited) : enrollment)
                     .collect(java.util.stream.Collectors.toCollection(java.util.LinkedHashSet::new));
-            if (!updated.equals(person.getLessons())) {
-                addressBook.setPerson(person, person.withLessons(updated));
+            if (updated.stream().anyMatch(enrollment -> target.getClassId().equals(enrollment.getClassId()))) {
+                addressBook.setPerson(person, person.withEnrollments(updated));
             }
         }
     }
@@ -235,11 +245,11 @@ public class ModelManager implements Model {
     @Override
     public void deleteTuitionClass(TuitionClass tuitionClass) {
         for (Person person : List.copyOf(addressBook.getPersonList())) {
-            java.util.Set<Lesson> updated = person.getLessons().stream()
-                    .filter(lesson -> !tuitionClass.getClassId().equals(lesson.getClassId()))
+            java.util.Set<Enrollment> updated = person.getEnrollments().stream()
+                    .filter(enrollment -> !tuitionClass.getClassId().equals(enrollment.getClassId()))
                     .collect(java.util.stream.Collectors.toCollection(java.util.LinkedHashSet::new));
-            if (updated.size() != person.getLessons().size()) {
-                addressBook.setPerson(person, person.withLessons(updated));
+            if (updated.size() != person.getEnrollments().size()) {
+                addressBook.setPerson(person, person.withEnrollments(updated));
             }
         }
         addressBook.removeTuitionClass(tuitionClass);

@@ -46,9 +46,6 @@ public class AddCommand extends Command {
 
     public static final String MESSAGE_SUCCESS = "Student Added: %1$s";
     public static final String MESSAGE_DUPLICATE_PERSON = "This person already exists in the address book.";
-    public static final String MESSAGE_CLASS_COST_CONFLICT =
-            "This class already exists with a different cost. Students in the same class must have the same cost.";
-
     private final Person toAdd;
     private final ClassDetailsUpdate detailsUpdate;
 
@@ -72,11 +69,6 @@ public class AddCommand extends Command {
 
         if (model.hasPerson(toAdd)) {
             throw new CommandException(MESSAGE_DUPLICATE_PERSON);
-        }
-        for (Lesson lesson : toAdd.getLessons()) {
-            if (model.hasClassCostConflict(lesson)) {
-                throw new CommandException(MESSAGE_CLASS_COST_CONFLICT);
-            }
         }
         for (Lesson lesson : toAdd.getLessons()) {
             List<Lesson> overlappingClasses = model.findOverlappingClasses(lesson);

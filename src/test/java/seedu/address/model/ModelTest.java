@@ -20,7 +20,6 @@ import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.lesson.ClassId;
 import seedu.address.model.lesson.Cost;
-import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
 import seedu.address.model.lesson.Subject;
 import seedu.address.model.lesson.TuitionClass;
@@ -66,22 +65,8 @@ public class ModelTest {
         assertThrows(UnsupportedOperationException.class, () -> model.deleteTuitionClass(tuitionClass));
     }
 
-    @Test
-    public void hasClassCostConflict_sameClassDifferentCost_returnsTrueOnlyForConflict() {
-        DefaultComparatorModel model = new DefaultComparatorModel();
-        model.addressBook.addTuitionClass(tuitionClass("C001", "Math", "30", "Monday1800-1930"));
-
-        assertTrue(model.hasClassCostConflict(lesson("math", "40", "Monday1800-1930")));
-        assertFalse(model.hasClassCostConflict(lesson("Math", "30", "Monday1800-1930")));
-        assertFalse(model.hasClassCostConflict(lesson("Math", "40", "Tuesday1800-1930")));
-    }
-
     private static TuitionClass tuitionClass(String id, String subject, String cost, String timing) {
         return new TuitionClass(new ClassId(id), new Subject(subject), new Cost(cost), new LessonTiming(timing));
-    }
-
-    private static Lesson lesson(String subject, String cost, String timing) {
-        return new Lesson(new Subject(subject), new Cost(cost), new LessonTiming(timing));
     }
 
     private static class DefaultComparatorModel implements Model {
