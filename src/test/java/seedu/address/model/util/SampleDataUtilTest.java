@@ -16,8 +16,18 @@ import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Enrollment;
 import seedu.address.model.lesson.OneOffLessonSchedule;
 import seedu.address.model.lesson.PaymentStatus;
+import seedu.address.model.person.Person;
 
 public class SampleDataUtilTest {
+
+    @Test
+    public void getSamplePersons_returnsStudentsWithValidEnrollments() {
+        Person[] people = SampleDataUtil.getSamplePersons();
+
+        assertEquals(6, people.length);
+        assertTrue(Set.of(people).stream().allMatch(person -> person.getEnrollments().stream()
+                .allMatch(enrollment -> enrollment.getStudentId().equals(person.getStudentId()))));
+    }
 
     @Test
     public void getSampleAddressBook_containsRepresentativeFeatureData() {
