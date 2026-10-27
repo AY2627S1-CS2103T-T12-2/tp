@@ -1000,6 +1000,8 @@ otherwise, selected students do not have the target tag and have fewer than 10 t
 | `tag 1 1 3 t/exam-prep` | Duplicate-index error; no student changes. |
 | `tag 1 999 t/exam-prep` | Invalid-index error; no student changes. |
 | `tag 1 3 t/ExamPrep` | Invalid-tag error under the existing lowercase tag rules; no student changes. |
+| `tag 1 2 t/exam-prep urgent` | Batch-mode error says exactly one tag is allowed; no student changes. |
+| `tag 1 2 t/exam-prep Invalid` | Invalid-tag error; no student changes. |
 | `tag 1 3 t/2026` | Both students receive the numeric tag `2026`. |
 | `tag 3 exam-prep needs-follow-up` | The legacy format still adds both tags to student 3. |
 
