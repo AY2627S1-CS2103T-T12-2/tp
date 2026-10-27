@@ -253,6 +253,8 @@ while allowing case-insensitive search input for user convenience.
 Lesson keywords accept a weekday/prefix such as `Mon`, an HHmm-style time within `0000`-`2359`, or both; shorter
 numeric fragments such as `18` are accepted for partial matching. An exact ISO date such as `2026-10-20` matches a
 one-off schedule, while a weekday search also matches one-off schedules occurring on that weekday.
+`FindCommandParserTest` covers empty and invalid search inputs, while `FindCommandTest` covers partial matching and
+result ranking. Parse failures occur before command construction, so the active filter remains unchanged.
 
 `FindCommand` applies the predicate through `Model#updateFilteredPersonList`. Predicates that implement
 `ScoredPersonPredicate` also provide a relevance score, so `FindCommand` requests a sorted filtered list with stronger
@@ -928,6 +930,22 @@ testers are expected to do more *exploratory* testing.
       Expected: Similar to previous.
 
 1. _{ more test cases … }_
+
+### Finding by name, tag, or lesson
+
+Start with a disposable, empty data file and add two students:
+
+* `add n/Amy Smith p/91234567 e/amy@example.com a/One t/exam-prep sub/Math cost/30 c/Monday1800-1930`
+* `add n/Ben Lee p/81234567 e/ben@example.com a/Two t/friends sub/Physics cost/35 c/Tuesday1900-2030`
+
+| Test input | Expected result |
+| --- | --- |
+| `find am` | Amy appears; the partial name match is case-insensitive. |
+| `find t/EXAM` | Amy appears because the tag keyword partially matches `exam-prep`, ignoring case. |
+| `find c/Mon 18` | Amy appears because the lesson matches the weekday prefix and time fragment. |
+| `find`, `find t/`, or `find c/` | A validation error is shown; the displayed results and records are unchanged. |
+| `find t/exam*` or `find c/Funday` | An invalid-keyword error is shown; the displayed results and records are unchanged. |
+| `list` | The filter clears and both students appear. |
 
 ### Searching by subject
 
