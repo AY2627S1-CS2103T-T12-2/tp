@@ -92,6 +92,22 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_batchEnrolmentSubjectWithRepeatedSpaces_findsExistingClass() throws Exception {
+        logic.execute("add n/Amy p/91234567 e/amy@example.com a/Somewhere");
+        logic.execute("add n/Bob p/81234567 e/bob@example.com a/Elsewhere");
+        logic.execute("class add sub/Computer Science cost/30 c/Friday1400-1500");
+
+        CommandResult result = logic.execute(
+                "class enrol 1 2 sub/Computer  Science c/Friday1400-1500");
+
+        assertEquals("Enrolled Amy, Bob in class: Computer Science, Friday 14:00-15:00.",
+                result.getFeedbackToUser());
+        assertTrue(model.getAddressBook().getPersonList().stream()
+                .allMatch(person -> person.getLessons().stream()
+                        .anyMatch(lesson -> lesson.getSubject().equals(new Subject("Computer Science")))));
+    }
+
+    @Test
     public void privacyMode_getAndSet_delegatesToModel() {
         assertFalse(logic.isPrivacyModeEnabled());
 
