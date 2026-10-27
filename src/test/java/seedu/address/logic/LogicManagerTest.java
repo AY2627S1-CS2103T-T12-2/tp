@@ -170,8 +170,8 @@ public class LogicManagerTest {
                 new JsonUserPrefsStorage(storage.getUserPrefsFilePath())));
 
         String expectedMessage = String.format(LogicManager.FILE_OPS_PERMISSION_ERROR_FORMAT, permissionFailure);
-        assertThrows(CommandException.class, expectedMessage,
-                () -> logic.execute("class payment 1 id/C001 status/unpaid"));
+        assertThrows(CommandException.class, expectedMessage, () ->
+                logic.execute("class payment 1 id/C001 status/unpaid"));
 
         assertEquals(expectedModel, model);
         assertPaymentState(model.getFilteredPersonList().get(0), PaymentStatus.PAID, "0");
