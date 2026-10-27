@@ -96,6 +96,21 @@ public class FindCommandTest {
     }
 
     @Test
+    public void execute_partialTagKeywordsAtHyphenBoundaries_findMatchingTag() throws Exception {
+        Person taggedPerson = new PersonBuilder().withName("Charlotte Oliveiro").withTags("exam-prep").build();
+        AddressBook addressBook = new AddressBook();
+        addressBook.addPerson(taggedPerson);
+        Model taggedModel = new ModelManager(addressBook, new UserPrefs());
+        AddressBookParser parser = new AddressBookParser();
+
+        parser.parseCommand("find t/exam-").execute(taggedModel);
+        assertEquals(List.of(taggedPerson), taggedModel.getFilteredPersonList());
+
+        parser.parseCommand("find t/-prep").execute(taggedModel);
+        assertEquals(List.of(taggedPerson), taggedModel.getFilteredPersonList());
+    }
+
+    @Test
     public void execute_lessonKeyword_matchingPersonsFound() {
         AddressBook addressBook = new AddressBook();
         Person mondayStudent = personWithLesson("Monday Student", "Monday1800");

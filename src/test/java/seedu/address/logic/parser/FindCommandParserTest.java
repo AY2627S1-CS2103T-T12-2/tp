@@ -38,6 +38,8 @@ public class FindCommandParserTest {
                 new FindCommand(new TagContainsKeywordsPredicate(List.of("priority"))));
         assertParseSuccess(parser, " t/PRI Exam-Prep",
                 new FindCommand(new TagContainsKeywordsPredicate(List.of("pri", "exam-prep"))));
+        assertParseSuccess(parser, " t/exam- -PREP",
+                new FindCommand(new TagContainsKeywordsPredicate(List.of("exam-", "-prep"))));
     }
 
     @Test
@@ -88,7 +90,9 @@ public class FindCommandParserTest {
     @Test
     public void parse_invalidTagKeyword_failure() {
         assertParseFailure(parser, "t/Bad*",
-                "Invalid tag keyword 'Bad*'. " + seedu.address.model.tag.Tag.MESSAGE_CONSTRAINTS);
+                "Invalid tag keyword 'Bad*'. " + seedu.address.model.tag.Tag.MESSAGE_SEARCH_KEYWORD_CONSTRAINTS);
+        assertParseFailure(parser, "t/--prep",
+                "Invalid tag keyword '--prep'. " + seedu.address.model.tag.Tag.MESSAGE_SEARCH_KEYWORD_CONSTRAINTS);
     }
 
     @Test
