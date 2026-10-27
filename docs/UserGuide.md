@@ -369,20 +369,24 @@ Examples:
 * `untag 2 parent-follow-up`
 * `untag 5 -all`
 
-### Locating persons by name, tag, or lesson: `find`
+### Locating persons by name, tag, subject, or lesson: `find`
 
-Finds students whose names, tags, or lesson timings partially match the given search input.
+Finds students by name, tag, subject, or lesson timing, using partial matching where supported.
 
 Formats:
-* `find KEYWORD [MORE_KEYWORDS]`
-* `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]`
-* `find c/DAY [TIME_HHmm]`, `find c/TIME_HHmm`, or `find c/DATE [TIME_HHmm]`
+* `find KEYWORD [MORE_KEYWORDS]` to search names
+* `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]` to search tags
+* `find sub/SUBJECT_KEYWORD [MORE_SUBJECT_KEYWORDS]` to search subjects
+* `find c/DAY [TIME_HHmm]`, `find c/TIME_HHmm`, or `find c/DATE [TIME_HHmm]` to search lesson timings
 
 * The search is case-insensitive; for example, `hans` matches `Hans`.
-* Without `t/`, the search considers only names.
+* An unprefixed keyword searches names only. Use `t/`, `sub/`, or `c/` to search tags, subjects, or lesson timings.
 * With `t/`, the search considers only tags. Stored tags use lowercase, but tag search keywords are case-insensitive
   for input convenience, e.g. `find t/PRI` matches `priority`.
-* Name and tag searches use partial matching, e.g. `ali` matches `Alice`, and `pri` matches `priority`.
+* Name, tag, and subject searches use partial matching, e.g. `ali` matches `Alice`, `pri` matches `priority`, and
+  `find sub/Math` matches students taking Mathematics.
+* Subject search treats each keyword as an alternative and keeps results in address-book order. See the
+  [subject search guide](SubjectSearch.md) for details.
 * With `c/`, search by lesson day, exact date, time, or a supported combination. Days accept full names or prefixes,
   e.g. `Monday` or `Mon`. Exact dates use `yyyy-MM-dd`. Times use HHmm style from `0000` to `2359`, e.g. `1800`;
   shorter fragments such as `18` are accepted for partial matching.
@@ -394,6 +398,7 @@ Formats:
 Examples:
 * `find Joh` returns `John` and `John Doe`
 * `find t/fri` returns students tagged `friends`
+* `find sub/Math` returns students taking a subject that partially matches `Math`
 * `find c/Monday` returns students with Monday lessons
 * `find c/1800` returns students with lessons containing `1800`
 * `find c/Mon 1800` returns students with Monday lessons containing `1800`
