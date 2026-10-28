@@ -249,6 +249,10 @@ Payment status describes the current enrolment as a whole; it is not a payment h
 or billing months. Correspondingly, the displayed balance is the sum of the current unpaid enrolments rather than a
 history of accumulated charges.
 
+A successful status change is saved automatically and restored after restarting TutEasy. The balance updates to reflect
+the new unpaid total. Repeating the current status reports that it is already set. An invalid student index, invalid
+status, or student who is not enrolled in the specified class receives an error without changing the enrolment.
+
 ### Deleting a class: `class delete`
 
 Deletes a class globally by removing it from every enrolled student. Students and their other information are not
@@ -390,6 +394,8 @@ Formats:
 * With `c/`, search by lesson day, exact date, time, or a supported combination. Days accept full names or prefixes,
   e.g. `Monday` or `Mon`. Exact dates use `yyyy-MM-dd`. Times use HHmm style from `0000` to `2359`, e.g. `1800`;
   shorter fragments such as `18` are accepted for partial matching.
+* An empty search, empty `t/` or `c/` value, or invalid tag or lesson keyword is rejected with an error. The current
+  displayed results remain unchanged.
 * Name and tag searches return students matching at least one keyword. Matching pinned students are shown before
   matching unpinned students. Within each group, students with more matching keywords are shown first; ties keep the
   current list order.
