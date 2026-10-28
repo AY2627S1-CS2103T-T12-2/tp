@@ -265,9 +265,10 @@ one-off schedule, while a weekday search also matches one-off schedules occurrin
 matches first within each pin group and preserves original address-book order for ties. Matching pinned students are
 placed before matching unpinned students.
 
-`CommandBox` provides light-grey input-bar hints for common `find` inputs and the available `privacy` modes. After a
-successful `find`, it keeps the suggestion overlay visible with `Type 'list' to return to the home page.`; the hint
-clears when the user starts typing or when a non-`find` command succeeds.
+`CommandBox` provides light-grey input-bar hints for common `find` inputs and the command formats for `pin`, `unpin`,
+`tag`, `untag`, and `privacy`. After a successful `find`, it keeps the suggestion overlay visible with
+`Type 'list' to return to the home page.`; the hint clears when the user starts typing or when a non-`find` command
+succeeds.
 
 ### Privacy mode
 

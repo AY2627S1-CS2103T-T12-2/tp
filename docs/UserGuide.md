@@ -313,6 +313,8 @@ Format: `unpin INDEX`
 
 Example: `unpin 1`
 
+The command box suggests the required index after you type `pin` or `unpin`.
+
 ### Editing a student: `edit`
 
 Edits an existing student.
@@ -360,6 +362,8 @@ Examples:
 * `tag 3 exam-prep needs-follow-up`
 * `tag 1 3 5 t/math-2026`
 
+The command box suggests both tag formats after you type `tag`.
+
 ### Removing tags from a student: `untag`
 
 Removes one or more existing tags from a student, or removes all their tags.
@@ -369,6 +373,8 @@ Format: `untag INDEX TAG [MORE_TAGS]` or `untag INDEX -all`
 Examples:
 * `untag 2 parent-follow-up`
 * `untag 5 -all`
+
+The command box suggests both removal formats after you type `untag`.
 
 ### Locating students by name, tag, subject, or schedule: `find`
 
