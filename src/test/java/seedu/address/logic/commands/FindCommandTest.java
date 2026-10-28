@@ -187,6 +187,25 @@ public class FindCommandTest {
     }
 
     @Test
+    public void execute_equalScoreWithNewMatches_keepsCurrentMatchesBeforeStoredOrder() {
+        AddressBook addressBook = new AddressBook();
+        Person firstNewMatch = new PersonBuilder().withName("Alpha Student").build();
+        Person currentMatch = new PersonBuilder().withName("Current Student").build();
+        Person secondNewMatch = new PersonBuilder().withName("Beta Student").build();
+        addressBook.addPerson(firstNewMatch);
+        addressBook.addPerson(currentMatch);
+        addressBook.addPerson(secondNewMatch);
+        Model rankedModel = new ModelManager(addressBook, new UserPrefs());
+
+        new FindCommand(new NameContainsKeywordsPredicate(List.of("Current"))).execute(rankedModel);
+        new FindCommand(new NameContainsKeywordsPredicate(List.of("Alpha", "Current", "Beta")))
+                .execute(rankedModel);
+
+        assertEquals(List.of(currentMatch, firstNewMatch, secondNewMatch),
+                rankedModel.getFilteredPersonList());
+    }
+
+    @Test
     public void execute_multiplePartialTagKeywords_matchingPersonsRankedByScore() {
         AddressBook addressBook = new AddressBook();
         Person oneMatchFirst = new PersonBuilder().withName("First Student").withTags("priority").build();
