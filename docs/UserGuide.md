@@ -345,7 +345,9 @@ Formats:
 * Spaces separate tags. For example, `exam prep` adds the two tags `exam` and `prep`, while `exam-prep` adds
   one tag. Use hyphens when a single tag contains multiple words.
 * A student can have at most 10 tags.
-* The first format preserves the existing behavior of adding one or more tags to one student.
+* The first format adds one or more tags to one student. All supplied tags are validated before the student is
+  updated. If any supplied tag already belongs to that student, or if adding all supplied tags would exceed the
+  10-tag limit, the command is rejected and no tag is added.
 * The batch format uses `t/` to separate one tag from one or more unique student indexes. This also allows numeric
   tags such as `t/2026` without confusing them with student indexes.
 * The batch command validates every index and the tag before updating any student. An invalid or repeated index, or
@@ -365,6 +367,11 @@ Examples:
 Removes one or more existing tags from a student, or removes all their tags.
 
 Format: `untag INDEX TAG [MORE_TAGS]` or `untag INDEX -all`
+
+* `INDEX` refers to the index number shown in the displayed student list.
+* Every supplied tag must already belong to the selected student. If any tag is missing, the command is rejected and
+  none of the supplied tags is removed.
+* Use `-all` by itself after the index to remove every tag. It cannot be combined with tag names or `--all`.
 
 Examples:
 * `untag 2 parent-follow-up`

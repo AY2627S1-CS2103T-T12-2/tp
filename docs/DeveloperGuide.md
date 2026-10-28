@@ -410,7 +410,12 @@ successful command, so searching does not remove students or enrolments from sto
 The [subject search guide](SubjectSearch.md) documents examples and input constraints.
 The [testing guide](Testing.md#subject-search-tests) lists automated coverage and commands for this feature.
 
-### Batch tag assignment
+### Tag management
+
+The sequence below shows the batch form `tag 1 3 t/exam-prep`. The single-student `tag` and `untag` forms follow the
+same parse, immutable replacement, and save flow.
+
+<puml src="diagrams/TagSequenceDiagram.puml" alt="Interactions for assigning a tag to multiple students" />
 
 `TagCommandParser` selects the legacy single-student mode when no `t/` prefix is present. When `t/` is present, it
 parses the whitespace-separated preamble as one or more unique displayed student indexes and parses exactly one tag
@@ -421,6 +426,17 @@ Before changing the model, `TagCommand` validates every displayed index and cate
 student who already has the tag is skipped. A student with 10 or more tags is reported as being at the tag limit.
 Only the remaining students receive immutable replacement `Person` objects containing the new tag. The command result
 lists all three outcome groups, or reports that no changes were made when every selected student is skipped.
+
+For the single-student form, `TagCommand` copies the student's existing `LinkedHashSet<Tag>`, then rejects the complete
+operation if any requested tag is already present or if the resulting set would exceed `Tag#MAX_TAGS_PER_PERSON`.
+`UntagCommandParser` accepts either one or more tag names or the standalone `-all` flag. `UntagCommand` similarly
+copies the existing tag set and rejects the complete operation when any requested tag is absent; otherwise, it removes
+the requested tags or clears the copy. Both commands call `Person#withTags`, which preserves the student's pin,
+guardian, and class details, before replacing the old `Person` through the model.
+
+Tag text is validated by `ParserUtil` before command execution. A tag contains at most 30 characters and consists of
+lowercase letters or digits separated by single hyphens. `JsonAdaptedTag` applies the same rules when loading data,
+while its legacy normalization keeps compatible older records readable.
 
 ### Batch class enrolment
 
@@ -706,21 +722,21 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 
       Use case resumes at step 2 for the original request.
 
-**Use case: Tag a student**
+**Use case: Add tags to students**
 
 **MSS**
 
-1. Tutor requests to add one or more tags to a specific student by index.
+1. Tutor requests to add one or more tags to a specific student using the displayed index.
 
 2. TutEasy checks that the index is valid.
 
 3. TutEasy validates each tag.
 
-4. TutEasy checks that none of the tags already exist for that student.
+4. TutEasy checks that none of the tags already exist for that student and that the result will not exceed 10 tags.
 
 5. TutEasy adds the tags to the student’s tag set.
 
-6. TutEasy displays the tags next to the student’s name.
+6. TutEasy refreshes the tags displayed on the student card.
 
 7. TutEasy displays a success message.
 
@@ -733,6 +749,15 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
     * 1a1. TutEasy shows an error message.
 
       Use case resumes at step 1.
+
+* 1b. Tutor requests to add one tag to multiple students using unique displayed indexes.
+
+    * 1b1. TutEasy validates every index and the tag before changing any student.
+    * 1b2. TutEasy skips students who already have the tag or have reached the 10-tag limit.
+    * 1b3. TutEasy adds the tag to every remaining selected student.
+    * 1b4. TutEasy reports the students in the added, already-tagged, and at-limit groups.
+
+      Use case ends.
 
 * 2a. The given index is out of range.
 
@@ -754,10 +779,10 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 
       Use case resumes at step 1.
 
-* 5a. The student already has the maximum number of tags.
+* 4b. Adding the supplied tags would exceed the 10-tag limit.
 
-    * 5a1. TutEasy rejects the new tag.
-    * 5a2. TutEasy shows a tag limit error message.
+    * 4b1. TutEasy rejects all supplied tags.
+    * 4b2. TutEasy shows a tag limit error message.
 
       Use case ends.
 
@@ -995,7 +1020,10 @@ Use students whose names, tags, subjects, weekly schedules, and one-off schedule
 | Repeat `pin 1` for that now-pinned student | Already-pinned error; ordering is unchanged. |
 | `unpin 1` | The selected pinned student is unpinned and returns to the unpinned group. |
 | `tag 1 exam-prep needs-follow-up` | Both tags are added to student 1. |
+| Repeat `tag 1 exam-prep` | Duplicate-tag error; no tag is added or removed. |
+| Give student 1 ten tags, then run `tag 1 extra` | Tag-limit error; the existing ten tags remain unchanged. |
 | `untag 1 exam-prep` | Only `exam-prep` is removed. |
+| `untag 1 missing-tag` | Missing-tag error; the student's tags remain unchanged. |
 | `untag 1 -all` | All remaining tags are removed from student 1. |
 
 ### Privacy mode
