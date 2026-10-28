@@ -297,6 +297,8 @@ Format: `pin INDEX`
 * The student must not already be pinned.
 * During a search, only matching students are shown; matching pinned students appear before matching unpinned students.
 * Search relevance and the existing list order are preserved within the pinned and unpinned groups.
+* After a successful command, the displayed list is reordered immediately and its index numbers are refreshed. Use
+  the newly displayed index for the next index-based command.
 
 Example: `pin 3`
 
@@ -310,6 +312,8 @@ Format: `unpin INDEX`
 
 * `INDEX` refers to the index number shown in the displayed student list.
 * The student must already be pinned.
+* After a successful command, the student moves into the unpinned group immediately. Their relative order within that
+  group follows the existing list order, or the active search ranking when the list is filtered.
 
 Example: `unpin 1`
 

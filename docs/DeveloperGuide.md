@@ -225,6 +225,10 @@ migration. Weekly occurrences remain derived and are never expanded into persist
 
 ### Pin feature
 
+The activity diagram below summarizes the common flow for `pin INDEX` and `unpin INDEX`.
+
+<puml src="diagrams/PinActivityDiagram.puml" alt="Validation and list reordering for pin and unpin commands" />
+
 Each `Person` stores a `pinned` boolean. `JsonAdaptedPerson` writes this value to the address-book data file and treats
 a missing value as `false`, allowing older files to remain compatible. Copy operations such as editing tags or lessons
 retain the existing pin state.
@@ -621,7 +625,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *`    | tutor deleting a student or class           | see which enrolments and lessons will be affected                 | avoid removing related information accidentally                           |
 | `* *`    | tutor                                       | view my next few lessons when the application opens               | prepare without navigating the full timetable                             |
 | `* *`    | tutor with many students                    | sort and filter my students                                        | manage a large contact list easily                                         |
-| `* *`    | tutor with frequently accessed students     | pin important students above the rest                              | access their details quickly                                               |
+| `* *`    | tutor with frequently accessed students     | pin and unpin important students above the rest                    | access their details quickly                                               |
 | `* *`    | tutor                                       | add notes about each student                                       | remember their learning needs and progress                                 |
 | `* *`    | tutor who conducts in-person lessons        | store a student's home address                                     | travel to their lessons easily                                             |
 | `* *`    | tutor teaching minors                       | record a parent or guardian's contact details                      | contact them when necessary                                                |
@@ -1012,13 +1016,25 @@ Use students whose names, tags, subjects, weekly schedules, and one-off schedule
 | `find c/2026-10-20` | Students enrolled in a one-off class on that exact date appear. |
 | `list` | The complete student list is restored. |
 
-### Pinning and tagging students
+### Pinning and unpinning students
+
+Use at least three students. Note their original order before running these tests.
 
 | Test input | Expected result |
 | --- | --- |
 | `pin 2` | The selected student receives a `PINNED` badge and moves above unpinned students. |
 | Repeat `pin 1` for that now-pinned student | Already-pinned error; ordering is unchanged. |
 | `unpin 1` | The selected pinned student is unpinned and returns to the unpinned group. |
+| Find at least two students, then pin a displayed unpinned result | Only matching students remain visible; the newly pinned result moves above matching unpinned results. |
+| Exit and relaunch after pinning a student | The student remains pinned and appears in the pinned group. |
+
+After each successful `pin` or `unpin`, verify that the displayed indexes are refreshed before using another
+index-based command.
+
+### Tagging and removing tags
+
+| Test input | Expected result |
+| --- | --- |
 | `tag 1 exam-prep needs-follow-up` | Both tags are added to student 1. |
 | Repeat `tag 1 exam-prep` | Duplicate-tag error; no tag is added or removed. |
 | Give student 1 ten tags, then run `tag 1 extra` | Tag-limit error; the existing ten tags remain unchanged. |
