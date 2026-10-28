@@ -95,15 +95,10 @@ The `UI` component,
 * keeps a reference to the `Logic` component, because the `UI` relies on the `Logic` to execute commands.
 * depends on some classes in the `Model` component because it displays `Person` objects from the model.
 
-`PersonCard` renders enrolled classes as coloured badges in a vertical list below the student's email. A smaller,
-muted paid or unpaid label follows each badge without inheriting its background colour. Each badge and status are
-contained in one `HBox`, while the surrounding `VBox` places every class group on its own row. A single
-`ClassColorPalette` is owned by `PersonListPanel` and shared by every card, ensuring that the same logical class uses
-the same colour across students. The palette identifies a class using its case-insensitive subject and complete
-lesson timing, matching `Lesson#isSameClass`; cost and payment status are not part of the colour identity. A muted
-balance badge beside the student's name always displays `Person#getOutstandingBalance`, including when it is zero.
-Pinned students also display a `PINNED` badge beside their name. The badge is visible and participates in the layout
-only when `Person#isPinned` is true.
+`PersonCard` renders contact details, tags, enrolled-class groups, outstanding balance, and pin state for one student.
+`PersonListPanel` supplies the shared display state needed across cards. The
+[enrolled-class display](#enrolled-class-display), [pin feature](#pin-feature), and
+[privacy mode](#privacy-mode) sections describe these behaviors in detail.
 
 `MainWindow` passes the privacy preference from `Logic` to `PersonListPanel` and `StatusBarFooter`. The panel owns an
 observable privacy state shared by its `PersonCard` instances. Each card binds its phone, email, address, and guardian
@@ -222,6 +217,23 @@ weekday. In all three cases, their time ranges must overlap; ranges meeting only
 `JsonAdaptedLesson` stores `scheduleType` as `WEEKLY` or `ONE_OFF` alongside the compact `timing` value. Saved lessons
 without `scheduleType` are interpreted as weekly schedules, so existing address-book files load without manual
 migration. Weekly occurrences remain derived and are never expanded into persisted dated records.
+
+### Enrolled-class display
+
+`PersonListPanel` owns one `ClassColorPalette` and passes it to every `PersonCard`. The palette maps the same logical
+class to the same CSS colour across students. Its `ClassIdentity` normalizes the subject to lowercase and combines it
+with the complete stored schedule, matching `Lesson#isSameClass`; agreed rate and payment status are intentionally
+excluded because they can differ between enrolments in one class. Eight colour styles are available, and deterministic
+hash-based reuse keeps the mapping stable when there are more classes than colours.
+
+`PersonCard` sorts a student's resolved lessons by schedule and then case-insensitive subject. For each lesson, it
+creates an `HBox` containing the coloured subject-and-timing badge, teaching-mode label, and payment-status label. A
+surrounding `VBox` adds a separate wrapped line only when a meeting link, location, or note exists. Keeping payment and
+mode outside the coloured badge prevents those changing values from altering class identity or colour.
+
+The muted balance badge beside the student's name displays `Person#getOutstandingBalance`, which derives the sum of
+unpaid agreed rates rather than storing another value. This design lets payment updates refresh both the status label
+and balance from the same enrolment state while leaving the class colour unchanged.
 
 ### Pin feature
 
@@ -1139,6 +1151,18 @@ followed by a separate, muted `Unpaid` label, and each balance badge should init
 
 Mark one student as paid, exit the app, and relaunch it. The paid status should still appear, while the other student's
 status remains unpaid. Open the timetable and verify that both students still appear together in one Math class.
+
+### Displaying enrolled classes on student cards
+
+Use at least two students. Create a weekly Math class and a later weekly Physics class, then enrol both students in
+Math and the first student in Physics. Replace the example class IDs below with the IDs reported by TutEasy.
+
+| Test action | Expected result |
+| --- | --- |
+| Inspect both student cards | Both Math badges use the same colour and show the same subject and timing. Each has separate `Offline` and `Unpaid` labels. |
+| Inspect the first student's two class groups | Math and Physics appear on separate rows ordered by schedule, then subject. |
+| Mark the first student's Math enrolment as paid | Its Math colour is unchanged, its status becomes `Paid`, and only that student's balance decreases. |
+| Exit and relaunch TutEasy | The same classes, payment labels, balance values, order, and shared class colours are restored. |
 
 ### Assigning a tag to multiple students
 

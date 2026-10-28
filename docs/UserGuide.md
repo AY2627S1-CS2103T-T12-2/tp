@@ -212,9 +212,11 @@ are skipped while the remaining students are enrolled. The feedback identifies b
 are already enrolled, no changes are made and an informative message is shown. `cost/` cannot be supplied when multiple
 indexes are used.
 
-Enrolled classes appear as coloured badges below each student's email. Each badge includes the subject and lesson
-timing, and students enrolled in the same class receive a badge with the same colour. When a student has multiple
-classes, each badge group appears on its own row.
+Enrolled classes appear below each student's email. Every class group contains a coloured badge with the subject and
+complete lesson timing, followed by separate `Online` or `Offline` and `Paid` or `Unpaid` labels. Non-empty meeting
+links, locations, and notes appear on a wrapped details line below that group. Students enrolled in the same logical
+class receive the same badge colour, even when their agreed rates or payment statuses differ. When a student has
+multiple classes, each group appears on its own row and the groups are ordered by schedule, then subject.
 
 A subdued balance badge beside each student's name shows the total agreed rates of that student's unpaid enrolments.
 Paid enrolments are excluded. The badge remains visible as `Balance: 0` when the student has no unpaid enrolments.
