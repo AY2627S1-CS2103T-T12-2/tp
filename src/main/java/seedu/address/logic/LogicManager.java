@@ -68,10 +68,11 @@ public class LogicManager implements Logic {
 
     @Override
     public CommandResult execute(String commandText) throws CommandException, ParseException {
-        logger.info("----------------[USER COMMAND][" + commandText + "]");
+        logger.fine("Processing command input.");
 
         CommandResult commandResult;
         Command command = addressBookParser.parseCommand(commandText);
+        logger.info("Executing " + command.getClass().getSimpleName() + ".");
         if (currentView == CommandResult.ViewChange.TIMETABLE && !isAllowedInTimetable(command)) {
             throw new CommandException(MESSAGE_TIMETABLE_READ_ONLY);
         }

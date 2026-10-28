@@ -63,6 +63,18 @@ public interface Model {
     boolean hasPerson(Person person);
 
     /**
+     * Checks new or renamed students against names ignoring case and repeated spaces.
+     * The same stable student ID is excluded so a student can edit their own display spelling.
+     * Storage keeps its existing exact-name checks so previously saved variants remain loadable.
+     */
+    default boolean hasNameConflict(Person candidate) {
+        requireNonNull(candidate);
+        return getAddressBook().getPersonList().stream()
+                .anyMatch(existing -> !existing.getStudentId().equals(candidate.getStudentId())
+                        && existing.getName().hasSameIdentityAs(candidate.getName()));
+    }
+
+    /**
      * Deletes the given person.
      * The person must exist in the address book.
      */

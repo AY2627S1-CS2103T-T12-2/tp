@@ -149,7 +149,7 @@ How the parsing works:
 * All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
 
 ### Model component
-**API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
+**API** : [`Model.java`](https://github.com/AY2627S1-CS2103T-T12-2/tp/blob/master/src/main/java/seedu/address/model/Model.java)
 
 <puml src="diagrams/ModelClassDiagram.puml" width="450" />
 
@@ -161,6 +161,11 @@ The `Model` component,
   cost, and complete lesson timing.
 * represents the student-to-class association using an `Enrollment` value with stable `EnrollmentId`, `StudentId`, and
   `ClassId` references. The association owns the student-specific agreed rate and `PaymentStatus`.
+* stores each student's optional `GuardianContact` separately from shared class details. Immutable person copies retain
+  guardian fields, stable IDs, enrolments and pin state unless the operation explicitly changes them.
+* provides `Model#hasNameConflict` for new-student and rename validation. `Name#hasSameIdentityAs` ignores case and
+  repeated spaces, excluding the same `StudentId`. Display spelling and exact equality remain unchanged, so older
+  case/spacing variants can still load through the stored collection's exact-name uniqueness rule.
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
 * stores a `UserPrefs` object that represents the user’s GUI settings and privacy preference. This is exposed to the
   outside as a `ReadOnlyUserPrefs` object.
@@ -179,7 +184,7 @@ The `Model` component,
 
 ### Storage component
 
-**API** : [`Storage.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/storage/Storage.java)
+**API** : [`Storage.java`](https://github.com/AY2627S1-CS2103T-T12-2/tp/blob/master/src/main/java/seedu/address/storage/Storage.java)
 
 <puml src="diagrams/StorageClassDiagram.puml" width="550" />
 
@@ -187,10 +192,21 @@ The `Storage` component,
 * can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
+* reconstructs shared classes before resolving enrolment references. `JsonAdaptedPerson` owns guardian fields;
+  `JsonAdaptedTuitionClass` owns mode, link, location and notes. Missing older fields use the defaults described under
+  [attribute migration](#storage-and-legacy-migration).
+* retains already-saved case/spacing name variants without merging students, and logs a warning without their names.
+  Exact duplicate names, duplicate IDs and invalid association references are still rejected.
 
 ### Common classes
 
 Classes used by multiple components are in the `seedu.address.commons` package.
+
+`LogsCenter` supplies the loggers used by student creation, shared-detail resolution, search and migration. These log
+event categories and counts rather than raw input or contact values. `ParserUtil` is a shared parsing utility in Logic:
+it trims inputs and constructs domain values, translating validation failures to `ParseException`. The immutable
+values `GuardianContact`, `ClassDetails`, `ClassMode`, `StudentId`, `ClassId` and `Enrollment` belong to Model, even
+though parser, storage and presentation code use them.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -335,10 +351,24 @@ stored balance from becoming stale after `class payment`, enrolment, unenrolment
 
 ### Adding class and guardian attributes
 
-`add` accepts optional `gn/`, `gp/`, and `ge/` guardian contact fields. `GuardianContact` validates
-non-empty values with the existing name, phone, and email rules. Contact fields are independent,
-with empty strings representing missing values. They participate in `Person#equals` and `hashCode`,
-while student identity retains its existing rules. Person-copy operations preserve the contact.
+#### Input validation and student identity
+
+`AddCommandParser` requires student name, phone, email and address. `gn/`, `gp/` and `ge/` are independent optional
+guardian fields; `ParserUtil#parseGuardianContact` trims them and uses empty strings for omitted values.
+`GuardianContact` accepts names starting with a letter/digit and containing letters, digits, spaces, hyphens and
+straight/curly apostrophes. This rule is independent of the student `Name` validator. Non-empty guardian phones and
+emails use `Phone` and `Email` validation. Every supplied guardian field is checked even when the others are absent.
+Invalid values become parse errors before a command can change the model.
+
+Guardian values participate in `Person#equals`/`hashCode` and survive immutable copy operations. They are neither
+part of the duplicate-name check nor shared with classmates. `AddCommand` and `EditCommand` use
+`Model#hasNameConflict`: `Name#hasSameIdentityAs` derives a trimmed, single-space, lowercase key using `Locale.ROOT`.
+It does not rewrite `fullName` or change exact value equality. The same stable student ID is excluded, allowing its
+own display spelling to be edited without self-collision. Renames check the complete address book, not just the current
+search results. Unchanged-name contact edits remain possible for legacy records whose names already conflict under
+the new policy.
+
+#### Shared class details and inheritance
 
 A contact added with a complete lesson can include `mode/online|offline`, `link/`, `location/`, and
 `notes/`. `ClassDetails` stores an immutable `ClassMode`, meeting link, location, and notes. Online
@@ -351,19 +381,25 @@ referenced class through the central collection instead of copying shared class 
 associations while retaining their IDs, agreed rates, and payment statuses. Class listing, student cards, and timetable
 entries therefore display the current shared class values without duplicating them in each enrolment.
 
-Subject search delegates legacy fallback eligibility to `Person#hasUnmigratedLegacyLesson`.
-The same end-time calculation drives migration and fallback, so a valid legacy `Monday2359`
-record stays searchable without restoring stale subjects after a successfully migrated class is removed.
-
 `ClassDetailsUpdate` represents optional `add` input. It resolves classes from the class catalogue,
 including empty classes. New classes default to offline. An empty, undescribed catalogue class can
 receive its extra details through its first contact. For occupied classes or classes with recorded
 details, omitted input inherits shared values and conflicting explicit values fail before adding data.
 
-No new attribute input is added to `edit`, `class enrol`, or `class edit`; Aaron's class-ID commands
-are retained. Ordinary contact edits preserve guardian data. ID enrolments inherit class attributes;
+The lookup uses the case-insensitive subject and complete `LessonSchedule`. The supplied `cost/` is this student's
+agreed rate and need not equal the default rate. `AddCommand` checks duplicate names and overlaps, then resolves optional
+details before calling `Model#addPerson`. The model creates a class when no match exists, or links the student to the
+existing class and preserves classmates' enrolments. New enrolments start unpaid. The activity below summarizes
+validation and inheritance; persistence remains `LogicManager`'s responsibility.
+
+<puml src="diagrams/AddStudentAttributesActivity.puml" width="550" />
+
+No guardian or extra class-detail input is added to `edit`, `class enrol`, or `class edit`.
+Ordinary contact edits preserve guardian data. ID enrolments inherit class attributes;
 class edits preserve those attributes and payments. Unenrolling the last student retains the class
 and its metadata until the class itself is deleted.
+
+#### Storage and legacy migration
 
 `JsonAdaptedPerson` stores the stable student ID together with `guardianName`, `guardianPhone`, and `guardianEmail`.
 Canonical associations use a compact `JsonAdaptedLesson` representation containing enrolment, student, and class IDs,
@@ -373,9 +409,44 @@ canonical classes and associations without losing details, guardians, agreed rat
 student or enrolment IDs and missing class references are rejected. Empty classes also retain attributes in JSON.
 Missing contact/text fields default to empty strings; missing modes are inferred from existing links.
 
+Loading proceeds through `JsonSerializableAddressBook#toModelType`:
+
+1. Validate and restore the class catalogue and its IDs.
+2. Restore each student and guardian contact. Generate student IDs only for old records lacking them.
+3. Resolve compact enrolments against the catalogue. For older embedded lessons, reuse a matching subject/schedule or
+   create a class; preserve the individual cost and payment status. Explicit shared details must agree, except that an
+   empty, undescribed class with no students may receive its first details.
+4. Reject conflicting shared details, duplicate student/enrolment IDs, duplicate class enrolments or missing class
+   references. Otherwise retain the student and advance the class-ID sequence beyond all restored IDs.
+
+| Older representation / missing field | Compatibility behavior |
+| --- | --- |
+| No guardian fields, location or notes | Use empty values. Punctuated guardian names accepted by current validation round-trip unchanged. |
+| Class has no mode | Infer online if a meeting link is present; otherwise offline. |
+| Embedded lesson has no payment status / schedule type | Default to unpaid / weekly. Compact associations require an explicit payment status. |
+| Old student-level subjects, cost and start-only lesson | With all three available, infer a one-hour weekly range and migrate to classes/enrolments. Cap the end at 23:59 if adding an hour would cross midnight. |
+| Incomplete student-level lesson, or start at 23:59 | Do not fabricate a valid duration; retain the legacy subject fallback for searching. |
+| Previously saved names differing only in case/spacing | Preserve both records and IDs, log a warning, and reject new conflicting additions/renames. Exact duplicate names remain invalid. |
+
+`Person#legacyLessonEnd` is used by both conversion and `hasUnmigratedLegacyLesson`, keeping fallback eligibility
+consistent. Once a complete legacy record has migrated, deleting its class must not reactivate retained old subject
+metadata. Successful saves write the canonical catalogue and compact associations; search filters are never written.
+No automatic student merge is performed because each record may have different guardians, rates and enrolments.
+
+#### Diagnostics and verification
+
+Creation logs indicate success, duplicate-name rejection or schedule conflict; shared-detail resolution logs inheritance
+or conflict. Search logs record keyword/result counts, and storage logs record loaded/migrated counts and legacy-name
+warnings. Detailed counts use `FINE`; creation/rejection events use `INFO`. Command dispatch and UI diagnostics omit raw
+input and feedback so they do not reintroduce contact values, URLs, notes or search keywords into those logs. These
+diagnostics do not extend privacy mode's visual behavior or encrypt saved data.
+
 Automated coverage includes first-contact catalogue enrichment, ID enrolment, class edits, last-student
 unenrolment, preservation of IDs/metadata/guardians/payments, empty-class persistence, both legacy file
-formats, conflict rejection, and catalogue UI display. See [the manual checklist](ManualTests-v1.4.md).
+formats, conflict rejection, and catalogue UI display. `StudentIdentityIntegrationTest` covers normalized conflicts,
+filtered renames, existing-record compatibility and punctuated guardian-name persistence. `FeatureLoggingIntegrationTest`
+checks diagnostic events and exclusion of private values at detailed log levels. See the
+[manual checks below](#student-creation-guardians-and-class-details) for reproducible command sequences.
 
 ### Subject search
 
@@ -387,12 +458,14 @@ before the model or storage is changed.
 
 `SubjectContainsKeywordsPredicate` matches any keyword as a case-insensitive substring of a current class subject.
 It reads `Person#getLessons()`. For older subject-only records that could not be migrated because a cost or lesson
-start is missing, it reads `Person#getSubjects()` instead. Complete legacy records already have migrated lessons;
+start is missing, or no valid same-day range can be inferred, it reads `Person#getSubjects()` instead.
+Complete legacy records already have migrated lessons;
 their retained legacy metadata is not used to restore matches after a class is removed from the in-memory model.
 
 The existing `FindCommand` applies this predicate to the complete address book. Each student appears at most once,
-and subject results retain address-book order. Subject search does not implement relevance scoring. `list` clears
-the filter. `LogicManager` applies the usual timetable restriction and saves the complete address book after a
+and subject results put pinned matches first, retaining original address-book order within each pin group.
+Subject search does not implement relevance scoring. `list` clears
+the filter. `LogicManager` applies the read-only timetable and class-list restrictions and saves the complete address book after a
 successful command, so searching does not remove students or enrolments from storage. Filters are not persisted.
 
 The [subject search guide](SubjectSearch.md) documents examples and input constraints.
@@ -595,6 +668,11 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *`    | tutor                                       | add notes about each student                                       | remember their learning needs and progress                                 |
 | `* *`    | tutor who conducts in-person lessons        | store a student's home address                                     | travel to their lessons easily                                             |
 | `* *`    | tutor teaching minors                       | record a parent or guardian's contact details                      | contact them when necessary                                                |
+| `* *`    | tutor with incomplete guardian information | save any known guardian field independently | retain contact information without inventing missing details |
+| `* *`    | tutor recording a guardian's name | use common hyphens and apostrophes | preserve the person's actual name |
+| `* *`    | tutor adding a student to an existing class | inherit shared mode, meeting link, location and notes | avoid re-entering inconsistent class details |
+| `* *`    | tutor adding a class | record optional preparation notes and a location | know where to teach and what to bring |
+| `* *`    | tutor recording shared class details | be told when supplied details conflict with an existing class | avoid changing classmates' arrangements accidentally |
 | `* *`    | tutor                                       | assign class tags to students                                      | identify students from the same class easily                               |
 | `* *`    | tutor                                       | view students grouped by subject                                   | plan similar lessons together                                              |
 | `* *`    | tutor                                       | view students grouped by timeslot                                  | see who attends each class                                                 |
@@ -618,36 +696,57 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 
 **MSS**
 
-1. Tutor requests to add a student with the required details.
+1. Tutor requests to add a student with required contacts and any known guardian details or scheduled class.
 
-2. TutEasy validates the details and checks for duplicates.
+2. TutEasy validates the supplied fields and checks for a duplicate student name.
 
-3. TutEasy adds the student to the address book.
+3. If a class is supplied, TutEasy checks schedule conflicts, resolves a matching class or prepares a new one,
+   and checks or inherits its shared details.
 
-4. TutEasy updates the timetable view if the student has class timing information.
+4. TutEasy adds the student and any class enrolment, preserving existing students' information.
 
-5. TutEasy displays a success message.
+5. TutEasy saves the updated records and confirms success.
 
    Use case ends.
 
 **Extensions**
 
-* 1a. Tutor omits one or more required fields or uses an invalid flag.
+* 2a. A required field is missing, a supplied student/guardian/class field is invalid, or a single-valued prefix repeats.
 
-    * 1a1. TutEasy shows an error message describing the invalid input.
-
-      Use case resumes at step 1.
-
-* 1b. Tutor enters an invalid phone number, email, subject, cost, or class timing.
-
-    * 1b1. TutEasy shows an error message describing the invalid field.
+    * 2a1. TutEasy rejects the input without adding the student or changing the class.
+    * 2a2. TutEasy explains the validation failure.
 
       Use case resumes at step 1.
 
-* 2a. The student already exists in the address book.
+* 2b. The name matches an existing student's name after ignoring case and repeated spaces.
 
-    * 2a1. TutEasy rejects the duplicate entry.
-    * 2a2. TutEasy shows a duplicate student error message.
+    * 2b1. TutEasy rejects the duplicate entry and explains that the student already exists.
+
+      Use case ends.
+
+* 3a. A different class overlaps the supplied schedule.
+
+    * 3a1. TutEasy rejects the addition and identifies the conflicting class time.
+
+      Use case resumes at step 1.
+
+* 3b. Supplied mode, link, location or notes disagree with recorded shared class details.
+
+    * 3b1. TutEasy rejects the addition and advises omitting the fields to inherit existing details.
+
+      Use case resumes at step 1.
+
+* 3c. A matching class exists and optional details are omitted.
+
+    * 3c1. TutEasy inherits shared values, including for classes with no students. An undescribed empty class may
+      instead receive explicit details from its first student.
+
+      Use case resumes at step 4.
+
+* 5a. Saving fails.
+
+    * 5a1. TutEasy reports the storage error. Saving/rollback recovery is a separate persistence concern; validation
+      atomicity does not itself guarantee rollback after a storage failure.
 
       Use case ends.
 
@@ -929,15 +1028,101 @@ testers are expected to do more *exploratory* testing.
 
 1. _{ more test cases … }_
 
+### Student creation, guardians and class details
+
+Use a disposable folder with sample data and unused `QA...` names. These tests use Thursday lesson times outside the
+sample timetable. Run commands individually. Record class IDs from feedback or `class list`; run `list` after class
+listing to return to the writable student view. Compare student/class counts before and after rejected commands.
+
+1. Add a complete online class and a guardian with punctuation:
+
+   ```text
+   add n/QAAlice p/91111111 e/qa.alice@example.com a/One Street gn/Mary-Anne O'Connor gp/98888888 ge/mary@example.com sub/QA Algebra cost/30 c/Thursday1000-1130 mode/online link/https://meet.example.com/qa location/Virtual room notes/Bring worksheet
+   ```
+
+   Expected: student added with all guardian fields; online class shows its link, location and notes. Record its class ID.
+
+2. Add `QABob` to the existing class with a different agreed rate and no repeated shared details:
+
+   ```text
+   add n/QABob p/92222222 e/qa.bob@example.com a/Two Street sub/QA Algebra cost/35 c/Thursday1000-1130
+   ```
+
+   Expected: the same class ID, online mode, link, location and notes; Bob's balance is 35 and Alice's is 30.
+   Guardian fields remain individual, so Bob does not inherit Alice's guardian.
+
+3. Test phone-only, email-only and name-only guardians:
+
+   ```text
+   add n/QAPhone p/93333333 e/qa.phone@example.com a/Three Street gp/98765432
+   add n/QAEmail p/94444444 e/qa.email@example.com a/Four Street ge/guardian@example.com
+   add n/QANameOnly p/95550000 e/qa.nameonly@example.com a/Five Street gn/Mary-Anne O'Connor
+   ```
+
+   Expected: all three are added; each shows only its supplied guardian field.
+
+4. Run each invalid command below. Every command should fail without adding `QAInvalid` or changing the shared class:
+
+   | Test input | Expected reason |
+   | --- | --- |
+   | `add n/QAInvalid p/95555555 e/qa.invalid@example.com a/Five Street gn/@Mary` | Invalid guardian-name character. |
+   | `add n/QAInvalid p/95555555 e/qa.invalid@example.com a/Five Street gp/12` | Guardian phone too short. |
+   | `add n/QAInvalid p/95555555 e/qa.invalid@example.com a/Five Street ge/invalid` | Invalid guardian email. |
+   | `add n/QAInvalid p/95555555 e/qa.invalid@example.com a/Five Street gp/123 gp/456` | Repeated single-valued prefix. |
+   | `add n/QAInvalid p/95555555 e/qa.invalid@example.com a/Five Street sub/QA Link cost/30 c/Thursday1200-1300 mode/online link/javascript:alert(1)` | Invalid meeting-link scheme. |
+   | `add n/QAInvalid p/95555555 e/qa.invalid@example.com a/Five Street sub/QA Link cost/30 c/Thursday1200-1300 mode/online link/https://user:pass@example.com` | Embedded link credentials. |
+   | `add n/QAInvalid p/95555555 e/qa.invalid@example.com a/Five Street sub/QA Link cost/30 c/Thursday1200-1300 mode/offline link/https://example.com` | Link on an offline class. |
+   | `add n/QAInvalid p/95555555 e/qa.invalid@example.com a/Five Street sub/QA Algebra cost/30 c/Thursday1000-1130 mode/offline` | Conflicts with existing shared online mode. |
+   | `add n/QAInvalid p/95555555 e/qa.invalid@example.com a/Five Street sub/QA Algebra cost/30 c/Thursday1000-1130 notes/Different notes` | Conflicting shared notes. |
+
+   For length boundaries, use a separate disposable folder and reset its data between trials. Append `notes/` followed
+   by 500 letters to a new `QA Link` class command without a link: it should succeed. Repeat with 501 letters: it should
+   fail without additions. Do the same for location. Return to the main fixture for the remaining steps.
+
+5. Test normalized name conflicts and renames:
+
+   ```text
+   add n/QA Name p/96666666 e/qa.name@example.com a/Six Street
+   add n/qa  name p/97777777 e/qa.other@example.com a/Seven Street
+   find QABob
+   edit 1 n/QA  NAME
+   ```
+
+   Expected: first add succeeds; second add and rename fail as duplicates, with records and displayed results unchanged.
+   Rename `QABob` to `QABOB` instead: this succeeds and retains the same student ID and class details.
+
+6. Use `find QAAlice`, then mark its recorded class ID paid with `class payment 1 id/CLASS_ID status/paid` (substitute
+   the actual ID). Run `list`, exit and relaunch from the same folder. Expected: guardian punctuation, modes, links,
+   location, notes, individual rates and payment status persist; Bob remains unpaid. Both students' details appear
+   consistently in the class list and timetable. Unenrolling the last student must retain the class and shared metadata.
+
+For legacy JSON and already-saved case/spacing variants, use the automated storage fixtures/tests rather than editing
+your real file. Verify `ClassAttributesMigrationTest`, `SubjectSearchIntegrationTest` and
+`StudentIdentityIntegrationTest`: missing attributes default correctly, incomplete legacy subjects stay searchable,
+deleting a migrated class does not revive old subject matches, and existing name variants survive a save/reload.
+
 ### Searching by subject
 
 Use a disposable data file with three students: Alice taking Mathematics and Physics, Bob taking Computer Science,
-and Carol taking no subjects. These tests assume the student view; use `list` first if the timetable is open.
+and Carol taking no subjects. These students should initially be unpinned, in Alice/Bob/Carol insertion order.
+Use `list` first if the timetable or class list is open. Keep this fixture separate from the `QA...` attribute tests.
+
+To construct that fixture in a separate disposable folder, use `clear` to remove the sample records, then run:
+
+```text
+add n/Alice p/91111111 e/alice@example.com a/One sub/Mathematics cost/30 c/Thursday0700-0800
+add n/Bob p/92222222 e/bob@example.com a/Two sub/Computer Science cost/40 c/Thursday0800-0900
+add n/Carol p/93333333 e/carol@example.com a/Three
+class add sub/Physics cost/35 c/Thursday0900-1000
+```
+
+Record the Physics class ID from feedback, then run `class enrol 1 id/CLASS_ID` with that ID. Expected: Alice has both
+subjects and Bob has one. `clear` deletes records, so never run this fixture setup against your working data.
 
 | Test input | Expected result |
 | --- | --- |
 | `find sub/mAtH` | Alice appears once; feedback reports one result. |
-| `find sub/phys computer` | Alice and Bob appear in address-book order. |
+| `find sub/phys computer` | Alice and Bob appear in original address-book order. |
 | `find sub/math Math physics` | Alice appears once despite multiple matching keywords and classes. |
 | `find Carol`, then `find sub/computer` | Bob appears; the subject search includes students outside the old results. |
 | `find sub/Chemistry` | Empty results and a zero-result message. |
@@ -946,6 +1131,8 @@ and Carol taking no subjects. These tests assume the student view; use `list` fi
 | `find sub/Math sub/Physics` | Duplicate-prefix error; previous results remain unchanged. |
 | `find sub/Math t/priority` or `find Alice sub/Math` | Mixed-mode error; previous results remain unchanged. |
 | `timetable`, then `find sub/Math` | Timetable read-only error; use `list` before searching. |
+| `class list`, then `find sub/Math` | Class-list read-only error; use `list` before searching. |
+| `list`, `pin 2`, then `find sub/phys computer` | Bob appears before Alice because pinned matches come first; each appears once. |
 | `find sub/computer`, then `delete 1` | Bob is deleted, even if he was not first in the complete list. |
 
 After a subject search, exit and relaunch the app. All remaining students and their enrolments should be present;
