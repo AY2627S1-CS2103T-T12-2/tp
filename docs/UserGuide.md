@@ -501,6 +501,8 @@ Action     | Format, Examples
 **Untag**  | `untag INDEX TAG [MORE_TAGS]` or `untag INDEX -all`<br> e.g., `untag 2 parent-follow-up`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`, `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]`, `find c/DAY [TIME_HHmm]`, `find c/TIME_HHmm`, or `find c/DATE [TIME_HHmm]`<br> e.g., `find Jam`, `find t/fri`, `find c/Mon 1800`, `find c/2026-10-20`
 **List**   | `list`
+**Pin**    | `pin INDEX`<br> e.g., `pin 3`
+**Unpin**  | `unpin INDEX`<br> e.g., `unpin 1`
 **Help**   | `help`
 **Timetable** | `timetable`
 **Privacy mode** | `privacy on` or `privacy off`
