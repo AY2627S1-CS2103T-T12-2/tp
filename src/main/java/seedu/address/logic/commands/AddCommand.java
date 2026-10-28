@@ -83,7 +83,8 @@ public class AddCommand extends Command {
         }
         Person student = toAdd.withLessons(lessons);
         model.addPerson(student);
-        return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.format(student)));
+        return new CommandResult(String.format(MESSAGE_SUCCESS,
+                Messages.format(student, model.isPrivacyModeEnabled())));
     }
 
     @Override

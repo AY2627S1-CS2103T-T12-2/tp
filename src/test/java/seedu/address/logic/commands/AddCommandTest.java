@@ -47,6 +47,19 @@ public class AddCommandTest {
     }
 
     @Test
+    public void execute_privacyEnabled_masksContactDetailsInFeedback() throws Exception {
+        ModelStubAcceptingPersonAdded modelStub = new ModelStubAcceptingPersonAdded(true);
+        Person validPerson = new PersonBuilder()
+                .withGuardianContact("Mary Bee", "81234567", "mary@example.com")
+                .build();
+
+        CommandResult commandResult = new AddCommand(validPerson).execute(modelStub);
+
+        assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(validPerson, true)),
+                commandResult.getFeedbackToUser());
+    }
+
+    @Test
     public void execute_duplicatePerson_throwsCommandException() {
         Person validPerson = new PersonBuilder().build();
         AddCommand addCommand = new AddCommand(validPerson);
@@ -189,6 +202,15 @@ public class AddCommandTest {
      */
     private class ModelStubAcceptingPersonAdded extends ModelStub {
         final ArrayList<Person> personsAdded = new ArrayList<>();
+        private final boolean privacyModeEnabled;
+
+        ModelStubAcceptingPersonAdded() {
+            this(false);
+        }
+
+        ModelStubAcceptingPersonAdded(boolean privacyModeEnabled) {
+            this.privacyModeEnabled = privacyModeEnabled;
+        }
 
         @Override
         public boolean hasPerson(Person person) {
@@ -200,6 +222,11 @@ public class AddCommandTest {
         public void addPerson(Person person) {
             requireNonNull(person);
             personsAdded.add(person);
+        }
+
+        @Override
+        public boolean isPrivacyModeEnabled() {
+            return privacyModeEnabled;
         }
 
         @Override
