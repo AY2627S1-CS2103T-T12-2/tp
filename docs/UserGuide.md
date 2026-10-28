@@ -442,13 +442,18 @@ Format: `clear`
 
 ### Hiding contact details: `privacy`
 
-Privacy mode replaces the phone, email, and address values on every student card with a fixed seven-asterisk mask,
-such as `Address: *******`. The underlying contact details are not changed or deleted.
+Privacy mode replaces the phone, email, address, and any non-empty guardian contact details on every student card with
+a fixed seven-asterisk mask, such as `Address: *******`. While the mode is active, contact details in success feedback
+from the `add` and `edit` commands are masked too. Names, tags, classes, payment information, and pin status remain
+visible. The underlying contact details are not changed or deleted.
 
 Formats:
 
 * `privacy on` masks all displayed contact details immediately.
 * `privacy off` restores the original contact details immediately.
+
+The mode must be exactly lowercase `on` or `off`, with no additional arguments. The `privacy` command is available
+from the student list, timetable, and class-list views.
 
 While privacy mode is active, the status bar displays `Privacy mode enabled`. The selected mode is saved and restored
 when TutEasy restarts. Privacy mode is disabled by default for existing preference files that do not contain this
