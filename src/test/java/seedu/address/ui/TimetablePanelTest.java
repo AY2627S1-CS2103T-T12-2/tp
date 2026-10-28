@@ -28,8 +28,15 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollToEvent;
 import javafx.scene.layout.HBox;
+import seedu.address.model.lesson.ClassDetails;
+import seedu.address.model.lesson.Cost;
+import seedu.address.model.lesson.Lesson;
+import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.Subject;
 import seedu.address.model.timetable.TimetableDay;
+import seedu.address.model.timetable.TimetableEntry;
 import seedu.address.model.timetable.WeekRange;
+import seedu.address.testutil.PersonBuilder;
 
 public class TimetablePanelTest {
 
@@ -218,6 +225,33 @@ public class TimetablePanelTest {
 
         assertTrue(TimetablePanel.isToday(tuesday, LocalDate.of(2026, 10, 20)));
         assertFalse(TimetablePanel.isToday(tuesday, LocalDate.of(2026, 10, 27)));
+    }
+
+    @Test
+    public void renderedTimetable_maxLengthNote_wrapsAcrossMultipleLines() throws Exception {
+        LocalDate currentDate = LocalDate.of(2026, 10, 20);
+        Lesson lesson = new Lesson(new Subject("Math"), new Cost("30"),
+                new LessonTiming("Tuesday1800-1930"))
+                .withDetails(new ClassDetails("", "", "x".repeat(500)));
+        TimetableEntry longNoteEntry = new TimetableEntry(lesson,
+                List.of(new PersonBuilder().build()));
+
+        runOnFxThread(() -> {
+            TimetablePanel panel = new TimetablePanel(() -> currentDate, anchorDate ->
+                    WeekRange.containing(anchorDate).getDates().stream()
+                            .map(date -> new TimetableDay(date,
+                                    date.equals(currentDate) ? List.of(longNoteEntry) : List.of()))
+                            .toList());
+            new Scene(panel.getRoot(), 400, 600);
+
+            panel.getRoot().applyCss();
+            panel.getRoot().layout();
+
+            Label details = (Label) panel.getRoot().lookup("#details");
+            assertNotNull(details);
+            assertTrue(details.getHeight() > details.getFont().getSize() * 2,
+                    "A 500-character note should occupy multiple lines");
+        });
     }
 
     private static List<TimetableDay> loadWeek(LocalDate anchorDate, List<LocalDate> requestedDates) {
