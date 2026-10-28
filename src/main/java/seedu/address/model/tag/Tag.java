@@ -13,9 +13,13 @@ public class Tag {
     public static final int MAX_TAGS_PER_PERSON = 10;
     public static final String MESSAGE_CONSTRAINTS = "Tags must be 1 to 30 characters long and contain only "
             + "lowercase letters, numbers, and single hyphens between characters.";
+    public static final String MESSAGE_SEARCH_KEYWORD_CONSTRAINTS = "Tag search keywords must be 1 to 30 characters "
+            + "long and use lowercase letters, numbers, and single hyphens. A partial keyword may start or end with "
+            + "a hyphen.";
     public static final String MESSAGE_DUPLICATE_TAGS = "Duplicate tags are not allowed.";
     public static final String MESSAGE_TAG_LIMIT = "A student can have at most 10 tags.";
     public static final String VALIDATION_REGEX = "[a-z0-9]+(?:-[a-z0-9]+)*";
+    private static final String SEARCH_KEYWORD_VALIDATION_REGEX = "-?[a-z0-9]+(?:-[a-z0-9]+)*-?";
 
     public final String tagName;
 
@@ -35,6 +39,13 @@ public class Tag {
      */
     public static boolean isValidTagName(String test) {
         return test.length() <= MAX_TAG_LENGTH && test.matches(VALIDATION_REGEX);
+    }
+
+    /**
+     * Returns true if a given string is a valid complete or partial tag search keyword.
+     */
+    public static boolean isValidTagSearchKeyword(String test) {
+        return test.length() <= MAX_TAG_LENGTH && test.matches(SEARCH_KEYWORD_VALIDATION_REGEX);
     }
 
     @Override
