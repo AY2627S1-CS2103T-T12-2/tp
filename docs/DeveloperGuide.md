@@ -360,6 +360,11 @@ straight/curly apostrophes. This rule is independent of the student `Name` valid
 emails use `Phone` and `Email` validation. Every supplied guardian field is checked even when the others are absent.
 Invalid values become parse errors before a command can change the model.
 
+New `add` commands accept either none of `sub/`, `cost/` and `c/`, or all three with a complete weekly or one-off
+schedule. An incomplete group, empty value or start-only schedule is rejected before command execution, preserving
+students, classes, the current filter and saved data. Legacy subject/cost/start-time fields remain supported when
+reading older saved records; new commands cannot create those partial legacy records.
+
 Guardian values participate in `Person#equals`/`hashCode` and survive immutable copy operations. They are neither
 part of the duplicate-name check nor shared with classmates. `AddCommand` and `EditCommand` use
 `Model#hasNameConflict`: `Name#hasSameIdentityAs` derives a trimmed, single-space, lowercase key using `Locale.ROOT`.
@@ -1065,6 +1070,10 @@ listing to return to the writable student view. Compare student/class counts bef
 
    | Test input | Expected reason |
    | --- | --- |
+   | `add n/QAInvalid p/95555555 e/qa.invalid@example.com a/Five Street sub/English` | Incomplete class fields; requires subject, cost and schedule together. |
+   | `add n/QAInvalid p/95555555 e/qa.invalid@example.com a/Five Street cost/20` | Incomplete class fields. |
+   | `add n/QAInvalid p/95555555 e/qa.invalid@example.com a/Five Street sub/English cost/20` | Incomplete class fields. |
+   | `add n/QAInvalid p/95555555 e/qa.invalid@example.com a/Five Street sub/English cost/20 c/Thursday1200` | Schedule requires both start and end times. |
    | `add n/QAInvalid p/95555555 e/qa.invalid@example.com a/Five Street gn/@Mary` | Invalid guardian-name character. |
    | `add n/QAInvalid p/95555555 e/qa.invalid@example.com a/Five Street gp/12` | Guardian phone too short. |
    | `add n/QAInvalid p/95555555 e/qa.invalid@example.com a/Five Street ge/invalid` | Invalid guardian email. |
