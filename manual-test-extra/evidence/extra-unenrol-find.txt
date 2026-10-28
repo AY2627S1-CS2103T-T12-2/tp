@@ -1,0 +1,35 @@
+Timestamp: 2026-10-28T13:12:44.7095319+08:00
+Test: extra-unenrol-find
+Command: find Atomic Edit Student
+Result display: 1 person(s) listed!
+Visible UI text:
+File
+File
+Help
+Help
+Type 'list' to return to the home page.
+1 person(s) listed!
+1. 
+1. 
+Atomic Edit Student
+Atomic Edit Student
+Balance: 23
+Balance: 23
+Phone: *******
+Phone: *******
+Address: *******
+Address: *******
+Email: *******
+Email: *******
+Atomic Edit · Sun 12:00–12:30
+Atomic Edit · Sun 12:00–12:30
+Online
+Online
+Unpaid
+Unpaid
+Link: https://example.com/atomic | Location: Room A | Notes: Original details
+Link: https://example.com/atomic | Location: Room A | Notes: Original details
+.\data\addressbook.json
+.\data\addressbook.json
+Privacy mode enabled
+Privacy mode enabled

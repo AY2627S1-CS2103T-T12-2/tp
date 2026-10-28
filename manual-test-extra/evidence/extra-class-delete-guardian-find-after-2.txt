@@ -1,0 +1,13 @@
+Timestamp: 2026-10-28T13:38:31.5247121+08:00
+Test: extra-class-delete-guardian-find-after-2
+Command: find Delete Integration Probe
+Result display: 3 person(s) listed!
+Visible UI text:
+File
+File
+Help
+Help
+Type 'list' to return to the home page.
+3 person(s) listed!
+.\data\addressbook.json
+.\data\addressbook.json

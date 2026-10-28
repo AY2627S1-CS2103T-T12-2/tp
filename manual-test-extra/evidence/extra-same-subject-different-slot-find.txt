@@ -1,0 +1,13 @@
+Timestamp: 2026-10-28T12:42:15.9766095+08:00
+Test: extra-same-subject-different-slot-find
+Command: find Math Different Slot
+Result display: 1 person(s) listed!
+Visible UI text:
+File
+File
+Help
+Help
+Type 'list' to return to the home page.
+1 person(s) listed!
+.\data\addressbook.json
+.\data\addressbook.json

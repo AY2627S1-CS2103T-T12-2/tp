@@ -1,0 +1,402 @@
+Timestamp: 2026-10-28T13:27:58.4295387+08:00
+Test: extra-delete-highest-class-id
+Command: class delete id/C012
+Result display: Deleted class: Successful ID Probe, Wednesday 21:30-21:45.
+Removed enrolments from 1 student.
+Visible UI text:
+File
+File
+Help
+Help
+Deleted class: Successful ID Probe, Wednesday 21:30-21:45.
+Removed enrolments from 1 student.
+1. 
+1. 
+Alex Yeoh
+Alex Yeoh
+PINNED
+PINNED
+Balance: 50
+Balance: 50
+priority
+priority
+secondary-4
+secondary-4
+87438807
+87438807
+Blk 30 Geylang Street 29, #06-40
+Blk 30 Geylang Street 29, #06-40
+alexyeoh@example.com
+alexyeoh@example.com
+Mathematics · Mon 18:00–19:30
+Mathematics · Mon 18:00–19:30
+Online
+Online
+Paid
+Paid
+Link: https://zoom.us/j/123456789 | Notes: Bring the algebra worksheet
+Link: https://zoom.us/j/123456789 | Notes: Bring the algebra worksheet
+Physics · Sat 10:00–11:30
+Physics · Sat 10:00–11:30
+Offline
+Offline
+Unpaid
+Unpaid
+Location: Science Lab 2 | Notes: Safety goggles are provided
+Location: Science Lab 2 | Notes: Safety goggles are provided
+Guardian: Michelle Yeoh | 81234567 | michelle@example.com
+Guardian: Michelle Yeoh | 81234567 | michelle@example.com
+2. 
+2. 
+Roy Balakrishnan
+Roy Balakrishnan
+PINNED
+PINNED
+Balance: 0
+Balance: 0
+not-enrolled
+not-enrolled
+trial
+trial
+92624417
+92624417
+Blk 45 Aljunied Street 85, #11-31
+Blk 45 Aljunied Street 85, #11-31
+royb@example.com
+royb@example.com
+Guardian: Anita Balakrishnan | 85678901 | anita@example.com
+Guardian: Anita Balakrishnan | 85678901 | anita@example.com
+3. 
+3. 
+Bernice Yu
+Bernice Yu
+Balance: 42
+Balance: 42
+needs-practice
+needs-practice
+secondary-3
+secondary-3
+99272758
+99272758
+Blk 30 Lorong 3 Serangoon Gardens, #07-18
+Blk 30 Lorong 3 Serangoon Gardens, #07-18
+berniceyu@example.com
+berniceyu@example.com
+Mathematics · Mon 18:00–19:30
+Mathematics · Mon 18:00–19:30
+Online
+Online
+Unpaid
+Unpaid
+Link: https://zoom.us/j/123456789 | Notes: Bring the algebra worksheet
+Link: https://zoom.us/j/123456789 | Notes: Bring the algebra worksheet
+English · Wed 16:00–17:30
+English · Wed 16:00–17:30
+Offline
+Offline
+Paid
+Paid
+Location: Room 3-12 | Notes: Reading comprehension and composition
+Location: Room 3-12 | Notes: Reading comprehension and composition
+Guardian: Daniel Yu | 82345678
+Guardian: Daniel Yu | 82345678
+4. 
+4. 
+Charlotte Oliveiro
+Charlotte Oliveiro
+Balance: 95
+Balance: 95
+exam-prep
+exam-prep
+secondary-4
+secondary-4
+93210283
+93210283
+Blk 11 Ang Mo Kio Street 74, #11-04
+Blk 11 Ang Mo Kio Street 74, #11-04
+charlotte@example.com
+charlotte@example.com
+English · Wed 16:00–17:30
+English · Wed 16:00–17:30
+Offline
+Offline
+Unpaid
+Unpaid
+Location: Room 3-12 | Notes: Reading comprehension and composition
+Location: Room 3-12 | Notes: Reading comprehension and composition
+Chemistry Workshop · 28 Oct 2026 14:00–15:30
+Chemistry Workshop · 28 Oct 2026 14:00–15:30
+Online
+Online
+Unpaid
+Unpaid
+Link: https://meet.google.com/abc-defg-hij | Notes: One-off exam revision workshop
+Link: https://meet.google.com/abc-defg-hij | Notes: One-off exam revision workshop
+Guardian: Rachel Oliveiro | 83456789 | rachel@example.com
+Guardian: Rachel Oliveiro | 83456789 | rachel@example.com
+5. 
+5. 
+David Li
+David Li
+Balance: 0
+Balance: 0
+junior-college
+junior-college
+science
+science
+91031282
+91031282
+Blk 436 Serangoon Gardens Street 26, #16-43
+Blk 436 Serangoon Gardens Street 26, #16-43
+lidavid@example.com
+lidavid@example.com
+Physics · Sat 10:00–11:30
+Physics · Sat 10:00–11:30
+Offline
+Offline
+Paid
+Paid
+Location: Science Lab 2 | Notes: Safety goggles are provided
+Location: Science Lab 2 | Notes: Safety goggles are provided
+Chemistry Workshop · 28 Oct 2026 14:00–15:30
+Chemistry Workshop · 28 Oct 2026 14:00–15:30
+Online
+Online
+Paid
+Paid
+Link: https://meet.google.com/abc-defg-hij | Notes: One-off exam revision workshop
+Link: https://meet.google.com/abc-defg-hij | Notes: One-off exam revision workshop
+6. 
+6. 
+Irfan Ibrahim
+Irfan Ibrahim
+Balance: 45
+Balance: 45
+new-student
+new-student
+secondary-2
+secondary-2
+92492021
+92492021
+Blk 47 Tampines Street 20, #17-35
+Blk 47 Tampines Street 20, #17-35
+irfan@example.com
+irfan@example.com
+Mathematics · Mon 18:00–19:30
+Mathematics · Mon 18:00–19:30
+Online
+Online
+Unpaid
+Unpaid
+Link: https://zoom.us/j/123456789 | Notes: Bring the algebra worksheet
+Link: https://zoom.us/j/123456789 | Notes: Bring the algebra worksheet
+Guardian: Nur Ibrahim | 84567890 | nur@example.com
+Guardian: Nur Ibrahim | 84567890 | nur@example.com
+7. 
+7. 
+First History
+First History
+Balance: 25
+Balance: 25
+95550104
+95550104
+Test
+Test
+first.history@example.com
+first.history@example.com
+Empty Enrichment · Sun 15:00–16:00
+Empty Enrichment · Sun 15:00–16:00
+Online
+Online
+Unpaid
+Unpaid
+Link: https://meet.example.com/history | Location: Study Room | Notes: Bring workbook
+Link: https://meet.example.com/history | Location: Study Room | Notes: Bring workbook
+8. 
+8. 
+Math Different Slot
+Math Different Slot
+Balance: 20
+Balance: 20
+95550105
+95550105
+Test
+Test
+math.different@example.com
+math.different@example.com
+Mathematics · Sun 17:00–18:00
+Mathematics · Sun 17:00–18:00
+Offline
+Offline
+Unpaid
+Unpaid
+Location: Room 9 | Notes: Keep separate
+Location: Room 9 | Notes: Keep separate
+9. 
+9. 
+Max Notes
+Max Notes
+Balance: 20
+Balance: 20
+95550106
+95550106
+Test
+Test
+max.notes@example.com
+max.notes@example.com
+Max Notes · Sun 19:00–20:00
+Max Notes · Sun 19:00–20:00
+Offline
+Offline
+Unpaid
+Unpaid
+Notes: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+Notes: ...
+10. 
+10. 
+Slash Control
+Slash Control
+Balance: 20
+Balance: 20
+95550108
+95550108
+Test
+Test
+slash.control@example.com
+slash.control@example.com
+Reading · Sun 22:00–23:00
+Reading · Sun 22:00–23:00
+Offline
+Offline
+Unpaid
+Unpaid
+Notes: Pages 2/3 and 4/5
+Notes: Pages 2/3 and 4/5
+11. 
+11. 
+Privacy Added
+Privacy Added
+Balance: 0
+Balance: 0
+95550109
+95550109
+Test
+Test
+privacy.add@example.com
+privacy.add@example.com
+Guardian: Parent Added | 95550110 | parent.add@example.com
+Guardian: Parent Added | 95550110 | parent.add@example.com
+12. 
+12. 
+Aaron Alpha
+Aaron Alpha
+Balance: 45
+Balance: 45
+95550111
+95550111
+Test
+Test
+aaron.alpha@example.com
+aaron.alpha@example.com
+Mathematics · Mon 18:00–19:30
+Mathematics · Mon 18:00–19:30
+Online
+Online
+Unpaid
+Unpaid
+Link: https://zoom.us/j/123456789 | Notes: Bring the algebra worksheet
+Link: https://zoom.us/j/123456789 | Notes: Bring the algebra worksheet
+13. 
+13. 
+Uppercase Mode
+Uppercase Mode
+Balance: 20
+Balance: 20
+95550112
+95550112
+Test
+Test
+uppercase.mode@example.com
+uppercase.mode@example.com
+Uppercase · Sun 11:00–12:00
+Uppercase · Sun 11:00–12:00
+Online
+Online
+Unpaid
+Unpaid
+Link: https://example.com/upper
+Link: https://example.com/upper
+14. 
+14. 
+No Guardian
+No Guardian
+Balance: 0
+Balance: 0
+95550115
+95550115
+Test
+Test
+no.guardian@example.com
+no.guardian@example.com
+15. 
+15. 
+Atomic Edit Student
+Atomic Edit Student
+Balance: 0
+Balance: 0
+95550116
+95550116
+Test
+Test
+atomic.edit@example.com
+atomic.edit@example.com
+16. 
+16. 
+Second History
+Second History
+Balance: 25
+Balance: 25
+95550117
+95550117
+Test
+Test
+second.history@example.com
+second.history@example.com
+Empty Enrichment · Sun 15:00–16:00
+Empty Enrichment · Sun 15:00–16:00
+Online
+Online
+Unpaid
+Unpaid
+Link: https://meet.example.com/history | Location: Study Room | Notes: Bring workbook
+Link: https://meet.example.com/history | Location: Study Room | Notes: Bring workbook
+17. 
+17. 
+Successful ID Probe
+Successful ID Probe
+Balance: 0
+Balance: 0
+95550123
+95550123
+Test
+Test
+success.id@example.com
+success.id@example.com
+18. 
+18. 
+Tag Guardian Probe
+Tag Guardian Probe
+Balance: 0
+Balance: 0
+integration-probe
+integration-probe
+95550140
+95550140
+Test
+Test
+tag.guardian@example.com
+tag.guardian@example.com
+Guardian: Anna Probe | 95550141 | anna.probe@example.com
+Guardian: Anna Probe | 95550141 | anna.probe@example.com
+.\data\addressbook.json
+.\data\addressbook.json

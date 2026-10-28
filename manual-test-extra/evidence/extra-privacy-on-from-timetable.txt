@@ -1,0 +1,127 @@
+Timestamp: 2026-10-28T13:36:27.9462875+08:00
+Test: extra-privacy-on-from-timetable
+Command: privacy on
+Result display: Privacy mode is now enabled.
+Visible UI text:
+File
+File
+Help
+Help
+Privacy mode is now enabled.
+< Previous week
+25–31 Oct 2026
+25–31 Oct 2026
+Today
+Next week >
+Sunday, 25 Oct
+Sunday, 25 Oct
+09:00-10:30
+09:00-10:30
+Art
+Art
+Mode: Offline | Location: Studio 2 | Notes: Open class with no students enrolled yet
+Mode: Offline | Location: Studio 2 | Notes: Open class with no students enrolled yet
+11:00-12:00
+11:00-12:00
+Uppercase
+Uppercase
+Mode: Online | Link: https://example.com/upper
+Mode: Online | Link: https://example.com/upper
+Uppercase Mode
+Uppercase Mode
+12:00-12:30
+12:00-12:30
+Atomic Edit
+Atomic Edit
+Mode: Online | Link: https://example.com/atomic | Location: Room A | Notes: Original details
+Mode: Online | Link: https://example.com/atomic | Location: Room A | Notes: Original details
+15:00-16:00
+15:00-16:00
+Empty Enrichment
+Empty Enrichment
+Mode: Online | Link: https://meet.example.com/history | Location: Study Room | Notes: Bring workbook
+Mode: Online | Link: https://meet.example.com/history | Location: Study Room | Notes: Bring workbook
+First History, Second History
+First History, Second History
+17:00-18:00
+17:00-18:00
+Mathematics
+Mathematics
+Mode: Offline | Location: Room 9 | Notes: Keep separate
+Mode: Offline | Location: Room 9 | Notes: Keep separate
+Math Different Slot
+Math Different Slot
+19:00-20:00
+19:00-20:00
+Max Notes
+Max Notes
+Mode: Offline | Notes: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+Mode: Offline | Notes: ...
+Max Notes
+Max Notes
+22:00-23:00
+22:00-23:00
+Reading
+Reading
+Mode: Offline | Notes: Pages 2/3 and 4/5
+Mode: Offline | Notes: Pages 2/3 and 4/5
+Slash Control
+Slash Control
+Monday, 26 Oct
+Monday, 26 Oct
+18:00-19:30
+18:00-19:30
+Mathematics
+Mathematics
+Mode: Online | Link: https://zoom.us/j/123456789 | Notes: Bring the algebra worksheet
+Mode: Online | Link: https://zoom.us/j/123456789 | Notes: Bring the algebra worksheet
+Aaron Alpha, Alex Yeoh, Bernice Yu, Irfan Ibrahim
+Aaron Alpha, Alex Yeoh, Bernice Yu, Irfan Ibrahim
+Tuesday, 27 Oct
+Tuesday, 27 Oct
+No classes
+No classes
+Wednesday, 28 Oct
+Wednesday, 28 Oct
+14:00-15:30
+14:00-15:30
+Chemistry Workshop
+Chemistry Workshop
+Mode: Online | Link: https://meet.google.com/abc-defg-hij | Notes: One-off exam revision workshop
+Mode: Online | Link: https://meet.google.com/abc-defg-hij | Notes: One-off exam revision workshop
+Charlotte Oliveiro, David Li
+Charlotte Oliveiro, David Li
+16:00-17:30
+16:00-17:30
+English
+English
+Mode: Offline | Location: Room 3-12 | Notes: Reading comprehension and composition
+Mode: Offline | Location: Room 3-12 | Notes: Reading comprehension and composition
+Bernice Yu, Charlotte Oliveiro
+Bernice Yu, Charlotte Oliveiro
+Thursday, 29 Oct
+Thursday, 29 Oct
+21:30-21:45
+21:30-21:45
+After Delete ID Probe
+After Delete ID Probe
+Mode: Offline
+Mode: Offline
+Friday, 30 Oct
+Friday, 30 Oct
+No classes
+No classes
+Saturday, 31 Oct
+Saturday, 31 Oct
+10:00-11:30
+10:00-11:30
+Physics
+Physics
+Mode: Offline | Location: Science Lab 2 | Notes: Safety goggles are provided
+Mode: Offline | Location: Science Lab 2 | Notes: Safety goggles are provided
+Alex Yeoh, David Li
+Alex Yeoh, David Li
+.\data\addressbook.json
+.\data\addressbook.json
+Privacy mode enabled
+Privacy mode enabled

@@ -1,0 +1,12 @@
+Timestamp: 2026-10-28T13:23:42.6772891+08:00
+Test: extra-tag-guardian-privacy-off
+Command: privacy off
+Result display: Privacy mode is now disabled.
+Visible UI text:
+File
+File
+Help
+Help
+Privacy mode is now disabled.
+.\data\addressbook.json
+.\data\addressbook.json

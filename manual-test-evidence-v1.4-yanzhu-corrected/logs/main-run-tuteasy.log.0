@@ -1,0 +1,296 @@
+10月 28, 2026 10:20:20 上午 seedu.address.Main main
+警告: The warnings about a 'restricted method in java.lang.System' and 'enabling native access' appearing below (if any) can be ignored.
+10月 28, 2026 10:20:21 上午 seedu.address.MainApp init
+信息: ===============================[ Initializing TutEasy ]=============================
+10月 28, 2026 10:20:21 上午 seedu.address.MainApp initPrefs
+信息: Using preference file : preferences.json
+10月 28, 2026 10:20:21 上午 seedu.address.MainApp initPrefs
+信息: Creating new preference file preferences.json
+10月 28, 2026 10:20:21 上午 seedu.address.MainApp initModelManager
+信息: Using data file : data\addressbook.json
+10月 28, 2026 10:20:21 上午 seedu.address.MainApp initModelManager
+信息: Creating a new data file data\addressbook.json populated with a sample AddressBook.
+10月 28, 2026 10:20:21 上午 seedu.address.MainApp start
+信息: Starting TutEasy V1.4
+10月 28, 2026 10:20:21 上午 seedu.address.ui.UiManager start
+信息: Starting UI...
+10月 28, 2026 10:27:14 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][list]
+10月 28, 2026 10:27:14 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Listed all persons.
+10月 28, 2026 10:30:21 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][clear]
+10月 28, 2026 10:30:21 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Address book has been cleared!
+10月 28, 2026 10:30:27 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][add n/Alice Weekly p/91234567 e/alice.weekly@example.com a/Bishan sub/Mathematics cost/30 c/Wednesday1800-1930]
+10月 28, 2026 10:30:27 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Student Added: Alice Weekly; Phone: 91234567; Email: alice.weekly@example.com; Address: Bishan; Tags: 
+10月 28, 2026 10:30:33 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][add n/Bob Oneoff p/92345678 e/bob.oneoff@example.com a/Jurong sub/Physics cost/40 c/2026-10-30T1600-1730]
+10月 28, 2026 10:30:33 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Student Added: Bob Oneoff; Phone: 92345678; Email: bob.oneoff@example.com; Address: Jurong; Tags: 
+10月 28, 2026 10:30:40 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][add n/Cara Guardian p/93456789 e/cara@example.com a/Tampines gn/Mary Tan gp/94567890 ge/mary@example.com sub/Chemistry cost/35 c/Thursday1400-1500 mode/online link/https://meet.example.com/cara location/Zoom notes/Bring notes]
+10月 28, 2026 10:30:40 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Student Added: Cara Guardian; Phone: 93456789; Email: cara@example.com; Address: Tampines; Tags: ; Guardian: Mary Tan | 94567890 | mary@example.com
+10月 28, 2026 10:31:43 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][add n/Dan Adjacent p/94560001 e/dan@example.com a/Bedok sub/Computing cost/25 c/Wednesday1930-2000]
+10月 28, 2026 10:31:43 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Student Added: Dan Adjacent; Phone: 94560001; Email: dan@example.com; Address: Bedok; Tags: 
+10月 28, 2026 10:31:49 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][add n/Eve Overlap p/94560002 e/eve@example.com a/Serangoon sub/Biology cost/25 c/Wednesday1900-2000]
+10月 28, 2026 10:31:49 上午 seedu.address.ui.MainWindow executeCommand
+信息: An error occurred while executing command: add n/Eve Overlap p/94560002 e/eve@example.com a/Serangoon sub/Biology cost/25 c/Wednesday1900-2000
+10月 28, 2026 10:31:54 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][add n/Faye OneoffOverlap p/94560003 e/faye@example.com a/Yishun sub/History cost/25 c/2026-10-28T1830-1900]
+10月 28, 2026 10:31:54 上午 seedu.address.ui.MainWindow executeCommand
+信息: An error occurred while executing command: add n/Faye OneoffOverlap p/94560003 e/faye@example.com a/Yishun sub/History cost/25 c/2026-10-28T1830-1900
+10月 28, 2026 10:31:59 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][add n/Gary WeeklyOverlap p/94560004 e/gary@example.com a/PasirRis sub/Geography cost/25 c/Friday1600-1700]
+10月 28, 2026 10:31:59 上午 seedu.address.ui.MainWindow executeCommand
+信息: An error occurred while executing command: add n/Gary WeeklyOverlap p/94560004 e/gary@example.com a/PasirRis sub/Geography cost/25 c/Friday1600-1700
+10月 28, 2026 10:32:04 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][class add sub/Midnight cost/20 c/Sunday0000-0001]
+10月 28, 2026 10:32:04 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Added class C005: Midnight, Sunday 00:00-00:01, cost 20.
+10月 28, 2026 10:32:11 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][class add sub/Endday cost/20 c/Sunday2358-2359]
+10月 28, 2026 10:32:11 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Added class C006: Endday, Sunday 23:58-23:59, cost 20.
+10月 28, 2026 10:32:18 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][class add sub/Bad Date cost/20 c/2026-10-30 1600-1730]
+10月 28, 2026 10:32:18 上午 seedu.address.ui.MainWindow executeCommand
+信息: An error occurred while executing command: class add sub/Bad Date cost/20 c/2026-10-30 1600-1730
+10月 28, 2026 10:32:24 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][class add sub/Equal Time cost/20 c/Monday1800-1800]
+10月 28, 2026 10:32:24 上午 seedu.address.ui.MainWindow executeCommand
+信息: An error occurred while executing command: class add sub/Equal Time cost/20 c/Monday1800-1800
+10月 28, 2026 10:32:44 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][timetable]
+10月 28, 2026 10:32:44 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Showing timetable.
+10月 28, 2026 10:34:23 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][add n/Blocked Student p/95550001 e/blocked@example.com a/Test]
+10月 28, 2026 10:34:23 上午 seedu.address.ui.MainWindow executeCommand
+信息: An error occurred while executing command: add n/Blocked Student p/95550001 e/blocked@example.com a/Test
+10月 28, 2026 10:34:29 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][class list]
+10月 28, 2026 10:34:29 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Showing 6 class(es).
+10月 28, 2026 10:34:35 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][timetable]
+10月 28, 2026 10:34:35 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Showing timetable.
+10月 28, 2026 10:34:42 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][list]
+10月 28, 2026 10:34:42 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Listed all persons.
+10月 28, 2026 10:35:04 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][find Cara]
+10月 28, 2026 10:35:04 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: 1 person(s) listed!
+10月 28, 2026 10:35:11 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][privacy on]
+10月 28, 2026 10:35:11 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Privacy mode is now enabled.
+10月 28, 2026 10:35:18 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][class list]
+10月 28, 2026 10:35:18 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Showing 6 class(es).
+10月 28, 2026 10:35:23 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][privacy off]
+10月 28, 2026 10:35:24 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Privacy mode is now disabled.
+10月 28, 2026 10:35:29 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][list]
+10月 28, 2026 10:35:29 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Listed all persons.
+10月 28, 2026 10:35:35 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][find Cara]
+10月 28, 2026 10:35:35 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: 1 person(s) listed!
+10月 28, 2026 10:36:26 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][list]
+10月 28, 2026 10:36:26 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Listed all persons.
+10月 28, 2026 10:36:31 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][add n/Missing Class p/95550011 e/missing@example.com a/Test sub/English]
+10月 28, 2026 10:36:31 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Student Added: Missing Class; Phone: 95550011; Email: missing@example.com; Address: Test; Tags: 
+10月 28, 2026 10:36:38 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][add n/Duplicate Guardian p/95550012 e/dupguardian@example.com a/Test gn/One Parent gn/Two Parent]
+10月 28, 2026 10:36:38 上午 seedu.address.ui.MainWindow executeCommand
+信息: An error occurred while executing command: add n/Duplicate Guardian p/95550012 e/dupguardian@example.com a/Test gn/One Parent gn/Two Parent
+10月 28, 2026 10:36:44 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][add n/Invalid Mode p/95550013 e/invalidmode@example.com a/Test sub/English cost/20 c/Monday1000-1100 mode/hybrid]
+10月 28, 2026 10:36:44 上午 seedu.address.ui.MainWindow executeCommand
+信息: An error occurred while executing command: add n/Invalid Mode p/95550013 e/invalidmode@example.com a/Test sub/English cost/20 c/Monday1000-1100 mode/hybrid
+10月 28, 2026 10:36:50 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][add n/Offline Link p/95550014 e/offlinelink@example.com a/Test sub/English cost/20 c/Monday1000-1100 mode/offline link/https://meet.example.com/offline]
+10月 28, 2026 10:36:50 上午 seedu.address.ui.MainWindow executeCommand
+信息: An error occurred while executing command: add n/Offline Link p/95550014 e/offlinelink@example.com a/Test sub/English cost/20 c/Monday1000-1100 mode/offline link/https://meet.example.com/offline
+10月 28, 2026 10:36:57 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][add n/Link No Mode p/95550015 e/linknomode@example.com a/Test sub/English cost/20 c/Monday1000-1100 link/https://meet.example.com/nomode]
+10月 28, 2026 10:36:57 上午 seedu.address.ui.MainWindow executeCommand
+信息: An error occurred while executing command: add n/Link No Mode p/95550015 e/linknomode@example.com a/Test sub/English cost/20 c/Monday1000-1100 link/https://meet.example.com/nomode
+10月 28, 2026 10:37:10 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][add n/Credential Link p/95550016 e/credential@example.com a/Test sub/English cost/20 c/Monday1000-1100 mode/online link/https://user:pass@example.com/lesson]
+10月 28, 2026 10:37:10 上午 seedu.address.ui.MainWindow executeCommand
+信息: An error occurred while executing command: add n/Credential Link p/95550016 e/credential@example.com a/Test sub/English cost/20 c/Monday1000-1100 mode/online link/https://user:pass@example.com/lesson
+10月 28, 2026 10:37:15 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][add n/Repeated Mode p/95550017 e/repeated@example.com a/Test sub/English cost/20 c/Monday1000-1100 mode/online mode/offline]
+10月 28, 2026 10:37:15 上午 seedu.address.ui.MainWindow executeCommand
+信息: An error occurred while executing command: add n/Repeated Mode p/95550017 e/repeated@example.com a/Test sub/English cost/20 c/Monday1000-1100 mode/online mode/offline
+10月 28, 2026 10:37:21 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][add n/No Class Details p/95550018 e/noclass@example.com a/Test mode/online location/Room]
+10月 28, 2026 10:37:21 上午 seedu.address.ui.MainWindow executeCommand
+信息: An error occurred while executing command: add n/No Class Details p/95550018 e/noclass@example.com a/Test mode/online location/Room
+10月 28, 2026 10:37:27 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][add n/Boundary Valid p/95550019 e/boundary.valid@example.com a/Test sub/Art cost/20 c/Monday1000-1100 mode/offline location/LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL]
+10月 28, 2026 10:37:28 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Student Added: Boundary Valid; Phone: 95550019; Email: boundary.valid@example.com; Address: Test; Tags: 
+10月 28, 2026 10:37:34 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][add n/Boundary Invalid p/95550020 e/boundary.invalid@example.com a/Test sub/Music cost/20 c/Tuesday1000-1100 mode/offline notes/NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN]
+10月 28, 2026 10:37:34 上午 seedu.address.ui.MainWindow executeCommand
+信息: An error occurred while executing command: add n/Boundary Invalid p/95550020 e/boundary.invalid@example.com a/Test sub/Music cost/20 c/Tuesday1000-1100 mode/offline notes/NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
+10月 28, 2026 10:38:11 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][add n/Incomplete Cost p/95550021 e/incomplete.cost@example.com a/Test cost/20]
+10月 28, 2026 10:38:11 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Student Added: Incomplete Cost; Phone: 95550021; Email: incomplete.cost@example.com; Address: Test; Tags: 
+10月 28, 2026 10:38:17 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][add n/Incomplete Schedule p/95550022 e/incomplete.schedule@example.com a/Test c/Tuesday1200-1300]
+10月 28, 2026 10:38:17 上午 seedu.address.ui.MainWindow executeCommand
+信息: An error occurred while executing command: add n/Incomplete Schedule p/95550022 e/incomplete.schedule@example.com a/Test c/Tuesday1200-1300
+10月 28, 2026 10:38:22 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][add n/Incomplete SubCost p/95550023 e/incomplete.subcost@example.com a/Test sub/English cost/20]
+10月 28, 2026 10:38:22 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Student Added: Incomplete SubCost; Phone: 95550023; Email: incomplete.subcost@example.com; Address: Test; Tags: 
+10月 28, 2026 10:38:28 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][add n/Incomplete SubSchedule p/95550024 e/incomplete.subschedule@example.com a/Test sub/English c/Tuesday1200-1300]
+10月 28, 2026 10:38:28 上午 seedu.address.ui.MainWindow executeCommand
+信息: An error occurred while executing command: add n/Incomplete SubSchedule p/95550024 e/incomplete.subschedule@example.com a/Test sub/English c/Tuesday1200-1300
+10月 28, 2026 10:38:35 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][add n/Incomplete CostSchedule p/95550025 e/incomplete.costschedule@example.com a/Test cost/20 c/Tuesday1200-1300]
+10月 28, 2026 10:38:35 上午 seedu.address.ui.MainWindow executeCommand
+信息: An error occurred while executing command: add n/Incomplete CostSchedule p/95550025 e/incomplete.costschedule@example.com a/Test cost/20 c/Tuesday1200-1300
+10月 28, 2026 10:39:04 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][find Incomplete]
+10月 28, 2026 10:39:04 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: 2 person(s) listed!
+10月 28, 2026 10:39:10 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][add n/Dana Inherit p/95550030 e/dana@example.com a/Sengkang sub/Chemistry cost/35 c/Thursday1400-1500]
+10月 28, 2026 10:39:10 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Student Added: Dana Inherit; Phone: 95550030; Email: dana@example.com; Address: Sengkang; Tags: 
+10月 28, 2026 10:39:16 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][find Dana]
+10月 28, 2026 10:39:16 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: 1 person(s) listed!
+10月 28, 2026 10:39:21 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][add n/Conflict Student p/95550031 e/conflict@example.com a/Punggol sub/Chemistry cost/35 c/Thursday1400-1500 mode/offline]
+10月 28, 2026 10:39:21 上午 seedu.address.ui.MainWindow executeCommand
+信息: An error occurred while executing command: add n/Conflict Student p/95550031 e/conflict@example.com a/Punggol sub/Chemistry cost/35 c/Thursday1400-1500 mode/offline
+10月 28, 2026 10:39:38 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][find Conflict]
+10月 28, 2026 10:39:38 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: 0 person(s) listed!
+10月 28, 2026 10:40:35 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][list]
+10月 28, 2026 10:40:35 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Listed all persons.
+10月 28, 2026 10:40:41 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][add n/Guardian PhoneOnly p/95550040 e/guardian.phone@example.com a/AngMoKio gp/81234567]
+10月 28, 2026 10:40:41 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Student Added: Guardian PhoneOnly; Phone: 95550040; Email: guardian.phone@example.com; Address: AngMoKio; Tags: ; Guardian: 81234567
+10月 28, 2026 10:40:47 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][add n/Empty Guardian p/95550041 e/empty.guardian@example.com a/Hougang gn/ gp/ ge/]
+10月 28, 2026 10:40:47 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Student Added: Empty Guardian; Phone: 95550041; Email: empty.guardian@example.com; Address: Hougang; Tags: 
+10月 28, 2026 10:40:53 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][add n/Repeated GuardianPhone p/95550042 e/repeated.gp@example.com a/Test gp/81234567 gp/82345678]
+10月 28, 2026 10:40:53 上午 seedu.address.ui.MainWindow executeCommand
+信息: An error occurred while executing command: add n/Repeated GuardianPhone p/95550042 e/repeated.gp@example.com a/Test gp/81234567 gp/82345678
+10月 28, 2026 10:40:59 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][add n/Invalid GuardianPhone p/95550043 e/invalid.gp@example.com a/Test gp/abc]
+10月 28, 2026 10:40:59 上午 seedu.address.ui.MainWindow executeCommand
+信息: An error occurred while executing command: add n/Invalid GuardianPhone p/95550043 e/invalid.gp@example.com a/Test gp/abc
+10月 28, 2026 10:41:04 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][add n/Hyphen Guardian p/95550044 e/hyphen.guardian@example.com a/Test gn/Mary-Anne OConnor]
+10月 28, 2026 10:41:04 上午 seedu.address.ui.MainWindow executeCommand
+信息: An error occurred while executing command: add n/Hyphen Guardian p/95550044 e/hyphen.guardian@example.com a/Test gn/Mary-Anne OConnor
+10月 28, 2026 10:41:27 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][find Dana]
+10月 28, 2026 10:41:28 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: 1 person(s) listed!
+10月 28, 2026 10:41:34 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][edit 1 n/Dana Edited p/95550039]
+10月 28, 2026 10:41:34 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Edited person: Dana Edited; Phone: 95550039; Email: dana@example.com; Address: Sengkang; Tags: 
+10月 28, 2026 10:41:41 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][list]
+10月 28, 2026 10:41:42 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Listed all persons.
+10月 28, 2026 10:41:49 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][class edit id/C003 cost/45]
+10月 28, 2026 10:41:49 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Edited class C003: Chemistry, Thursday 14:00-15:00, cost 45.
+10月 28, 2026 10:41:55 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][find Dana]
+10月 28, 2026 10:41:55 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: 1 person(s) listed!
+10月 28, 2026 10:42:01 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][class list]
+10月 28, 2026 10:42:01 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Showing 7 class(es).
+10月 28, 2026 10:42:06 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][list]
+10月 28, 2026 10:42:06 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Listed all persons.
+10月 28, 2026 10:42:29 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][privacy on]
+10月 28, 2026 10:42:29 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Privacy mode is now enabled.
+10月 28, 2026 10:42:39 上午 seedu.address.MainApp stop
+信息: ============================== [ Stopping TutEasy ] ================================
+10月 28, 2026 10:42:52 上午 seedu.address.Main main
+警告: The warnings about a 'restricted method in java.lang.System' and 'enabling native access' appearing below (if any) can be ignored.
+10月 28, 2026 10:42:53 上午 seedu.address.MainApp init
+信息: ===============================[ Initializing TutEasy ]=============================
+10月 28, 2026 10:42:53 上午 seedu.address.MainApp initPrefs
+信息: Using preference file : preferences.json
+10月 28, 2026 10:42:53 上午 seedu.address.commons.util.JsonUtil readJsonFile
+信息: JSON file preferences.json found.
+10月 28, 2026 10:42:53 上午 seedu.address.MainApp initModelManager
+信息: Using data file : data\addressbook.json
+10月 28, 2026 10:42:53 上午 seedu.address.commons.util.JsonUtil readJsonFile
+信息: JSON file data\addressbook.json found.
+10月 28, 2026 10:42:53 上午 seedu.address.MainApp start
+信息: Starting TutEasy V1.4
+10月 28, 2026 10:42:53 上午 seedu.address.ui.UiManager start
+信息: Starting UI...
+10月 28, 2026 10:43:30 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][find Dana]
+10月 28, 2026 10:43:30 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: 1 person(s) listed!
+10月 28, 2026 10:43:36 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][privacy off]
+10月 28, 2026 10:43:36 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Privacy mode is now disabled.
+10月 28, 2026 10:43:43 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][find Cara]
+10月 28, 2026 10:43:43 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: 1 person(s) listed!
+10月 28, 2026 10:43:50 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][timetable]
+10月 28, 2026 10:43:50 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Showing timetable.
+10月 28, 2026 10:43:55 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][list]
+10月 28, 2026 10:43:56 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: Listed all persons.
+10月 28, 2026 10:44:03 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][find Incomplete]
+10月 28, 2026 10:44:03 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: 2 person(s) listed!
+10月 28, 2026 10:46:07 上午 seedu.address.MainApp stop
+信息: ============================== [ Stopping TutEasy ] ================================

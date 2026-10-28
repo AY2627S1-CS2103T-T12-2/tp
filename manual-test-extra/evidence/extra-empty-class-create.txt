@@ -1,0 +1,12 @@
+Timestamp: 2026-10-28T12:40:39.8591673+08:00
+Test: extra-empty-class-create
+Command: class add sub/Empty Enrichment cost/25 c/Sunday1500-1600
+Result display: Added class C006: Empty Enrichment, Sunday 15:00-16:00, cost 25.
+Visible UI text:
+File
+File
+Help
+Help
+Added class C006: Empty Enrichment, Sunday 15:00-16:00, cost 25.
+.\data\addressbook.json
+.\data\addressbook.json

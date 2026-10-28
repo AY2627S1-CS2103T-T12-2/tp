@@ -1,0 +1,67 @@
+Timestamp: 2026-10-28T12:57:56.0964759+08:00
+Test: extra-cross-year-timetable-open
+Command: timetable
+Result display: Showing timetable.
+Visible UI text:
+File
+File
+Help
+Help
+Showing timetable.
+< Previous week
+25–31 Oct 2026
+25–31 Oct 2026
+Today
+Next week >
+Monday, 26 Oct
+Monday, 26 Oct
+18:00-19:30
+18:00-19:30
+Mathematics
+Mathematics
+Mode: Online | Link: https://zoom.us/j/123456789 | Notes: Bring the algebra worksheet
+Mode: Online | Link: https://zoom.us/j/123456789 | Notes: Bring the algebra worksheet
+Aaron Alpha, Alex Yeoh, Bernice Yu, Irfan Ibrahim
+Aaron Alpha, Alex Yeoh, Bernice Yu, Irfan Ibrahim
+Tuesday, 27 Oct
+Tuesday, 27 Oct
+No classes
+No classes
+Wednesday, 28 Oct
+Wednesday, 28 Oct
+14:00-15:30
+14:00-15:30
+Chemistry Workshop
+Chemistry Workshop
+Mode: Online | Link: https://meet.google.com/abc-defg-hij | Notes: One-off exam revision workshop
+Mode: Online | Link: https://meet.google.com/abc-defg-hij | Notes: One-off exam revision workshop
+Charlotte Oliveiro, David Li
+Charlotte Oliveiro, David Li
+16:00-17:30
+16:00-17:30
+English
+English
+Mode: Offline | Location: Room 3-12 | Notes: Reading comprehension and composition
+Mode: Offline | Location: Room 3-12 | Notes: Reading comprehension and composition
+Bernice Yu, Charlotte Oliveiro
+Bernice Yu, Charlotte Oliveiro
+Thursday, 29 Oct
+Thursday, 29 Oct
+No classes
+No classes
+Friday, 30 Oct
+Friday, 30 Oct
+No classes
+No classes
+Saturday, 31 Oct
+Saturday, 31 Oct
+10:00-11:30
+10:00-11:30
+Physics
+Physics
+Mode: Offline | Location: Science Lab 2 | Notes: Safety goggles are provided
+Mode: Offline | Location: Science Lab 2 | Notes: Safety goggles are provided
+Alex Yeoh, David Li
+Alex Yeoh, David Li
+.\data\addressbook.json
+.\data\addressbook.json

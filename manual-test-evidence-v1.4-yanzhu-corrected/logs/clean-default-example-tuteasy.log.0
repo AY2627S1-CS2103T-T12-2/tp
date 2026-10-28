@@ -1,0 +1,24 @@
+10月 28, 2026 10:45:23 上午 seedu.address.Main main
+警告: The warnings about a 'restricted method in java.lang.System' and 'enabling native access' appearing below (if any) can be ignored.
+10月 28, 2026 10:45:24 上午 seedu.address.MainApp init
+信息: ===============================[ Initializing TutEasy ]=============================
+10月 28, 2026 10:45:24 上午 seedu.address.MainApp initPrefs
+信息: Using preference file : preferences.json
+10月 28, 2026 10:45:24 上午 seedu.address.MainApp initPrefs
+信息: Creating new preference file preferences.json
+10月 28, 2026 10:45:24 上午 seedu.address.MainApp initModelManager
+信息: Using data file : data\addressbook.json
+10月 28, 2026 10:45:24 上午 seedu.address.MainApp initModelManager
+信息: Creating a new data file data\addressbook.json populated with a sample AddressBook.
+10月 28, 2026 10:45:24 上午 seedu.address.MainApp start
+信息: Starting TutEasy V1.4
+10月 28, 2026 10:45:24 上午 seedu.address.ui.UiManager start
+信息: Starting UI...
+10月 28, 2026 10:45:40 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][find Incomplete]
+10月 28, 2026 10:45:40 上午 seedu.address.ui.MainWindow executeCommand
+信息: Result: 0 person(s) listed!
+10月 28, 2026 10:47:06 上午 seedu.address.logic.LogicManager execute
+信息: ----------------[USER COMMAND][class add sub/Physics cost/35 c/Wednesday1700-1830]
+10月 28, 2026 10:47:06 上午 seedu.address.ui.MainWindow executeCommand
+信息: An error occurred while executing command: class add sub/Physics cost/35 c/Wednesday1700-1830

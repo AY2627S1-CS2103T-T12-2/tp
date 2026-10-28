@@ -84,6 +84,7 @@ public class LogicManager implements Logic {
         ReadOnlyAddressBook addressBookBeforeCommand = new AddressBook(model.getAddressBook());
         GuiSettings guiSettingsBeforeCommand = model.getGuiSettings();
         boolean privacyModeBeforeCommand = model.isPrivacyModeEnabled();
+        Model.FilteredPersonListState filteredPersonListStateBeforeCommand = model.getFilteredPersonListState();
 
         try {
             commandResult = command.execute(model);
@@ -92,13 +93,16 @@ public class LogicManager implements Logic {
                 storage.saveUserPrefs(model.getUserPrefs());
             }
         } catch (CommandException e) {
-            restoreModelState(addressBookBeforeCommand, guiSettingsBeforeCommand, privacyModeBeforeCommand);
+            restoreModelState(addressBookBeforeCommand, guiSettingsBeforeCommand, privacyModeBeforeCommand,
+                    filteredPersonListStateBeforeCommand);
             throw e;
         } catch (AccessDeniedException e) {
-            restoreModelState(addressBookBeforeCommand, guiSettingsBeforeCommand, privacyModeBeforeCommand);
+            restoreModelState(addressBookBeforeCommand, guiSettingsBeforeCommand, privacyModeBeforeCommand,
+                    filteredPersonListStateBeforeCommand);
             throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, e.getMessage()), e);
         } catch (IOException ioe) {
-            restoreModelState(addressBookBeforeCommand, guiSettingsBeforeCommand, privacyModeBeforeCommand);
+            restoreModelState(addressBookBeforeCommand, guiSettingsBeforeCommand, privacyModeBeforeCommand,
+                    filteredPersonListStateBeforeCommand);
             throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage()), ioe);
         }
 
@@ -111,10 +115,11 @@ public class LogicManager implements Logic {
 
     /** Restores in-memory state when command execution or persistence fails. */
     private void restoreModelState(ReadOnlyAddressBook addressBook, GuiSettings guiSettings,
-            boolean privacyModeEnabled) {
+            boolean privacyModeEnabled, Model.FilteredPersonListState filteredPersonListState) {
         model.setAddressBook(addressBook);
         model.setGuiSettings(guiSettings);
         model.setPrivacyModeEnabled(privacyModeEnabled);
+        model.restoreFilteredPersonListState(filteredPersonListState);
     }
 
     @Override

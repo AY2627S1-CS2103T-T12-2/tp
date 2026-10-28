@@ -1,0 +1,13 @@
+Timestamp: 2026-10-28T13:24:00.3643496+08:00
+Test: extra-tag-guardian-find-after
+Command: find Tag Guardian Probe
+Result display: 3 person(s) listed!
+Visible UI text:
+File
+File
+Help
+Help
+Type 'list' to return to the home page.
+3 person(s) listed!
+.\data\addressbook.json
+.\data\addressbook.json

@@ -20,6 +20,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.Comparator;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -200,6 +201,36 @@ public class LogicManagerTest {
         assertFalse(model.isPrivacyModeEnabled());
         assertFalse(logic.isPrivacyModeEnabled());
         assertFalse(storage.readUserPrefs().orElseThrow().isPrivacyModeEnabled());
+    }
+
+    @Test
+    public void execute_saveFails_restoresFilteredPersonListPredicateAndComparator() {
+        Person amy = new PersonBuilder().withName("Amy").withPhone("91234567")
+                .withEmail("amy@example.com").build();
+        Person bob = new PersonBuilder().withName("Bob").withPhone("92345678")
+                .withEmail("bob@example.com").build();
+        Person carol = new PersonBuilder().withName("Carol").withPhone("93456789")
+                .withEmail("carol@example.com").build();
+        model.addPerson(amy);
+        model.addPerson(bob);
+        model.addPerson(carol);
+        model.updateFilteredPersonList(person -> !person.getName().fullName.equals("Carol"),
+                Comparator.comparing((Person person) -> person.getName().fullName).reversed());
+
+        JsonAddressBookStorage failingAddressBookStorage =
+                new JsonAddressBookStorage(storage.getAddressBookFilePath()) {
+                    @Override
+                    public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
+                        throw DUMMY_IO_EXCEPTION;
+                    }
+                };
+        logic = new LogicManager(model, new StorageManager(failingAddressBookStorage,
+                new JsonUserPrefsStorage(storage.getUserPrefsFilePath())));
+
+        String expectedMessage = String.format(LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage());
+        assertThrows(CommandException.class, expectedMessage, () -> logic.execute("find Carol"));
+
+        assertEquals(List.of(bob, amy), model.getFilteredPersonList());
     }
 
     @Test

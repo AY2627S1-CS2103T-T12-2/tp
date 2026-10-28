@@ -1,0 +1,13 @@
+Timestamp: 2026-10-28T12:40:01.1201047+08:00
+Test: extra-duplicate-link
+Command: add n/Duplicate Link p/95550103 e/dup.link@example.com a/Test sub/Music cost/20 c/Sunday1300-1400 mode/online link/https://example.com/a link/https://example.com/b
+Result display: Multiple values specified for the following single-valued field(s): link/
+Visible UI text:
+File
+File
+Help
+Help
+add n/Duplicate Link p/95550103 e/dup.link@example.com a/Test sub/Music cost/20 c/Sunday1300-1400 mode/online link/https://example.com/a link/https://example.com/b
+Multiple values specified for the following single-valued field(s): link/
+.\data\addressbook.json
+.\data\addressbook.json

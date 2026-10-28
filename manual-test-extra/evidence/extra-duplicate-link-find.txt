@@ -1,0 +1,13 @@
+Timestamp: 2026-10-28T12:40:06.7369607+08:00
+Test: extra-duplicate-link-find
+Command: find Duplicate Link
+Result display: 0 person(s) listed!
+Visible UI text:
+File
+File
+Help
+Help
+Type 'list' to return to the home page.
+0 person(s) listed!
+.\data\addressbook.json
+.\data\addressbook.json

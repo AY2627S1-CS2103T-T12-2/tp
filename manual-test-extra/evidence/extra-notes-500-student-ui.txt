@@ -1,0 +1,9 @@
+Timestamp: 2026-10-28T13:00:57.3688372+08:00
+Window physical bounds: 2560x1440
+Window DPI: 192
+Expected logical size: 1280x720 at 200% scaling
+Student-card text nodes containing 500-character note:
+length=507; x=65; y=1116; width=2420; height=136; offscreen=False; text=Notes: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+length=507; x=69; y=1116; width=2416; height=136; offscreen=False; text=Notes: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+length=24; x=65; y=1146; width=294; height=34; offscreen=False; text=Notes: Pages 2/3 and 4/5
+length=24; x=69; y=1146; width=290; height=34; offscreen=False; text=Notes: Pages 2/3 and 4/5
