@@ -139,6 +139,16 @@ public class ModelTest {
         }
 
         @Override
+        public FilteredPersonListState getFilteredPersonListState() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void restoreFilteredPersonListState(FilteredPersonListState state) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public void updateFilteredPersonList(Predicate<Person> predicate) {
             this.predicate = predicate;
         }
