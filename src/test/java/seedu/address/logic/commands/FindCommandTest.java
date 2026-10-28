@@ -168,6 +168,25 @@ public class FindCommandTest {
     }
 
     @Test
+    public void execute_equalScoreAfterPinning_preservesCurrentOrder() throws Exception {
+        AddressBook addressBook = new AddressBook();
+        Person bernice = new PersonBuilder().withName("Bernice Yu").build();
+        Person irfan = new PersonBuilder().withName("Irfan Ibrahim").build();
+        addressBook.addPerson(bernice);
+        addressBook.addPerson(irfan);
+        Model rankedModel = new ModelManager(addressBook, new UserPrefs());
+        AddressBookParser parser = new AddressBookParser();
+
+        parser.parseCommand("find Irfan Ibrahim Bernice").execute(rankedModel);
+        parser.parseCommand("pin 1").execute(rankedModel);
+        parser.parseCommand("pin 2").execute(rankedModel);
+        parser.parseCommand("find Irfan Bernice").execute(rankedModel);
+
+        assertEquals(List.of(irfan.withPinned(true), bernice.withPinned(true)),
+                rankedModel.getFilteredPersonList());
+    }
+
+    @Test
     public void execute_multiplePartialTagKeywords_matchingPersonsRankedByScore() {
         AddressBook addressBook = new AddressBook();
         Person oneMatchFirst = new PersonBuilder().withName("First Student").withTags("priority").build();
