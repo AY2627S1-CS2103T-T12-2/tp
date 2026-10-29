@@ -13,7 +13,6 @@ public class Cost {
     public static final String MESSAGE_CONSTRAINTS =
             "Cost should be a non-negative number not exceeding 1000000.00, with at most two decimal places.";
     public static final String VALIDATION_REGEX = "(?:\\d+(?:\\.\\d{1,2})?|\\.\\d{1,2})";
-    private static final int MAX_INPUT_LENGTH = MAX_VALUE.toPlainString().length();
 
     public final BigDecimal value;
 
@@ -26,8 +25,7 @@ public class Cost {
 
     /** Returns whether the value is a supported cost within the maximum. */
     public static boolean isValidCost(String test) {
-        return test.length() <= MAX_INPUT_LENGTH
-                && test.matches(VALIDATION_REGEX)
+        return test.matches(VALIDATION_REGEX)
                 && new BigDecimal(test).compareTo(MAX_VALUE) <= 0;
     }
 
