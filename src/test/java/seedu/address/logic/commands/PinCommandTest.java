@@ -10,6 +10,8 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
@@ -18,6 +20,7 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.AddressBookBuilder;
 import seedu.address.testutil.PersonBuilder;
@@ -50,6 +53,23 @@ public class PinCommandTest {
         String expectedMessage = String.format(PinCommand.MESSAGE_PIN_PERSON_SUCCESS, personToPin.getName());
 
         assertCommandSuccess(pinCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_validIndexScoredSearch_preservesEqualScoreOrder() throws Exception {
+        Person anna = new PersonBuilder().withName("Anna").withPinned(true).build();
+        Person ada = new PersonBuilder().withName("Ada").build();
+        Person ava = new PersonBuilder().withName("Ava").build();
+        model = new ModelManager(new AddressBookBuilder()
+                .withPerson(anna)
+                .withPerson(ada)
+                .withPerson(ava)
+                .build(), new UserPrefs());
+        new FindCommand(new NameContainsKeywordsPredicate(List.of("a"))).execute(model);
+
+        new PinCommand(Index.fromOneBased(3)).execute(model);
+
+        assertEquals(List.of(anna, ava.withPinned(true), ada), model.getFilteredPersonList());
     }
 
     @Test
