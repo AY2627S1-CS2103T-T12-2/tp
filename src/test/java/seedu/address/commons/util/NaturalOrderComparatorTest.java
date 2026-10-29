@@ -9,6 +9,17 @@ import org.junit.jupiter.api.Test;
 
 public class NaturalOrderComparatorTest {
     @Test
+    public void compare_numericAndTextTokens_ordersConsistently() {
+        var comparator = NaturalOrderComparator.INSTANCE;
+        for (String text : List.of("!", "A", ":")) {
+            assertTrue(comparator.compare("2", text) == -comparator.compare(text, "2"));
+        }
+        assertTrue(comparator.compare("2", "A") < 0);
+        assertTrue(comparator.compare("A", "2") > 0);
+        assertTrue(comparator.compare("!", "2") < 0);
+    }
+
+    @Test
     public void compare_numericRuns_caseInsensitiveAndNoOverflow() {
         var comparator = NaturalOrderComparator.INSTANCE;
         assertEquals(List.of("student 1", "Student 2", "Student 10"),

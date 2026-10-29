@@ -1,6 +1,7 @@
 package seedu.address;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.logging.Logger;
@@ -47,9 +48,8 @@ public class MainApp extends Application {
         super.init();
 
         Path applicationHome = ApplicationPaths.resolveHome(
-                Path.of(MainApp.class.getProtectionDomain().getCodeSource().getLocation().toURI()),
-                Path.of(""));
-        ApplicationPaths.migrateLegacyFiles(applicationHome, Path.of(""));
+                getCodeLocation(), getWorkingDirectory());
+        ApplicationPaths.migrateLegacyFiles(applicationHome, getWorkingDirectory());
         JsonUserPrefsStorage userPrefsStorage =
                 new JsonUserPrefsStorage(applicationHome.resolve("preferences.json"));
         UserPrefs userPrefs = initPrefs(userPrefsStorage);
@@ -62,6 +62,16 @@ public class MainApp extends Application {
         logic = new LogicManager(model, storage);
 
         ui = new UiManager(logic, storage.getAddressBookFilePath());
+    }
+
+    /** Returns the code source used to locate packaged application data. */
+    Path getCodeLocation() throws URISyntaxException {
+        return Path.of(MainApp.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+    }
+
+    /** Returns the launch directory used for development and legacy file migration. */
+    Path getWorkingDirectory() {
+        return Path.of("");
     }
 
     /**
