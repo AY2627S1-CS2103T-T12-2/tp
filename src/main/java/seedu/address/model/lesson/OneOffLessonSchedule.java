@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -19,10 +20,14 @@ public final class OneOffLessonSchedule implements LessonSchedule, Comparable<On
     public static final String MESSAGE_CONSTRAINTS =
             "One-off class timing should use yyyy-MM-ddTHHmm-HHmm "
                     + "(for example, 2026-10-20T1800-1930), with end after start.";
+    public static final String MESSAGE_INVALID_DATE =
+            "Invalid date '%s'. Enter a real calendar date in yyyy-MM-dd format.";
+    public static final String MESSAGE_INVALID_TIME =
+            "Invalid time '%s'. Times must use 24-hour HHmm from 0000 to 2359.";
     private static final Pattern TIMING_PATTERN = Pattern.compile(
-            "(\\d{4}-\\d{2}-\\d{2})T((?:[01]\\d|2[0-3])[0-5]\\d)-"
-                    + "((?:[01]\\d|2[0-3])[0-5]\\d)");
-    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HHmm");
+            "(\\d{4}-\\d{2}-\\d{2})T(\\d{4})-(\\d{4})");
+    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HHmm")
+            .withResolverStyle(ResolverStyle.STRICT);
     private static final DateTimeFormatter DISPLAY_DATE_FORMAT =
             DateTimeFormatter.ofPattern("d MMM uuuu", Locale.ENGLISH);
     private static final DateTimeFormatter DISPLAY_TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
@@ -34,7 +39,8 @@ public final class OneOffLessonSchedule implements LessonSchedule, Comparable<On
     /** Creates a one-off schedule from its command representation. */
     public OneOffLessonSchedule(String value) {
         requireNonNull(value);
-        checkArgument(isValidOneOffLessonSchedule(value), MESSAGE_CONSTRAINTS);
+        Optional<String> validationError = getValidationError(value);
+        checkArgument(validationError.isEmpty(), validationError.orElse(MESSAGE_CONSTRAINTS));
         Matcher matcher = TIMING_PATTERN.matcher(value);
         matcher.matches();
         date = LocalDate.parse(matcher.group(1));
@@ -44,20 +50,34 @@ public final class OneOffLessonSchedule implements LessonSchedule, Comparable<On
 
     /** Returns whether {@code test} is a valid one-off schedule representation. */
     public static boolean isValidOneOffLessonSchedule(String test) {
+        return getValidationError(test).isEmpty();
+    }
+
+    /** Returns a user-facing validation error, or an empty value when the schedule is valid. */
+    public static Optional<String> getValidationError(String test) {
         if (test == null) {
-            return false;
+            return Optional.of(MESSAGE_CONSTRAINTS);
         }
         Matcher matcher = TIMING_PATTERN.matcher(test);
         if (!matcher.matches()) {
-            return false;
+            return Optional.of(MESSAGE_CONSTRAINTS);
         }
         try {
             LocalDate.parse(matcher.group(1));
-            LocalTime start = LocalTime.parse(matcher.group(2), TIME_FORMAT);
-            LocalTime end = LocalTime.parse(matcher.group(3), TIME_FORMAT);
-            return end.isAfter(start);
         } catch (DateTimeParseException exception) {
-            return false;
+            return Optional.of(String.format(MESSAGE_INVALID_DATE, matcher.group(1)));
+        }
+        LocalTime start;
+        try {
+            start = LocalTime.parse(matcher.group(2), TIME_FORMAT);
+        } catch (DateTimeParseException exception) {
+            return Optional.of(String.format(MESSAGE_INVALID_TIME, matcher.group(2)));
+        }
+        try {
+            LocalTime end = LocalTime.parse(matcher.group(3), TIME_FORMAT);
+            return end.isAfter(start) ? Optional.empty() : Optional.of(MESSAGE_CONSTRAINTS);
+        } catch (DateTimeParseException exception) {
+            return Optional.of(String.format(MESSAGE_INVALID_TIME, matcher.group(3)));
         }
     }
 

@@ -1,0 +1,63 @@
+@startuml
+!include style.puml
+
+actor Tutor
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as LogicManager LOGIC_COLOR
+participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
+participant ":TagCommandParser" as TagCommandParser LOGIC_COLOR
+participant "c:TagCommand" as TagCommand LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant "m:Model" as Model MODEL_COLOR
+participant "p:Person" as Person MODEL_COLOR
+end box
+
+box Storage STORAGE_COLOR_T1
+participant ":Storage" as Storage STORAGE_COLOR
+end box
+
+Tutor -> LogicManager : execute("tag 1 3 t/exam-prep")
+activate LogicManager
+LogicManager -> AddressBookParser : parseCommand(...)
+activate AddressBookParser
+AddressBookParser -> TagCommandParser : parse("1 3 t/exam-prep")
+activate TagCommandParser
+create TagCommand
+TagCommandParser -> TagCommand : new(indexes, tag)
+TagCommand --> TagCommandParser : c
+TagCommandParser --> AddressBookParser : c
+deactivate TagCommandParser
+AddressBookParser --> LogicManager : c
+deactivate AddressBookParser
+
+LogicManager -> TagCommand : execute(m)
+activate TagCommand
+TagCommand -> Model : getFilteredPersonList()
+activate Model
+Model --> TagCommand : displayed students
+deactivate Model
+
+loop each eligible selected student
+    TagCommand -> Person : withTags(updatedTags)
+    activate Person
+    Person --> TagCommand : immutable replacement
+    deactivate Person
+end
+
+TagCommand -> Model : setPersons(replacements)
+activate Model
+Model --> TagCommand
+deactivate Model
+TagCommand --> LogicManager : CommandResult
+deactivate TagCommand
+
+LogicManager -> Storage : saveAddressBook(m.getAddressBook())
+activate Storage
+Storage --> LogicManager
+deactivate Storage
+LogicManager --> Tutor : report added and skipped students
+deactivate LogicManager
+@enduml

@@ -7,7 +7,9 @@ import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,10 +18,13 @@ public class LessonTiming implements LessonSchedule, Comparable<LessonTiming> {
 
     public static final String MESSAGE_CONSTRAINTS =
             "Lesson timing should use DAYHHmm-HHmm (for example, Monday1800-1930), with end after start.";
+    public static final String MESSAGE_INVALID_TIME =
+            "Invalid time '%s'. Times must use 24-hour HHmm from 0000 to 2359.";
     private static final Pattern TIMING_PATTERN = Pattern.compile(
             "(?i)(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)"
-                    + "((?:[01]\\d|2[0-3])[0-5]\\d)-((?:[01]\\d|2[0-3])[0-5]\\d)");
-    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HHmm");
+                    + "(\\d{4})-(\\d{4})");
+    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HHmm")
+            .withResolverStyle(ResolverStyle.STRICT);
     private static final DateTimeFormatter DISPLAY_TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
 
     private final DayOfWeek day;
@@ -29,7 +34,8 @@ public class LessonTiming implements LessonSchedule, Comparable<LessonTiming> {
     /** Creates a weekly timing from its command representation. */
     public LessonTiming(String value) {
         requireNonNull(value);
-        checkArgument(isValidLessonTiming(value), MESSAGE_CONSTRAINTS);
+        Optional<String> validationError = getValidationError(value);
+        checkArgument(validationError.isEmpty(), validationError.orElse(MESSAGE_CONSTRAINTS));
         Matcher matcher = TIMING_PATTERN.matcher(value);
         matcher.matches();
         day = DayOfWeek.valueOf(matcher.group(1).toUpperCase(Locale.ROOT));
@@ -39,16 +45,28 @@ public class LessonTiming implements LessonSchedule, Comparable<LessonTiming> {
 
     /** Returns whether the supplied value is a valid weekly lesson timing. */
     public static boolean isValidLessonTiming(String test) {
+        return getValidationError(test).isEmpty();
+    }
+
+    /** Returns a user-facing validation error, or an empty value when the timing is valid. */
+    public static Optional<String> getValidationError(String test) {
+        if (test == null) {
+            return Optional.of(MESSAGE_CONSTRAINTS);
+        }
         Matcher matcher = TIMING_PATTERN.matcher(test);
         if (!matcher.matches()) {
-            return false;
+            return Optional.of(MESSAGE_CONSTRAINTS);
         }
         try {
             LocalTime start = LocalTime.parse(matcher.group(2), TIME_FORMAT);
-            LocalTime end = LocalTime.parse(matcher.group(3), TIME_FORMAT);
-            return end.isAfter(start);
+            try {
+                LocalTime end = LocalTime.parse(matcher.group(3), TIME_FORMAT);
+                return end.isAfter(start) ? Optional.empty() : Optional.of(MESSAGE_CONSTRAINTS);
+            } catch (DateTimeParseException exception) {
+                return Optional.of(String.format(MESSAGE_INVALID_TIME, matcher.group(3)));
+            }
         } catch (DateTimeParseException exception) {
-            return false;
+            return Optional.of(String.format(MESSAGE_INVALID_TIME, matcher.group(2)));
         }
     }
 

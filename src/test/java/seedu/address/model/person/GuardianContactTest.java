@@ -23,6 +23,18 @@ public class GuardianContactTest {
     }
 
     @Test
+    public void constructor_namePunctuation_acceptsCommonNamesButRejectsInvalidNames() {
+        for (String name : java.util.List.of("Mary-Anne O'Connor", "O\u2019Connor", "Anne-Marie")) {
+            assertEquals(name, new GuardianContact(name, "", "").name());
+        }
+        for (String name : java.util.List.of(" ", "'", "-", "@Mary", "Mary\nTan", "Mary_Tan")) {
+            assertThrows(IllegalArgumentException.class, () -> new GuardianContact(name, "", ""));
+        }
+        // Guardian validation is independent of the student-name rule.
+        assertFalse(Name.isValidName("Mary-Anne O'Connor"));
+    }
+
+    @Test
     public void independentOptionalFields_displayWithoutEmptySeparators() {
         GuardianContact nameOnly = new GuardianContact("Mary", "", "");
         GuardianContact emailOnly = new GuardianContact("", "", "mary@example.com");

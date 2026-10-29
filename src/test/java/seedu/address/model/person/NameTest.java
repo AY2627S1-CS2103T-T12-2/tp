@@ -39,6 +39,17 @@ public class NameTest {
     }
 
     @Test
+    public void hasSameIdentityAs_ignoresCaseAndRepeatedSpacesWithoutChangingEquality() {
+        Name name = new Name("Alpha Nearmatch");
+        Name variant = new Name("alpha  nearmatch");
+        assertTrue(name.hasSameIdentityAs(variant));
+        assertTrue(variant.hasSameIdentityAs(name));
+        assertFalse(name.equals(variant));
+        assertFalse(name.hasSameIdentityAs(new Name("Alpha Near Match")));
+        assertThrows(NullPointerException.class, () -> name.hasSameIdentityAs(null));
+    }
+
+    @Test
     public void equals() {
         Name name = new Name("Valid Name");
 

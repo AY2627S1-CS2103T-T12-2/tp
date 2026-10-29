@@ -13,13 +13,18 @@
 
 ## **Acknowledgements**
 
-* _{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
+TutEasy is based on the [AddressBook-Level3 project](https://se-education.org/addressbook-level3/) created by the
+[SE-EDU initiative](https://se-education.org). It uses JavaFX for its desktop interface, Jackson for JSON
+serialization, JUnit for testing, Gradle for builds, and MarkBind for this documentation site.
 
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Setting up, getting started**
 
-Refer to the guide [_Setting up and getting started_](SettingUp.md).
+TutEasy requires JDK 25. Fork and clone the repository, import it into IntelliJ IDEA as a Gradle project, and configure
+the project SDK as JDK 25. Run `seedu.address.Main` to launch the application, and run `./gradlew test` (macOS/Linux)
+or `gradlew.bat test` (Windows) to verify the setup. See
+[_Setting up and getting started_](SettingUp.md) for the full IDE, code-style, and CI instructions.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -27,7 +32,7 @@ Refer to the guide [_Setting up and getting started_](SettingUp.md).
 
 ### Architecture
 
-<puml src="diagrams/ArchitectureDiagram.puml" width="280" />
+<puml src="diagrams/ArchitectureDiagram.puml" width="280" alt="High-level architecture of TutEasy" />
 
 The ***Architecture Diagram*** given above explains the high-level design of the App.
 
@@ -35,7 +40,7 @@ The following provides a quick overview of the main components and their interac
 
 **Main components of the architecture**
 
-**`Main`** (consisting of classes [`Main`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/Main.java) and [`MainApp`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/MainApp.java)) is in charge of the app launch and shut down.
+**`Main`** (consisting of classes [`Main`](https://github.com/AY2627S1-CS2103T-T12-2/tp/tree/master/src/main/java/seedu/address/Main.java) and [`MainApp`](https://github.com/AY2627S1-CS2103T-T12-2/tp/tree/master/src/main/java/seedu/address/MainApp.java)) is in charge of the app launch and shut down.
 * At app launch, it initializes the other components in the correct sequence, and connects them up with each other.
 * At shut down, it shuts down the other components and invokes cleanup methods where necessary.
 
@@ -52,35 +57,36 @@ The bulk of the app's work is done by the following four components:
 
 The *Sequence Diagram* below shows how the components interact with each other for the scenario where the user issues the command `delete 1`.
 
-<puml src="diagrams/ArchitectureSequenceDiagram.puml" width="574" />
+<puml src="diagrams/ArchitectureSequenceDiagram.puml" width="574" alt="Interaction between architecture components" />
 
 Each of the four main components (also shown in the diagram above),
 
 * defines its *API* in an `interface` with the same name as the Component.
-* provides its functionality through a concrete `{Component Name}Manager` class that implements the corresponding API interface.
+* provides its functionality through a concrete manager class that implements the corresponding API interface, such
+  as `LogicManager` implementing `Logic`.
 
 For example, the `Logic` component defines its API in `Logic.java` and implements it in `LogicManager.java`. Other components interact with a component through its interface rather than its concrete class, preventing them from coupling to that component's implementation, as illustrated in the following partial class diagram.
 
-<puml src="diagrams/ComponentManagers.puml" width="300" />
+<puml src="diagrams/ComponentManagers.puml" width="300" alt="Component APIs and manager implementations" />
 
 The sections below give more details of each component.
 
 ### UI component
 
-The **API** of this component is specified in [`Ui.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/Ui.java)
+The **API** of this component is specified in [`Ui.java`](https://github.com/AY2627S1-CS2103T-T12-2/tp/tree/master/src/main/java/seedu/address/ui/Ui.java).
 
 <puml src="diagrams/UiClassDiagram.puml" alt="Structure of the UI Component"/>
 
 The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`,
 `TimetablePanel`, `ClassListPanel`, and `StatusBarFooter`. `MainWindow` switches the main content placeholder among the
-person list, read-only timetable, and read-only class list according to the `ViewChange` carried by a successful
+student list, read-only timetable, and read-only class list according to the `ViewChange` carried by a successful
 `CommandResult`. These UI classes inherit from the abstract `UiPart` class, which captures common behavior among
 classes that represent visible GUI parts.
 
 `MainWindow` constructs `TimetablePanel` with callbacks for obtaining the application date and loading a timetable for
 an anchor date. The panel owns only transient navigation state and does not access `Model` or storage directly.
 
-The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
+The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/AY2627S1-CS2103T-T12-2/tp/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/AY2627S1-CS2103T-T12-2/tp/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
 
 The `UI` component,
 
@@ -89,26 +95,21 @@ The `UI` component,
 * keeps a reference to the `Logic` component, because the `UI` relies on the `Logic` to execute commands.
 * depends on some classes in the `Model` component because it displays `Person` objects from the model.
 
-`PersonCard` renders enrolled classes as coloured badges in a vertical list below the student's email. A smaller,
-muted paid or unpaid label follows each badge without inheriting its background colour. Each badge and status are
-contained in one `HBox`, while the surrounding `VBox` places every class group on its own row. A single
-`ClassColorPalette` is owned by `PersonListPanel` and shared by every card, ensuring that the same logical class uses
-the same colour across students. The palette identifies a class using its case-insensitive subject and complete
-lesson timing, matching `Lesson#isSameClass`; cost and payment status are not part of the colour identity. A muted
-balance badge beside the student's name always displays `Person#getOutstandingBalance`, including when it is zero.
-Pinned students also display a `PINNED` badge beside their name. The badge is visible and participates in the layout
-only when `Person#isPinned` is true.
+`PersonCard` renders contact details, tags, enrolled-class groups, outstanding balance, and pin state for one student.
+`PersonListPanel` supplies the shared display state needed across cards. The
+[enrolled-class display](#enrolled-class-display), [pin feature](#pin-feature), and
+[privacy mode](#privacy-mode) sections describe these behaviors in detail.
 
 `MainWindow` passes the privacy preference from `Logic` to `PersonListPanel` and `StatusBarFooter`. The panel owns an
-observable privacy state shared by its `PersonCard` instances. Each card binds its phone, email, and address labels to
-that state, so toggling privacy mode replaces each value with a fixed seven-asterisk mask without modifying the
-underlying `Person`. The panel also refreshes its `ListView` to ensure newly created and currently displayed cells use
-the same state. `StatusBarFooter` keeps a visible privacy indicator active across the student-list, timetable, and
-class-list views.
+observable privacy state shared by its `PersonCard` instances. Each card binds its phone, email, address, and guardian
+labels to that state, so toggling privacy mode replaces each non-empty contact field with a fixed seven-asterisk mask
+without modifying the underlying `Person`. The panel also refreshes its `ListView` to ensure newly created and
+currently displayed cells use the same state. `StatusBarFooter` keeps a visible privacy indicator active across the
+student-list, timetable, and class-list views.
 
 ### Logic component
 
-**API** : [`Logic.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/logic/Logic.java)
+**API**: [`Logic.java`](https://github.com/AY2627S1-CS2103T-T12-2/tp/tree/master/src/main/java/seedu/address/logic/Logic.java)
 
 Here's a (partial) class diagram of the `Logic` component:
 
@@ -128,11 +129,11 @@ How the `Logic` component works:
 
 1. When `Logic` is called upon to execute a command, the command is passed to an `AddressBookParser` object, which in turn creates a parser that matches the command (e.g., `DeleteCommandParser`) and uses it to parse the command.
 1. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `DeleteCommand`) which is executed by the `LogicManager`.
-1. The command can communicate with the `Model` when it is executed (e.g. to delete a person).<br>
+1. The command can communicate with the `Model` when it is executed (e.g. to delete a student).<br>
    Note that although this is shown as a single step in the diagram above for simplicity, the code can require several interactions between the command object and the `Model` to complete the operation.
 1. The result of the command execution is encapsulated as a `CommandResult` object which is returned from `Logic`.
 
-`LogicManager` also tracks whether the person list, timetable, or class list is active. In the read-only timetable and
+`LogicManager` also tracks whether the student list, timetable, or class list is active. In the read-only timetable and
 class-list views, it rejects modifying commands before execution while allowing navigation, `privacy`, `help`, and
 `exit`. `timetable`, `class list`, and `list` return view-change instructions that keep this state synchronized with
 `MainWindow`.
@@ -149,23 +150,28 @@ How the parsing works:
 * All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
 
 ### Model component
-**API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
+**API**: [`Model.java`](https://github.com/AY2627S1-CS2103T-T12-2/tp/tree/master/src/main/java/seedu/address/model/Model.java)
 
 <puml src="diagrams/ModelClassDiagram.puml" width="450" />
 
 
 The `Model` component,
 
-* stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
+* stores all students as `Person` objects in a `UniquePersonList`.
 * stores independent `TuitionClass` objects in a `UniqueTuitionClassList`. Each class has a stable `ClassId`, subject,
   cost, and complete lesson timing.
 * represents the student-to-class association using an `Enrollment` value with stable `EnrollmentId`, `StudentId`, and
   `ClassId` references. The association owns the student-specific agreed rate and `PaymentStatus`.
+* stores each student's optional `GuardianContact` separately from shared class details. Immutable person copies retain
+  guardian fields, stable IDs, enrolments and pin state unless the operation explicitly changes them.
+* provides `Model#hasNameConflict` for new-student and rename validation. `Name#hasSameIdentityAs` ignores case and
+  repeated spaces, excluding the same `StudentId`. Display spelling and exact equality remain unchanged, so older
+  case/spacing variants can still load through the stored collection's exact-name uniqueness rule.
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
 * stores a `UserPrefs` object that represents the user’s GUI settings and privacy preference. This is exposed to the
   outside as a `ReadOnlyUserPrefs` object.
-* derives immutable, date-backed timetable day and class entries from every person's lessons. The timetable is not
-  stored separately, and it uses the complete address book rather than the filtered person list.
+* derives immutable, date-backed timetable day and class entries from every student's classes. The timetable is not
+  stored separately, and it uses all student records rather than the filtered student list.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
 
@@ -179,18 +185,29 @@ The `Model` component,
 
 ### Storage component
 
-**API** : [`Storage.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/storage/Storage.java)
+**API**: [`Storage.java`](https://github.com/AY2627S1-CS2103T-T12-2/tp/tree/master/src/main/java/seedu/address/storage/Storage.java)
 
 <puml src="diagrams/StorageClassDiagram.puml" width="550" />
 
 The `Storage` component,
-* can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
+* can save both TutEasy data and user preferences in JSON format, and read them back into corresponding objects.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
+* reconstructs shared classes before resolving enrolment references. `JsonAdaptedPerson` owns guardian fields;
+  `JsonAdaptedTuitionClass` owns mode, link, location and notes. Missing older fields use the defaults described under
+  [attribute migration](#storage-and-legacy-migration).
+* retains already-saved case/spacing name variants without merging students, and logs a warning without their names.
+  Exact duplicate names, duplicate IDs and invalid association references are still rejected.
 
 ### Common classes
 
 Classes used by multiple components are in the `seedu.address.commons` package.
+
+`LogsCenter` supplies the loggers used by student creation, shared-detail resolution, search and migration. These log
+event categories and counts rather than raw input or contact values. `ParserUtil` is a shared parsing utility in Logic:
+it trims inputs and constructs domain values, translating validation failures to `ParseException`. The immutable
+values `GuardianContact`, `ClassDetails`, `ClassMode`, `StudentId`, `ClassId` and `Enrollment` belong to Model, even
+though parser, storage and presentation code use them.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -217,7 +234,28 @@ weekday. In all three cases, their time ranges must overlap; ranges meeting only
 without `scheduleType` are interpreted as weekly schedules, so existing address-book files load without manual
 migration. Weekly occurrences remain derived and are never expanded into persisted dated records.
 
+### Enrolled-class display
+
+`PersonListPanel` owns one `ClassColorPalette` and passes it to every `PersonCard`. The palette maps the same logical
+class to the same CSS colour across students. Its `ClassIdentity` normalizes the subject to lowercase and combines it
+with the complete stored schedule, matching `Lesson#isSameClass`; agreed rate and payment status are intentionally
+excluded because they can differ between enrolments in one class. Eight colour styles are available, and deterministic
+hash-based reuse keeps the mapping stable when there are more classes than colours.
+
+`PersonCard` sorts a student's resolved lessons by schedule and then case-insensitive subject. For each lesson, it
+creates an `HBox` containing the coloured subject-and-timing badge, teaching-mode label, and payment-status label. A
+surrounding `VBox` adds a separate wrapped line only when a meeting link, location, or note exists. Keeping payment and
+mode outside the coloured badge prevents those changing values from altering class identity or colour.
+
+The muted balance badge beside the student's name displays `Person#getOutstandingBalance`, which derives the sum of
+unpaid agreed rates rather than storing another value. This design lets payment updates refresh both the status label
+and balance from the same enrolment state while leaving the class colour unchanged.
+
 ### Pin feature
+
+The activity diagram below summarizes the common flow for `pin INDEX` and `unpin INDEX`.
+
+<puml src="diagrams/PinActivityDiagram.puml" alt="Validation and list reordering for pin and unpin commands" />
 
 Each `Person` stores a `pinned` boolean. `JsonAdaptedPerson` writes this value to the address-book data file and treats
 a missing value as `false`, allowing older files to remain compatible. Copy operations such as editing tags or lessons
@@ -253,17 +291,24 @@ while allowing case-insensitive search input for user convenience.
 Lesson keywords accept a weekday/prefix such as `Mon`, an HHmm-style time within `0000`-`2359`, or both; shorter
 numeric fragments such as `18` are accepted for partial matching. An exact ISO date such as `2026-10-20` matches a
 one-off schedule, while a weekday search also matches one-off schedules occurring on that weekday.
+`FindCommandParserTest` covers empty and invalid search inputs, while `FindCommandTest` covers partial matching and
+result ranking. Parse failures occur before command construction, so the active filter remains unchanged.
 
 `FindCommand` applies the predicate through `Model#updateFilteredPersonList`. Predicates that implement
 `ScoredPersonPredicate` also provide a relevance score, so `FindCommand` requests a sorted filtered list with stronger
 matches first within each pin group and preserves original address-book order for ties. Matching pinned students are
 placed before matching unpinned students.
 
-`CommandBox` provides light-grey input-bar hints for common `find` inputs and the available `privacy` modes. After a
-successful `find`, it keeps the suggestion overlay visible with `Type 'list' to return to the home page.`; the hint
-clears when the user starts typing or when a non-`find` command succeeds.
+`CommandBox` provides light-grey input-bar hints for common `find` inputs and the command formats for `pin`, `unpin`,
+`tag`, `untag`, and `privacy`. After a successful `find`, it keeps the suggestion overlay visible with
+`Type 'list' to return to the home page.`; the hint clears when the user starts typing or when a non-`find` command
+succeeds.
 
 ### Privacy mode
+
+The sequence below shows how `privacy on` moves from command execution to preference storage and the reactive UI.
+
+<puml src="diagrams/PrivacySequenceDiagram.puml" alt="Interactions for enabling privacy mode" />
 
 `privacy on` and `privacy off` update `UserPrefs#privacyModeEnabled` through the model. `LogicManager` saves the updated
 preferences using the existing user-preferences storage, so the selection survives an application restart. A missing
@@ -274,14 +319,24 @@ After any successful command, `MainWindow` reads the privacy state from `Logic` 
 cells are rendered consistently. Disabling privacy mode binds the labels back to the original values held by `Person`;
 neither command changes address-book data.
 
+`PrivacyCommandParser` accepts only the exact lowercase modes `on` and `off`. `LogicManager` permits the command in the
+student list and both read-only views. When privacy mode is active, `AddCommand` and `EditCommand` pass the current
+privacy state to `Messages#format`, which masks phone, email, address, and non-empty guardian details in their success
+feedback. Other non-contact values remain visible.
+
 ### Timetable view
+
+The sequence below shows how the current-week timetable is opened and how navigation reloads a date-backed projection
+without modifying stored data.
+
+<puml src="diagrams/TimetableSequenceDiagram.puml" alt="Interactions for opening and navigating the timetable" />
 
 `TimetableCommand` does not modify model data. It returns a `CommandResult` requesting the `TIMETABLE` view.
 `MainWindow` responds by replacing `PersonListPanel` with a newly built `TimetablePanel`. It supplies
 `logic::getCurrentDate` and `logic::getTimetable` callbacks, so the panel can refresh date-dependent state without
 reading the model directly. Creating a new panel whenever timetable mode is entered resets the view to the current week.
 
-`ModelManager#getTimetable(LocalDate)` passes the central class list and complete person list to `TimetableBuilder`.
+`ModelManager#getTimetable(LocalDate)` passes the central class list and complete student list to `TimetableBuilder`.
 The builder uses `WeekRange` to normalize the supplied anchor date to a complete Sunday-to-Saturday range. `WeekRange`
 performs safe epoch-day calculations, exposes optional adjacent weeks, and rejects an anchor whose complete week is
 outside the supported `LocalDate` range. The builder uses `LessonSchedule#occursOn(LocalDate)` to place weekly schedules
@@ -294,7 +349,7 @@ and end time.
 `WeekRange` values and reload through the callback. Today always requests a fresh application date and projection, even
 when the same week remains selected. The current date is highlighted and scrolled to the top where possible; other weeks
 start at Sunday. `TimetableDayCard` displays the dated heading and empty state, while `TimetableEntryCard` displays a
-class's time, subject, and students. Entering `list` restores the existing person panel and normal command availability.
+class's time, subject, and students. Entering `list` restores the existing student panel and normal command availability.
 `class list` returns a `CLASS_LIST` view change; `MainWindow` replaces the current panel with `ClassListPanel`, including
 when the timetable is open.
 
@@ -335,12 +390,31 @@ stored balance from becoming stale after `class payment`, enrolment, unenrolment
 
 ### Adding class and guardian attributes
 
-`add` accepts optional `gn/`, `gp/`, and `ge/` guardian contact fields. `GuardianContact` validates
-non-empty values with the existing name, phone, and email rules. Contact fields are independent,
-with empty strings representing missing values. They participate in `Person#equals` and `hashCode`,
-while student identity retains its existing rules. Person-copy operations preserve the contact.
+#### Input validation and student identity
 
-A contact added with a complete lesson can include `mode/online|offline`, `link/`, `location/`, and
+`AddCommandParser` requires student name, phone, email and address. `gn/`, `gp/` and `ge/` are independent optional
+guardian fields; `ParserUtil#parseGuardianContact` trims them and uses empty strings for omitted values.
+`GuardianContact` accepts names starting with a letter/digit and containing letters, digits, spaces, hyphens and
+straight/curly apostrophes. This rule is independent of the student `Name` validator. Non-empty guardian phones and
+emails use `Phone` and `Email` validation. Every supplied guardian field is checked even when the others are absent.
+Invalid values become parse errors before a command can change the model.
+
+New `add` commands accept either none of `sub/`, `cost/` and `c/`, or all three with a complete weekly or one-off
+schedule. An incomplete group, empty value or start-only schedule is rejected before command execution, preserving
+students, classes, the current filter and saved data. Legacy subject/cost/start-time fields remain supported when
+reading older saved records; new commands cannot create those partial legacy records.
+
+Guardian values participate in `Person#equals`/`hashCode` and survive immutable copy operations. They are neither
+part of the duplicate-name check nor shared with classmates. `AddCommand` and `EditCommand` use
+`Model#hasNameConflict`: `Name#hasSameIdentityAs` derives a trimmed, single-space, lowercase key using `Locale.ROOT`.
+It does not rewrite `fullName` or change exact value equality. The same stable student ID is excluded, allowing its
+own display spelling to be edited without self-collision. Renames check the complete address book, not just the current
+search results. Unchanged-name contact edits remain possible for legacy records whose names already conflict under
+the new policy.
+
+#### Shared class details and inheritance
+
+A student added with a complete class can include `mode/online|offline`, `link/`, `location/`, and
 `notes/`. `ClassDetails` stores an immutable `ClassMode`, meeting link, location, and notes. Online
 classes may omit the link; offline classes reject non-empty links. Links must be absolute HTTP(S)
 URIs with a host and no credentials. Location and notes are limited to 500 single-line characters.
@@ -351,19 +425,25 @@ referenced class through the central collection instead of copying shared class 
 associations while retaining their IDs, agreed rates, and payment statuses. Class listing, student cards, and timetable
 entries therefore display the current shared class values without duplicating them in each enrolment.
 
-Subject search delegates legacy fallback eligibility to `Person#hasUnmigratedLegacyLesson`.
-The same end-time calculation drives migration and fallback, so a valid legacy `Monday2359`
-record stays searchable without restoring stale subjects after a successfully migrated class is removed.
-
 `ClassDetailsUpdate` represents optional `add` input. It resolves classes from the class catalogue,
 including empty classes. New classes default to offline. An empty, undescribed catalogue class can
-receive its extra details through its first contact. For occupied classes or classes with recorded
+receive its extra details through its first student. For occupied classes or classes with recorded
 details, omitted input inherits shared values and conflicting explicit values fail before adding data.
 
-No new attribute input is added to `edit`, `class enrol`, or `class edit`; Aaron's class-ID commands
-are retained. Ordinary contact edits preserve guardian data. ID enrolments inherit class attributes;
+The lookup uses the case-insensitive subject and complete `LessonSchedule`. The supplied `cost/` is this student's
+agreed rate and need not equal the default rate. `AddCommand` checks duplicate names and overlaps, then resolves optional
+details before calling `Model#addPerson`. The model creates a class when no match exists, or links the student to the
+existing class and preserves classmates' enrolments. New enrolments start unpaid. The activity below summarizes
+validation and inheritance; persistence remains `LogicManager`'s responsibility.
+
+<puml src="diagrams/AddStudentAttributesActivity.puml" width="550" />
+
+No guardian or extra class-detail input is added to `edit`, `class enrol`, or `class edit`.
+Ordinary contact edits preserve guardian data. ID enrolments inherit class attributes;
 class edits preserve those attributes and payments. Unenrolling the last student retains the class
 and its metadata until the class itself is deleted.
+
+#### Storage and legacy migration
 
 `JsonAdaptedPerson` stores the stable student ID together with `guardianName`, `guardianPhone`, and `guardianEmail`.
 Canonical associations use a compact `JsonAdaptedLesson` representation containing enrolment, student, and class IDs,
@@ -373,9 +453,45 @@ canonical classes and associations without losing details, guardians, agreed rat
 student or enrolment IDs and missing class references are rejected. Empty classes also retain attributes in JSON.
 Missing contact/text fields default to empty strings; missing modes are inferred from existing links.
 
+Loading proceeds through `JsonSerializableAddressBook#toModelType`:
+
+1. Validate and restore the class catalogue and its IDs.
+2. Restore each student and guardian contact. Generate student IDs only for old records lacking them.
+3. Resolve compact enrolments against the catalogue. For older embedded lessons, reuse a matching subject/schedule or
+   create a class; preserve the individual cost and payment status. Explicit shared details must agree, except that an
+   empty, undescribed class with no students may receive its first details.
+4. Reject conflicting shared details, duplicate student/enrolment IDs, duplicate class enrolments or missing class
+   references. Otherwise retain the student and advance the class-ID sequence beyond all restored IDs.
+
+| Older representation / missing field | Compatibility behavior |
+| --- | --- |
+| No guardian fields, location or notes | Use empty values. Punctuated guardian names accepted by current validation round-trip unchanged. |
+| Class has no mode | Infer online if a meeting link is present; otherwise offline. |
+| Embedded lesson has no payment status / schedule type | Default to unpaid / weekly. Compact associations require an explicit payment status. |
+| Old student-level subjects, cost and start-only lesson | With all three available, infer a one-hour weekly range and migrate to classes/enrolments. Cap the end at 23:59 if adding an hour would cross midnight. |
+| Incomplete student-level lesson, or start at 23:59 | Do not fabricate a valid duration; retain the legacy subject fallback for searching. |
+| Previously saved names differing only in case/spacing | Preserve both records and IDs, log a warning, and reject new conflicting additions/renames. Exact duplicate names remain invalid. |
+
+`Person#legacyLessonEnd` is used by both conversion and `hasUnmigratedLegacyLesson`, keeping fallback eligibility
+consistent. Once a complete legacy record has migrated, deleting its class must not reactivate retained old subject
+metadata. Successful saves write the canonical catalogue and compact associations; search filters are never written.
+No automatic student merge is performed because each record may have different guardians, rates and enrolments.
+
+#### Diagnostics and verification
+
+Creation logs indicate success, duplicate-name rejection or schedule conflict; shared-detail resolution logs inheritance
+or conflict. Search logs record keyword/result counts, and storage logs record loaded/migrated counts and legacy-name
+warnings. Detailed counts use `FINE`; creation/rejection events use `INFO`. Command dispatch and UI diagnostics omit raw
+input and feedback so they do not reintroduce contact values, URLs, notes or search keywords into those logs. These
+diagnostics do not extend privacy mode's visual behavior or encrypt saved data.
+
 Automated coverage includes first-contact catalogue enrichment, ID enrolment, class edits, last-student
 unenrolment, preservation of IDs/metadata/guardians/payments, empty-class persistence, both legacy file
-formats, conflict rejection, and catalogue UI display. See [the manual checklist](ManualTests-v1.4.md).
+formats, conflict rejection, and catalogue UI display. `StudentIdentityIntegrationTest` covers normalized conflicts,
+filtered renames, existing-record compatibility and punctuated guardian-name persistence. `FeatureLoggingIntegrationTest`
+checks diagnostic events and exclusion of private values at detailed log levels. See the
+[manual checks below](#student-creation-guardians-and-class-details) and the
+[manual-testing appendix](#appendix-instructions-for-manual-testing) for reproducible end-to-end workflows.
 
 ### Subject search
 
@@ -387,18 +503,25 @@ before the model or storage is changed.
 
 `SubjectContainsKeywordsPredicate` matches any keyword as a case-insensitive substring of a current class subject.
 It reads `Person#getLessons()`. For older subject-only records that could not be migrated because a cost or lesson
-start is missing, it reads `Person#getSubjects()` instead. Complete legacy records already have migrated lessons;
+start is missing, or no valid same-day range can be inferred, it reads `Person#getSubjects()` instead.
+Complete legacy records already have migrated lessons;
 their retained legacy metadata is not used to restore matches after a class is removed from the in-memory model.
 
 The existing `FindCommand` applies this predicate to the complete address book. Each student appears at most once,
-and subject results retain address-book order. Subject search does not implement relevance scoring. `list` clears
-the filter. `LogicManager` applies the usual timetable restriction and saves the complete address book after a
+and subject results put pinned matches first, retaining original address-book order within each pin group.
+Subject search does not implement relevance scoring. `list` clears
+the filter. `LogicManager` applies the read-only timetable and class-list restrictions and saves the complete address book after a
 successful command, so searching does not remove students or enrolments from storage. Filters are not persisted.
 
 The [subject search guide](SubjectSearch.md) documents examples and input constraints.
 The [testing guide](Testing.md#subject-search-tests) lists automated coverage and commands for this feature.
 
-### Batch tag assignment
+### Tag management
+
+The sequence below shows the batch form `tag 1 3 t/exam-prep`. The single-student `tag` and `untag` forms follow the
+same parse, immutable replacement, and save flow.
+
+<puml src="diagrams/TagSequenceDiagram.puml" alt="Interactions for assigning a tag to multiple students" />
 
 `TagCommandParser` selects the legacy single-student mode when no `t/` prefix is present. When `t/` is present, it
 parses the whitespace-separated preamble as one or more unique displayed student indexes and parses exactly one tag
@@ -409,6 +532,17 @@ Before changing the model, `TagCommand` validates every displayed index and cate
 student who already has the tag is skipped. A student with 10 or more tags is reported as being at the tag limit.
 Only the remaining students receive immutable replacement `Person` objects containing the new tag. The command result
 lists all three outcome groups, or reports that no changes were made when every selected student is skipped.
+
+For the single-student form, `TagCommand` copies the student's existing `LinkedHashSet<Tag>`, then rejects the complete
+operation if any requested tag is already present or if the resulting set would exceed `Tag#MAX_TAGS_PER_PERSON`.
+`UntagCommandParser` accepts either one or more tag names or the standalone `-all` flag. `UntagCommand` similarly
+copies the existing tag set and rejects the complete operation when any requested tag is absent; otherwise, it removes
+the requested tags or clears the copy. Both commands call `Person#withTags`, which preserves the student's pin,
+guardian, and class details, before replacing the old `Person` through the model.
+
+Tag text is validated by `ParserUtil` before command execution. A tag contains at most 30 characters and consists of
+lowercase letters or digits separated by single hyphens. `JsonAdaptedTag` applies the same rules when loading data,
+while its legacy normalization keeps compatible older records readable.
 
 ### Batch class enrolment
 
@@ -511,11 +645,12 @@ The following activity diagram summarizes what happens when a user executes a ne
   * Pros: Will use less memory (e.g. for `delete`, just save the person being deleted).
   * Cons: We must ensure that the implementation of each individual command is correct.
 
-_{more aspects and alternatives to be added}_
-
 ### \[Proposed\] Data archiving
 
-_{Explain here how the data archiving feature will be implemented}_
+Data archiving can be implemented by adding an `archived` state to students and classes while retaining their stable
+IDs and enrolments in storage. The default student and class lists would filter archived records, while dedicated
+commands would archive, restore, and list them. Timetable construction would exclude archived classes by default.
+The storage adapters would treat a missing `archived` field as `false` to preserve compatibility with existing data.
 
 
 --------------------------------------------------------------------------------------------------------------------
@@ -543,10 +678,11 @@ TutEasy is designed for student tutors who:
 * want to keep their tutoring schedule separate from their school or personal calendar
 * use other platforms to communicate with students and parents, as TutEasy focuses on student and lesson management
 
-**Value proposition**: 
-TutEasy helps tutors manage their tutoring schedules efficiently through a CLI-based desktop application. It stores student and lesson information (such as contact details, class timings, teaching modes, class timing etc.) in a central location. 
+**Value proposition**:
 
-Features such as timetable view mode and search features allow tutors to organise, retrieve and display information in an organised manner. Tutors can use TutEasy to  keep track of their students' necessary information, allowing them to prepare for upcoming lessons and avoid scheduling conflicts.
+TutEasy gives private tutors one keyboard-driven desktop application for maintaining student contact details, classes,
+enrolments, payment status, and weekly or one-off schedules. Search, class-list, privacy, and timetable views help tutors
+retrieve the information they need while keeping the stored student and class data in one place.
 
 
 ### User stories
@@ -563,7 +699,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *`  | tutor                                       | create a class with its subject and weekly timeslot                | represent a teaching arrangement in my schedule                           |
 | `* * *`  | tutor                                       | edit or remove a class independently of its students               | change my timetable without incorrectly altering student records          |
 | `* * *`  | tutor                                       | add students to or remove students from a class                    | maintain individual and group class rosters                               |
-| `* * *`  | tutor teaching a student multiple subjects  | enroll the same student in multiple classes                        | represent their different teaching arrangements accurately               |
+| `* * *`  | tutor teaching a student multiple subjects  | enrol the same student in multiple classes                         | represent their different teaching arrangements accurately               |
 | `* * *`  | tutor                                       | record each class's day, start time, and end time                  | know when I am teaching and identify scheduling overlaps                  |
 | `* * *`  | tutor with weekly classes                   | have each weekly class recur automatically                         | avoid entering the same class every week                                  |
 | `* * *`  | tutor                                       | view my tutoring classes in a weekly timetable                     | understand my schedule at a glance                                        |
@@ -588,13 +724,18 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *`    | tutor                                       | archive inactive students and discontinued classes                | hide old records without permanently deleting their history               |
 | `* *`    | tutor                                       | be warned about possible duplicate students or classes            | avoid creating redundant records accidentally                             |
 | `* *`    | tutor                                       | export and restore a backup of my records                          | recover from device or file failure                                       |
-| `* *`    | tutor deleting a student or class           | see which enrollments and lessons will be affected                | avoid removing related information accidentally                           |
+| `* *`    | tutor deleting a student or class           | see which enrolments and lessons will be affected                 | avoid removing related information accidentally                           |
 | `* *`    | tutor                                       | view my next few lessons when the application opens               | prepare without navigating the full timetable                             |
 | `* *`    | tutor with many students                    | sort and filter my students                                        | manage a large contact list easily                                         |
-| `* *`    | tutor with frequently accessed students     | pin important students above the rest                              | access their details quickly                                               |
+| `* *`    | tutor with frequently accessed students     | pin and unpin important students above the rest                    | access their details quickly                                               |
 | `* *`    | tutor                                       | add notes about each student                                       | remember their learning needs and progress                                 |
 | `* *`    | tutor who conducts in-person lessons        | store a student's home address                                     | travel to their lessons easily                                             |
 | `* *`    | tutor teaching minors                       | record a parent or guardian's contact details                      | contact them when necessary                                                |
+| `* *`    | tutor with incomplete guardian information | save any known guardian field independently | retain contact information without inventing missing details |
+| `* *`    | tutor recording a guardian's name | use common hyphens and apostrophes | preserve the person's actual name |
+| `* *`    | tutor adding a student to an existing class | inherit shared mode, meeting link, location and notes | avoid re-entering inconsistent class details |
+| `* *`    | tutor adding a class | record optional preparation notes and a location | know where to teach and what to bring |
+| `* *`    | tutor recording shared class details | be told when supplied details conflict with an existing class | avoid changing classmates' arrangements accidentally |
 | `* *`    | tutor                                       | assign class tags to students                                      | identify students from the same class easily                               |
 | `* *`    | tutor                                       | view students grouped by subject                                   | plan similar lessons together                                              |
 | `* *`    | tutor                                       | view students grouped by timeslot                                  | see who attends each class                                                 |
@@ -602,7 +743,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *`    | tutor                                       | record homework or follow-up tasks for each student                | track their work                                                           |
 | `* *`    | tutor preparing for upcoming classes        | view upcoming classes together with student notes                  | prepare before teaching                                                    |
 | `* *`    | tutor                                       | record student attendance                                          | keep an accurate lesson history                                            |
-| `* *`    | privacy-conscious tutor                     | hide private contact details                                       | reduce the chance of someone else seeing them accidentally                 |
+| `* *`    | privacy-conscious tutor                     | hide private contact details on screen and in edit feedback        | reduce the chance of someone else seeing them accidentally                 |
 | `*`      | tutor                                       | record my hourly rate for each student or class                    | know how much to charge                                                     |
 | `*`      | tutor                                       | record whether a lesson has been paid for                          | track outstanding payments                                                 |
 | `*`      | tutor                                       | view the amount earned from lessons over a period                  | monitor my tutoring income                                                 |
@@ -618,36 +759,57 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 
 **MSS**
 
-1. Tutor requests to add a student with the required details.
+1. Tutor requests to add a student with required contacts and any known guardian details or scheduled class.
 
-2. TutEasy validates the details and checks for duplicates.
+2. TutEasy validates the supplied fields and checks for a duplicate student name.
 
-3. TutEasy adds the student to the address book.
+3. If a class is supplied, TutEasy checks schedule conflicts, resolves a matching class or prepares a new one,
+   and checks or inherits its shared details.
 
-4. TutEasy updates the timetable view if the student has class timing information.
+4. TutEasy adds the student and any class enrolment, preserving existing students' information.
 
-5. TutEasy displays a success message.
+5. TutEasy saves the updated records and confirms success.
 
    Use case ends.
 
 **Extensions**
 
-* 1a. Tutor omits one or more required fields or uses an invalid flag.
+* 2a. A required field is missing, a supplied student/guardian/class field is invalid, or a single-valued prefix repeats.
 
-    * 1a1. TutEasy shows an error message describing the invalid input.
-
-      Use case resumes at step 1.
-
-* 1b. Tutor enters an invalid phone number, email, subject, cost, or class timing.
-
-    * 1b1. TutEasy shows an error message describing the invalid field.
+    * 2a1. TutEasy rejects the input without adding the student or changing the class.
+    * 2a2. TutEasy explains the validation failure.
 
       Use case resumes at step 1.
 
-* 2a. The student already exists in the address book.
+* 2b. The name matches an existing student's name after ignoring case and repeated spaces.
 
-    * 2a1. TutEasy rejects the duplicate entry.
-    * 2a2. TutEasy shows a duplicate student error message.
+    * 2b1. TutEasy rejects the duplicate entry and explains that the student already exists.
+
+      Use case ends.
+
+* 3a. A different class overlaps the supplied schedule.
+
+    * 3a1. TutEasy rejects the addition and identifies the conflicting class time.
+
+      Use case resumes at step 1.
+
+* 3b. Supplied mode, link, location or notes disagree with recorded shared class details.
+
+    * 3b1. TutEasy rejects the addition and advises omitting the fields to inherit existing details.
+
+      Use case resumes at step 1.
+
+* 3c. A matching class exists and optional details are omitted.
+
+    * 3c1. TutEasy inherits shared values, including for classes with no students. An undescribed empty class may
+      instead receive explicit details from its first student.
+
+      Use case resumes at step 4.
+
+* 5a. Saving fails.
+
+    * 5a1. TutEasy reports the storage error. Saving/rollback recovery is a separate persistence concern; validation
+      atomicity does not itself guarantee rollback after a storage failure.
 
       Use case ends.
 
@@ -661,7 +823,7 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 
 3. TutEasy identifies the student at the specified index.
 
-4. TutEasy deletes the student from the address book.
+4. TutEasy deletes the student from its student records.
 
 5. TutEasy refreshes the student list immediately.
 
@@ -680,7 +842,7 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 
 * 4a. The deletion cannot be saved due to a storage failure.
 
-    * 4a1. The student’s contact remains in the address book.
+    * 4a1. The student's record remains in TutEasy.
     * 4a2. TutEasy shows an error message.
 
       Use case ends.
@@ -692,21 +854,21 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 
       Use case resumes at step 2 for the original request.
 
-**Use case: Tag a student**
+**Use case: Add tags to students**
 
 **MSS**
 
-1. Tutor requests to add one or more tags to a specific student by index.
+1. Tutor requests to add one or more tags to a specific student using the displayed index.
 
 2. TutEasy checks that the index is valid.
 
 3. TutEasy validates each tag.
 
-4. TutEasy checks that none of the tags already exist for that student.
+4. TutEasy checks that none of the tags already exist for that student and that the result will not exceed 10 tags.
 
 5. TutEasy adds the tags to the student’s tag set.
 
-6. TutEasy displays the tags next to the student’s name.
+6. TutEasy refreshes the tags displayed on the student card.
 
 7. TutEasy displays a success message.
 
@@ -719,6 +881,15 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
     * 1a1. TutEasy shows an error message.
 
       Use case resumes at step 1.
+
+* 1b. Tutor requests to add one tag to multiple students using unique displayed indexes.
+
+    * 1b1. TutEasy validates every index and the tag before changing any student.
+    * 1b2. TutEasy skips students who already have the tag or have reached the 10-tag limit.
+    * 1b3. TutEasy adds the tag to every remaining selected student.
+    * 1b4. TutEasy reports the students in the added, already-tagged, and at-limit groups.
+
+      Use case ends.
 
 * 2a. The given index is out of range.
 
@@ -740,10 +911,10 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 
       Use case resumes at step 1.
 
-* 5a. The student already has the maximum number of tags.
+* 4b. Adding the supplied tags would exceed the 10-tag limit.
 
-    * 5a1. TutEasy rejects the new tag.
-    * 5a2. TutEasy shows a tag limit error message.
+    * 4b1. TutEasy rejects all supplied tags.
+    * 4b2. TutEasy shows a tag limit error message.
 
       Use case ends.
 
@@ -840,14 +1011,15 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 ### Non-Functional Requirements
 
 1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
-2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
+2.  Should be able to hold up to 1000 students without noticeable sluggishness in performance for typical usage.
 3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
 4.  With 1000 student records and 10,000 lesson records, each documented command should display either a success or an error message within 2 seconds on a computer with a 2 GHz dual-core processor and 8 GB of RAM.
 5.  With 1000 student records and 10,000 lesson records, the application should be ready to accept a command within 5 seconds of launch on a computer with a 2 GHz dual-core processor, 8 GB of RAM, and a solid-state drive.
 6.  All documented features should remain usable when the user's computer has no network connection.
 7.  The application should not transmit any tutor, student, or lesson data over a network.
 8.  After the application reports that a data-modifying command has succeeded, the resulting data should still be present after the application is terminated and restarted immediately.
-9.  If a data file cannot be read, the application should leave that file unchanged unless the user explicitly confirms that it may be replaced.
+9.  If a data file cannot be read, TutEasy should start with an empty data set and leave the unreadable file unchanged
+    until the next successful command triggers a save.
 10. The application should be distributed as a single JAR file that requires no software other than Java `25` or above on a supported OS.
 11. In a usability test, at least four out of five first-time users who match the target user profile should be able to add a student, schedule a lesson, and find that lesson within 10 minutes after reading the Quick Start section of the User Guide, without assistance.
 12. At a display resolution of 1280 x 720 and 100% OS display scaling, no text or control required for a documented workflow should be clipped or overlap another UI element.
@@ -855,7 +1027,7 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 ### Glossary
 
 * **Mainstream OS**: A commonly used operating system, such as Windows, macOS or Linux.
-* **Student**: A person whose details are stored by the tutor and who can be enrolled in one or more classes.
+* **Student**: An individual whose details are stored by the tutor and who can be enrolled in one or more classes.
 * **Tutor**: The user of TutEasy who manages student records, classes and lessons.
 * **Contact details**: Information used to contact a student or their parent or guardian, such as a phone number, email address or home address.
 * **Private contact detail**: A contact detail that the tutor considers sensitive and does not want others to see.
@@ -898,46 +1070,232 @@ testers are expected to do more *exploratory* testing.
 
 1. Initial launch
 
-   1. Download the JAR file and copy it into an empty folder.
+   1. Ensure Java 25 or later is installed. Download `tuteasy.jar` and copy it into an empty folder.
 
-   1. Double-click the JAR file.<br>
-      Expected: The GUI opens with a set of sample contacts. The window size may not be optimal.
+   1. Open a terminal in that folder and run `java -jar tuteasy.jar`.<br>
+      Expected: The TutEasy window opens with sample students and classes. The status bar shows the data-file path.
+
+1. Exiting with a command
+
+   1. Enter `exit`.<br>
+      Expected: The TutEasy and Help windows close without an error.
+
+   1. Relaunch with `java -jar tuteasy.jar`.<br>
+      Expected: The application starts normally and previously saved data remains available.
+
+1. Exiting with the window controls
+
+   1. Close the main window using the operating system's close button.<br>
+      Expected: TutEasy closes cleanly. Relaunching the same JAR succeeds.
 
 1. Saving window preferences
 
    1. Resize the window to an optimal size. Move the window to a different location. Close the window.
 
-   1. Relaunch the app by double-clicking the JAR file.<br>
+   1. Relaunch the app with `java -jar tuteasy.jar`.<br>
        Expected: The most recent window size and location are retained.
 
-1. _{ more test cases … }_
+### Help
 
-### Deleting a person
+| Test action | Expected result |
+| --- | --- |
+| Enter `help` | The Help window opens and displays the TutEasy User Guide URL. |
+| Press `F1` while the command box is focused | The same Help window opens or receives focus. |
+| Select **Help** from the menu | The same Help window opens or receives focus. |
+| Select **Copy URL** | The clipboard contains `https://ay2627s1-cs2103t-t12-2.github.io/tp/UserGuide.html`. |
 
-1. Deleting a person while all persons are being shown
+### Adding, editing, listing, and deleting students
 
-   1. Prerequisites: List all persons using the `list` command, with multiple persons in the list.
+Use a disposable data folder and run `clear` before this section.
 
-   1. Test case: `delete 1`<br>
-      Expected: The first contact is deleted from the list. The status message shows the deleted contact's details.
+| Test input | Expected result |
+| --- | --- |
+| `add n/Alice Tan p/91234567 e/alice@example.com a/Clementi t/priority` | Alice is added with the supplied details and tag. |
+| Repeat the previous command | Duplicate-student error; no second Alice is added. |
+| `add n/Bob Tan p/81234567 e/bob@example.com a/Jurong gn/Mary Tan gp/98765432 ge/mary@example.com` | Bob is added with guardian details. |
+| `add n/Cara Lim p/82223333 e/cara@example.com a/Bishan sub/Physics cost/45 c/2026-11-03T1600-1730 mode/online link/https://meet.example.com/physics location/Online notes/Bring calculator` | Cara is added and enrolled in a one-off online class with the supplied shared details. |
+| Add an offline class while supplying `link/https://meet.example.com/invalid` | Validation error; neither the student nor class is added. |
+| `edit 1 p/90000000 e/alice.tan@example.com` | Only Alice's phone and email change. |
+| `edit 0 n/Invalid` | Invalid-index error; no student changes. |
+| `list` | All students are shown. |
+| `delete 1` | The first displayed student is deleted and the result identifies that student. |
+| `delete 0` | Invalid-index error; no student is deleted. |
 
-   1. Test case: `delete 0`<br>
-      Expected: No person is deleted. The status message shows error details.
+Also try `delete`, `delete x`, and an index larger than the displayed list. Each should show an actionable error and
+leave all student data unchanged.
 
-   1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
-      Expected: Similar to previous.
+### Clearing all data
 
-1. _{ more test cases … }_
+1. Add at least one student and one independent class.
+1. Enter `clear`.<br>
+   Expected: All students, classes, and enrolments are removed.
+1. Exit and relaunch TutEasy.<br>
+   Expected: The cleared state is retained.
+
+### Searching and returning to the student list
+
+Use students whose names, tags, subjects, weekly schedules, and one-off schedules are distinguishable.
+
+| Test input | Expected result |
+| --- | --- |
+| `find ali bob` | Students whose names partially match `ali` or `bob` appear. |
+| `find t/pri` | Students with a partially matching tag such as `priority` appear. |
+| `find c/Mon 1800` | Students with a Monday schedule containing `1800` appear. |
+| `find c/2026-10-20` | Students enrolled in a one-off class on that exact date appear. |
+| `list` | The complete student list is restored. |
+
+### Pinning and unpinning students
+
+Use at least three students. Note their original order before running these tests.
+
+| Test input | Expected result |
+| --- | --- |
+| `pin 2` | The selected student receives a `PINNED` badge and moves above unpinned students. |
+| Repeat `pin 1` for that now-pinned student | Already-pinned error; ordering is unchanged. |
+| `unpin 1` | The selected pinned student is unpinned and returns to the unpinned group. |
+| Find at least two students, then pin a displayed unpinned result | Only matching students remain visible; the newly pinned result moves above matching unpinned results. |
+| Exit and relaunch after pinning a student | The student remains pinned and appears in the pinned group. |
+
+After each successful `pin` or `unpin`, verify that the displayed indexes are refreshed before using another
+index-based command.
+
+### Tagging and removing tags
+
+| Test input | Expected result |
+| --- | --- |
+| `tag 1 exam-prep needs-follow-up` | Both tags are added to student 1. |
+| Repeat `tag 1 exam-prep` | Duplicate-tag error; no tag is added or removed. |
+| Give student 1 ten tags, then run `tag 1 extra` | Tag-limit error; the existing ten tags remain unchanged. |
+| `untag 1 exam-prep` | Only `exam-prep` is removed. |
+| `untag 1 missing-tag` | Missing-tag error; the student's tags remain unchanged. |
+| `untag 1 -all` | All remaining tags are removed from student 1. |
+
+### Privacy mode
+
+| Test input | Expected result |
+| --- | --- |
+| `privacy on` | Student phone, email, and address values plus non-empty guardian contact details are masked; the status bar reports privacy mode. |
+| Add or edit a student while privacy mode is active | Contact details are masked in the success feedback; non-contact details such as names and tags remain visible. |
+| Navigate to `timetable` and `class list` | The privacy-mode status remains visible. |
+| `list`, then `privacy off` | The original contact details reappear unchanged. |
+| Enable privacy mode, exit, and relaunch | Privacy mode remains enabled. |
+| `privacy ON` or `privacy on now` | Invalid-command-format error; the existing privacy state is unchanged. |
+
+### Finding by name, tag, or lesson
+
+Start with a disposable, empty data file and add two students:
+
+* `add n/Amy Smith p/91234567 e/amy@example.com a/One t/exam-prep sub/Math cost/30 c/Monday1800-1930`
+* `add n/Ben Lee p/81234567 e/ben@example.com a/Two t/friends sub/Physics cost/35 c/Tuesday1900-2030`
+
+| Test input | Expected result |
+| --- | --- |
+| `find am` | Amy appears; the partial name match is case-insensitive. |
+| `find t/EXAM` | Amy appears because the tag keyword partially matches `exam-prep`, ignoring case. |
+| `find c/Mon 18` | Amy appears because the lesson matches the weekday prefix and time fragment. |
+| `find`, `find t/`, or `find c/` | A validation error is shown; the displayed results and records are unchanged. |
+| `find t/exam*` or `find c/Funday` | An invalid-keyword error is shown; the displayed results and records are unchanged. |
+| `list` | The filter clears and both students appear. |
+
+### Student creation, guardians and class details
+
+Use a disposable folder with sample data and unused `QA...` names. These tests use Thursday lesson times outside the
+sample timetable. Run commands individually. Record class IDs from feedback or `class list`; run `list` after class
+listing to return to the writable student view. Compare student/class counts before and after rejected commands.
+
+1. Add a complete online class and a guardian with punctuation:
+
+   ```text
+   add n/QAAlice p/91111111 e/qa.alice@example.com a/One Street gn/Mary-Anne O'Connor gp/98888888 ge/mary@example.com sub/QA Algebra cost/30 c/Thursday1000-1130 mode/online link/https://meet.example.com/qa location/Virtual room notes/Bring worksheet
+   ```
+
+   Expected: student added with all guardian fields; online class shows its link, location and notes. Record its class ID.
+
+2. Add `QABob` to the existing class with a different agreed rate and no repeated shared details:
+
+   ```text
+   add n/QABob p/92222222 e/qa.bob@example.com a/Two Street sub/QA Algebra cost/35 c/Thursday1000-1130
+   ```
+
+   Expected: the same class ID, online mode, link, location and notes; Bob's balance is 35 and Alice's is 30.
+   Guardian fields remain individual, so Bob does not inherit Alice's guardian.
+
+3. Test phone-only, email-only and name-only guardians:
+
+   ```text
+   add n/QAPhone p/93333333 e/qa.phone@example.com a/Three Street gp/98765432
+   add n/QAEmail p/94444444 e/qa.email@example.com a/Four Street ge/guardian@example.com
+   add n/QANameOnly p/95550000 e/qa.nameonly@example.com a/Five Street gn/Mary-Anne O'Connor
+   ```
+
+   Expected: all three are added; each shows only its supplied guardian field.
+
+4. Run each invalid command below. Every command should fail without adding `QAInvalid` or changing the shared class:
+
+   | Test input | Expected reason |
+   | --- | --- |
+   | `add n/QAInvalid p/95555555 e/qa.invalid@example.com a/Five Street sub/English` | Incomplete class fields; requires subject, cost and schedule together. |
+   | `add n/QAInvalid p/95555555 e/qa.invalid@example.com a/Five Street cost/20` | Incomplete class fields. |
+   | `add n/QAInvalid p/95555555 e/qa.invalid@example.com a/Five Street sub/English cost/20` | Incomplete class fields. |
+   | `add n/QAInvalid p/95555555 e/qa.invalid@example.com a/Five Street sub/English cost/20 c/Thursday1200` | Schedule requires both start and end times. |
+   | `add n/QAInvalid p/95555555 e/qa.invalid@example.com a/Five Street gn/@Mary` | Invalid guardian-name character. |
+   | `add n/QAInvalid p/95555555 e/qa.invalid@example.com a/Five Street gp/12` | Guardian phone too short. |
+   | `add n/QAInvalid p/95555555 e/qa.invalid@example.com a/Five Street ge/invalid` | Invalid guardian email. |
+   | `add n/QAInvalid p/95555555 e/qa.invalid@example.com a/Five Street gp/123 gp/456` | Repeated single-valued prefix. |
+   | `add n/QAInvalid p/95555555 e/qa.invalid@example.com a/Five Street sub/QA Link cost/30 c/Thursday1200-1300 mode/online link/javascript:alert(1)` | Invalid meeting-link scheme. |
+   | `add n/QAInvalid p/95555555 e/qa.invalid@example.com a/Five Street sub/QA Link cost/30 c/Thursday1200-1300 mode/online link/https://user:pass@example.com` | Embedded link credentials. |
+   | `add n/QAInvalid p/95555555 e/qa.invalid@example.com a/Five Street sub/QA Link cost/30 c/Thursday1200-1300 mode/offline link/https://example.com` | Link on an offline class. |
+   | `add n/QAInvalid p/95555555 e/qa.invalid@example.com a/Five Street sub/QA Algebra cost/30 c/Thursday1000-1130 mode/offline` | Conflicts with existing shared online mode. |
+   | `add n/QAInvalid p/95555555 e/qa.invalid@example.com a/Five Street sub/QA Algebra cost/30 c/Thursday1000-1130 notes/Different notes` | Conflicting shared notes. |
+
+   For length boundaries, use a separate disposable folder and reset its data between trials. Append `notes/` followed
+   by 500 letters to a new `QA Link` class command without a link: it should succeed. Repeat with 501 letters: it should
+   fail without additions. Do the same for location. Return to the main fixture for the remaining steps.
+
+5. Test normalized name conflicts and renames:
+
+   ```text
+   add n/QA Name p/96666666 e/qa.name@example.com a/Six Street
+   add n/qa  name p/97777777 e/qa.other@example.com a/Seven Street
+   find QABob
+   edit 1 n/QA  NAME
+   ```
+
+   Expected: first add succeeds; second add and rename fail as duplicates, with records and displayed results unchanged.
+   Rename `QABob` to `QABOB` instead: this succeeds and retains the same student ID and class details.
+
+6. Use `find QAAlice`, then mark its recorded class ID paid with `class payment 1 id/CLASS_ID status/paid` (substitute
+   the actual ID). Run `list`, exit and relaunch from the same folder. Expected: guardian punctuation, modes, links,
+   location, notes, individual rates and payment status persist; Bob remains unpaid. Both students' details appear
+   consistently in the class list and timetable. Unenrolling the last student must retain the class and shared metadata.
+
+For legacy JSON and already-saved case/spacing variants, use the automated storage fixtures/tests rather than editing
+your real file. Verify `ClassAttributesMigrationTest`, `SubjectSearchIntegrationTest` and
+`StudentIdentityIntegrationTest`: missing attributes default correctly, incomplete legacy subjects stay searchable,
+deleting a migrated class does not revive old subject matches, and existing name variants survive a save/reload.
 
 ### Searching by subject
 
 Use a disposable data file with three students: Alice taking Mathematics and Physics, Bob taking Computer Science,
-and Carol taking no subjects. These tests assume the student view; use `list` first if the timetable is open.
+and Carol taking no subjects. These students should initially be unpinned, in Alice/Bob/Carol insertion order.
+Use `list` first if the timetable or class list is open. Keep this fixture separate from the `QA...` attribute tests.
+
+To construct that fixture in a separate disposable folder, use `clear` to remove the sample records, then run:
+
+```text
+add n/Alice p/91111111 e/alice@example.com a/One sub/Mathematics cost/30 c/Thursday0700-0800
+add n/Bob p/92222222 e/bob@example.com a/Two sub/Computer Science cost/40 c/Thursday0800-0900
+add n/Carol p/93333333 e/carol@example.com a/Three
+class add sub/Physics cost/35 c/Thursday0900-1000
+```
+
+Record the Physics class ID from feedback, then run `class enrol 1 id/CLASS_ID` with that ID. Expected: Alice has both
+subjects and Bob has one. `clear` deletes records, so never run this fixture setup against your working data.
 
 | Test input | Expected result |
 | --- | --- |
 | `find sub/mAtH` | Alice appears once; feedback reports one result. |
-| `find sub/phys computer` | Alice and Bob appear in address-book order. |
+| `find sub/phys computer` | Alice and Bob appear in original address-book order. |
 | `find sub/math Math physics` | Alice appears once despite multiple matching keywords and classes. |
 | `find Carol`, then `find sub/computer` | Bob appears; the subject search includes students outside the old results. |
 | `find sub/Chemistry` | Empty results and a zero-result message. |
@@ -946,10 +1304,50 @@ and Carol taking no subjects. These tests assume the student view; use `list` fi
 | `find sub/Math sub/Physics` | Duplicate-prefix error; previous results remain unchanged. |
 | `find sub/Math t/priority` or `find Alice sub/Math` | Mixed-mode error; previous results remain unchanged. |
 | `timetable`, then `find sub/Math` | Timetable read-only error; use `list` before searching. |
+| `class list`, then `find sub/Math` | Class-list read-only error; use `list` before searching. |
+| `list`, `pin 2`, then `find sub/phys computer` | Bob appears before Alice because pinned matches come first; each appears once. |
 | `find sub/computer`, then `delete 1` | Bob is deleted, even if he was not first in the complete list. |
 
 After a subject search, exit and relaunch the app. All remaining students and their enrolments should be present;
 the full student list should be displayed. Repeat `find sub/math` to check that saved class subjects remain searchable.
+
+### Managing classes and individual enrolments
+
+Use at least two students. Replace `C001` below with the class ID reported by TutEasy if it differs.
+
+| Test input | Expected result |
+| --- | --- |
+| `class add sub/Math cost/30 c/Monday1800-1930` | An independent weekly class is created with a stable ID such as `C001`. |
+| Repeat the previous command | Duplicate-class error; no second class is created. |
+| Add an overlapping Monday class | Overlap error; no class is created. |
+| `class list` | A read-only class list opens and includes the ID, subject, schedule, and default cost. |
+| `class edit id/C001 sub/Mathematics cost/35` | The class keeps its ID and schedule while its subject and default cost change. |
+| `list`, then `class enrol 1 id/C001` | Student 1 is enrolled at the current default cost. |
+| Repeat the previous enrolment | Already-enrolled feedback; no duplicate enrolment is created. |
+| `class unenrol 1 id/C001` | Student 1 is removed from the class; the independent class remains in `class list`. |
+| `class enrol 1 sub/Mathematics cost/40 c/Monday1800-1930` | Student 1 is enrolled with an agreed rate of 40. |
+| `class delete id/C001` | The class and all of its enrolments are removed without deleting any student. |
+
+### Timetable view
+
+Prepare a weekly class on the current weekday, a one-off class on today's date, classes on at least two other days,
+and a class with two students whose names are not already alphabetical.
+
+| Test action | Expected result |
+| --- | --- |
+| Enter `timetable` | The complete Sunday-to-Saturday week containing today appears. Today is highlighted and scrolled into view where possible. |
+| Inspect the header | The displayed date range matches the selected week, including month or year boundaries where applicable. |
+| Inspect the entries | Classes are chronological; student names inside a class are alphabetical. Empty days still have dated headings. |
+| Inspect today's entries | Both the matching weekly class and today's one-off class appear. |
+| Select **Next week** | The range advances exactly seven days. The weekly class recurs; today's one-off class is absent. |
+| Select **Previous week** | The range moves back exactly seven days. |
+| Select **Today** | The current week is reloaded and today is highlighted again. |
+| Enter a modifying command such as `delete 1` | A read-only error appears and no data changes. |
+| Enter `class list`, then `timetable` | The read-only class list opens, then the timetable opens again at the current week. |
+| Enter `list` | The student list returns and modifying commands are enabled. |
+
+Navigate away from the current week, enter `list`, and enter `timetable` again. The newly created timetable panel should
+start at the current week rather than the previously selected week.
 
 ### Updating payment status
 
@@ -969,6 +1367,18 @@ followed by a separate, muted `Unpaid` label, and each balance badge should init
 Mark one student as paid, exit the app, and relaunch it. The paid status should still appear, while the other student's
 status remains unpaid. Open the timetable and verify that both students still appear together in one Math class.
 
+### Displaying enrolled classes on student cards
+
+Use at least two students. Create a weekly Math class and a later weekly Physics class, then enrol both students in
+Math and the first student in Physics. Replace the example class IDs below with the IDs reported by TutEasy.
+
+| Test action | Expected result |
+| --- | --- |
+| Inspect both student cards | Both Math badges use the same colour and show the same subject and timing. Each has separate `Offline` and `Unpaid` labels. |
+| Inspect the first student's two class groups | Math and Physics appear on separate rows ordered by schedule, then subject. |
+| Mark the first student's Math enrolment as paid | Its Math colour is unchanged, its status becomes `Paid`, and only that student's balance decreases. |
+| Exit and relaunch TutEasy | The same classes, payment labels, balance values, order, and shared class colours are restored. |
+
 ### Assigning a tag to multiple students
 
 Use a disposable data file with at least three displayed students and reset it between test cases. Unless a row states
@@ -982,6 +1392,8 @@ otherwise, selected students do not have the target tag and have fewer than 10 t
 | `tag 1 1 3 t/exam-prep` | Duplicate-index error; no student changes. |
 | `tag 1 999 t/exam-prep` | Invalid-index error; no student changes. |
 | `tag 1 3 t/ExamPrep` | Invalid-tag error under the existing lowercase tag rules; no student changes. |
+| `tag 1 2 t/exam-prep urgent` | Batch-mode error says exactly one tag is allowed; no student changes. |
+| `tag 1 2 t/exam-prep Invalid` | Invalid-tag error; no student changes. |
 | `tag 1 3 t/2026` | Both students receive the numeric tag `2026`. |
 | `tag 3 exam-prep needs-follow-up` | The legacy format still adds both tags to student 3. |
 
@@ -1003,8 +1415,30 @@ test also verifies that batch enrolment looks up the independent class rather th
 
 ### Saving data
 
-1. Dealing with missing/corrupted data files
+Use a disposable folder and keep backup copies outside TutEasy's `data` folder.
 
-   1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
+1. Automatic saving
 
-1. _{ more test cases … }_
+   1. Add a student, class, enrolment, and payment status, then enter `exit`.
+   1. Relaunch the same JAR from the same folder.<br>
+      Expected: All saved values are restored. The complete student list is shown on startup.
+
+1. Missing data file
+
+   1. Close TutEasy and move `data/addressbook.json` to a backup location.
+   1. Relaunch TutEasy.<br>
+      Expected: TutEasy starts with sample data and does not fail to launch.
+
+1. Corrupted data file
+
+   1. Close TutEasy, back up `data/addressbook.json`, and replace its contents with invalid JSON.
+   1. Relaunch TutEasy without entering any command.<br>
+      Expected: TutEasy starts with an empty data set. The corrupted file remains unchanged at this point.
+   1. Enter a successful command such as `add` with valid student details.<br>
+      Expected: TutEasy saves the new valid data. Restore the backup after completing the test if required.
+
+1. Read-only data location
+
+   1. Run TutEasy from a folder where the current user cannot write, then execute a data-modifying command.<br>
+      Expected: TutEasy reports that it cannot save because of insufficient permissions instead of silently losing
+      the error.
