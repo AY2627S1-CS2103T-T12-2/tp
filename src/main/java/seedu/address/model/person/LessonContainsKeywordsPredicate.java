@@ -62,7 +62,8 @@ public class LessonContainsKeywordsPredicate implements ScoredPersonPredicate {
     public int score(Person person) {
         int lessonScore = person.getLessons().stream()
                 .mapToInt(this::scoreLesson)
-                .sum();
+                .max()
+                .orElse(0);
 
         if (lessonScore > 0) {
             return lessonScore;

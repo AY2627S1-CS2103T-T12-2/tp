@@ -24,6 +24,9 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.lesson.Cost;
+import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.Subject;
 import seedu.address.model.person.Lesson;
 import seedu.address.model.person.LessonContainsKeywordsPredicate;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
@@ -129,6 +132,26 @@ public class FindCommandTest {
         expectedLessonModel.updateFilteredPersonList(predicate);
         assertCommandSuccess(command, lessonModel, expectedMessage, expectedLessonModel);
         assertEquals(List.of(mondayStudent), lessonModel.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_lessonKeyword_multipleMatchingClassesKeepsOriginalOrder() throws Exception {
+        Person bob = new PersonBuilder().withName("Bob").withLessons(
+                new seedu.address.model.lesson.Lesson(new Subject("Math"), new Cost("30"),
+                        new LessonTiming("Monday1800-1900"))).build();
+        Person alice = new PersonBuilder().withName("Alice").withLessons(
+                new seedu.address.model.lesson.Lesson(new Subject("Physics"), new Cost("40"),
+                        new LessonTiming("Monday1900-2000")),
+                new seedu.address.model.lesson.Lesson(new Subject("Chemistry"), new Cost("50"),
+                        new LessonTiming("Monday2000-2100"))).build();
+        AddressBook addressBook = new AddressBook();
+        addressBook.addPerson(bob);
+        addressBook.addPerson(alice);
+        Model rankedModel = new ModelManager(addressBook, new UserPrefs());
+
+        new AddressBookParser().parseCommand("find c/Mon").execute(rankedModel);
+
+        assertEquals(List.of(bob, alice), rankedModel.getFilteredPersonList());
     }
 
     @Test
