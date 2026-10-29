@@ -30,7 +30,7 @@ public class AddCommand extends Command {
 
     public static final String COMMAND_WORD = "add";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Adds a person to the address book. "
+    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Adds a student. "
             + "Parameters: "
             + PREFIX_NAME + "NAME "
             + PREFIX_PHONE + "PHONE "
@@ -48,7 +48,7 @@ public class AddCommand extends Command {
             + PREFIX_SUBJECT + "Math " + PREFIX_COST + "30 " + PREFIX_CLASS + "Monday1800-1930";
 
     public static final String MESSAGE_SUCCESS = "Student Added: %1$s";
-    public static final String MESSAGE_DUPLICATE_PERSON = "This person already exists in the address book.";
+    public static final String MESSAGE_DUPLICATE_PERSON = "A student with this name already exists.";
     private static final Logger logger = LogsCenter.getLogger(AddCommand.class);
     private final Person toAdd;
     private final ClassDetailsUpdate detailsUpdate;

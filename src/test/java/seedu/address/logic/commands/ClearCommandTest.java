@@ -6,6 +6,7 @@ import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
@@ -15,6 +16,7 @@ import seedu.address.model.lesson.ClassId;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.LessonTiming;
 import seedu.address.model.lesson.Subject;
+import seedu.address.model.lesson.TuitionClass;
 
 public class ClearCommandTest {
 
@@ -46,6 +48,21 @@ public class ClearCommandTest {
         new ClearCommand().execute(model);
 
         assertEquals(new ClassId("C002"), model.allocateClassId());
+    }
+
+    @Test
+    public void execute_enrolledStudentAndClass_removesAllReportedData() throws CommandException {
+        Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+        ClassId classId = model.allocateClassId();
+        model.addTuitionClass(new TuitionClass(classId, new Subject("Math"),
+                new Cost("30"), new LessonTiming("Monday1800-1930")));
+        new ClassEnrolCommand(Index.fromOneBased(1), classId).execute(model);
+
+        String feedback = new ClearCommand().execute(model).getFeedbackToUser();
+
+        assertEquals("All students, classes, and enrolments have been cleared.", feedback);
+        assertEquals(0, model.getAddressBook().getPersonList().size());
+        assertEquals(0, model.getTuitionClassList().size());
     }
 
 }
