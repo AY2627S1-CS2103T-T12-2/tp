@@ -3,9 +3,14 @@ package seedu.address.logic.parser;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Set;
+
 import org.junit.jupiter.api.Test;
+
+import seedu.address.logic.parser.exceptions.ParseException;
 
 public class ArgumentTokenizerTest {
 
@@ -134,6 +139,50 @@ public class ArgumentTokenizerTest {
         assertArgumentAbsent(argMultimap, pSlash);
         assertArgumentPresent(argMultimap, dashT, "not joined^Qjoined");
         assertArgumentAbsent(argMultimap, hatQ);
+    }
+
+    @Test
+    public void tokenizeWithFreeTextFields_quotedPrefixes_preservedLiterally() throws Exception {
+        Prefix notes = new Prefix("notes/");
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenizeWithFreeTextFields(
+                " p/first notes/\"Review p/third notes/extra\" p/second", Set.of(notes), Set.of(), pSlash, notes);
+
+        assertPreambleEmpty(arguments);
+        assertArgumentPresent(arguments, pSlash, "first", "second");
+        assertArgumentPresent(arguments, notes, "Review p/third notes/extra");
+    }
+
+    @Test
+    public void tokenizeWithFreeTextFields_absentOrEmptyText_keepsOtherArguments() throws Exception {
+        Prefix notes = new Prefix("notes/");
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenizeWithFreeTextFields(
+                " p/first", Set.of(notes), Set.of(), pSlash, notes);
+        assertArgumentPresent(arguments, pSlash, "first");
+        assertArgumentAbsent(arguments, notes);
+
+        arguments = ArgumentTokenizer.tokenizeWithFreeTextFields(
+                " notes/\"\" p/first", Set.of(notes), Set.of(), pSlash, notes);
+        assertArgumentPresent(arguments, pSlash, "first");
+        assertArgumentPresent(arguments, notes, "");
+    }
+
+    @Test
+    public void tokenizeWithFreeTextFields_escapedQuotesAndBackslashes_preserved() throws Exception {
+        Prefix notes = new Prefix("notes/");
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenizeWithFreeTextFields(
+                " notes/\"Review \\\"p/literal\\\" at C:\\\\notes\" p/123", Set.of(notes), Set.of(), notes, pSlash);
+        assertArgumentPresent(arguments, notes, "Review \"p/literal\" at C:\\notes");
+        assertArgumentPresent(arguments, pSlash, "123");
+    }
+
+    @Test
+    public void tokenizeWithFreeTextFields_malformedQuotes_rejected() {
+        Prefix notes = new Prefix("notes/");
+        for (String input : new String[] {" notes/\"unfinished", " notes/\"Review\" extra p/123",
+            " notes/\"Review\"p/123"}) {
+            assertThrows(ParseException.class, () -> ArgumentTokenizer.tokenizeWithFreeTextFields(
+                    input, Set.of(notes), Set.of(), notes, pSlash));
+        }
     }
 
     @Test

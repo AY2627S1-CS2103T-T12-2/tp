@@ -39,6 +39,7 @@ public class AddCommand extends Command {
             + "[" + PREFIX_TAG + "TAG]... [gn/GUARDIAN_NAME] [gp/GUARDIAN_PHONE] [ge/GUARDIAN_EMAIL] "
             + "[" + PREFIX_SUBJECT + "SUBJECT " + PREFIX_COST + "COST "
             + PREFIX_CLASS + "SCHEDULE [mode/online|offline] [link/URL] [location/LOCATION] [notes/NOTES]]\n"
+            + "Use double quotes around notes/ and location/ values containing command prefixes.\n"
             + "Example: " + COMMAND_WORD + " "
             + PREFIX_NAME + "John Doe "
             + PREFIX_PHONE + "98765432 "

@@ -80,6 +80,34 @@ public class AttributesStorageTest {
         assertEquals(JsonSerializableAddressBook.MESSAGE_CLASS_DETAILS_CONFLICT, exception.getMessage());
     }
 
+    @Test
+    public void quotedDetailsAndReorderedGuardian_survivePaymentEditAndRestart() throws Exception {
+        ModelManager model = new ModelManager();
+        AddressBookParser parser = new AddressBookParser();
+        parser.parseCommand("add notes/\"Review gn/Mary sub/section 2\" location/\"Room sub/section 2\""
+                + " gp/99999999 n/Alice p/91234567 e/alice@example.com a/One"
+                + " sub/Math cost/35 c/Monday1800-1930 mode/online").execute(model);
+        parser.parseCommand("pin 1").execute(model);
+        parser.parseCommand("find sub/Math").execute(model);
+        parser.parseCommand("class payment 1 id/C001 status/paid").execute(model);
+        parser.parseCommand("edit 1 p/91111111").execute(model);
+        parser.parseCommand("class edit id/C001 sub/Physics cost/50 c/Tuesday1800-1930").execute(model);
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("quoted.json"));
+        storage.saveAddressBook(model.getAddressBook());
+        ModelManager restored = new ModelManager(storage.readAddressBook().orElseThrow(), model.getUserPrefs());
+        assertEquals(model.getAddressBook(), restored.getAddressBook());
+        var person = restored.getAddressBook().getPersonList().getFirst();
+        var lesson = person.getLessons().iterator().next();
+        assertEquals("99999999", person.getGuardianContact().phone());
+        assertEquals("91111111", person.getPhone().value);
+        assertEquals(PaymentStatus.PAID, lesson.getPaymentStatus());
+        assertEquals("35", lesson.getCost().toString());
+        assertEquals("Review gn/Mary sub/section 2", lesson.getDetails().notes());
+        assertEquals("Room sub/section 2", lesson.getDetails().location());
+        parser.parseCommand("find sub/Physics").execute(restored);
+        assertEquals(1, restored.getFilteredPersonList().size());
+    }
+
     private ModelManager populatedModel() throws Exception {
         ModelManager model = new ModelManager();
         AddressBookParser parser = new AddressBookParser();

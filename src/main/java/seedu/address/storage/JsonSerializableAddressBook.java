@@ -1,7 +1,9 @@
 package seedu.address.storage;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -14,6 +16,7 @@ import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.lesson.ClassDetails;
+import seedu.address.model.lesson.ClassId;
 import seedu.address.model.lesson.Enrollment;
 import seedu.address.model.lesson.EnrollmentId;
 import seedu.address.model.lesson.Lesson;
@@ -91,8 +94,10 @@ class JsonSerializableAddressBook {
         }
         java.util.Set<EnrollmentId> enrollmentIds = new java.util.HashSet<>();
         java.util.Set<StudentId> studentIds = new java.util.HashSet<>();
-        for (JsonAdaptedPerson jsonAdaptedPerson : persons) {
-            Person person = jsonAdaptedPerson.toModelType();
+        List<LoadedStudent> loadedStudents = loadStudents(addressBook);
+        reconcileLegacyClassDetails(addressBook, loadedStudents);
+        for (LoadedStudent loadedStudent : loadedStudents) {
+            Person person = loadedStudent.person();
             boolean hasLegacyLessons = !person.getLegacyLessons().isEmpty();
             if (!studentIds.add(person.getStudentId())) {
                 throw new IllegalValueException(MESSAGE_DUPLICATE_STUDENT_ID);
@@ -102,12 +107,6 @@ class JsonSerializableAddressBook {
             }
             hasLegacyNameVariants |= addressBook.getPersonList().stream()
                     .anyMatch(existing -> existing.getName().hasSameIdentityAs(person.getName()));
-            java.util.Set<Lesson> explicitlyDetailedLessons = new java.util.HashSet<>();
-            for (Lesson lesson : person.getLegacyLessons()) {
-                if (jsonAdaptedPerson.hasExplicitClassDetails(lesson)) {
-                    explicitlyDetailedLessons.add(lesson);
-                }
-            }
             java.util.Set<Enrollment> linkedEnrollments = new java.util.LinkedHashSet<>();
             for (Enrollment enrollment : person.getEnrollments()) {
                 if (!enrollmentIds.add(enrollment.getEnrollmentId())) {
@@ -121,37 +120,7 @@ class JsonSerializableAddressBook {
                         addressBook.getTuitionClass(enrollment.getClassId())));
             }
             for (Lesson lesson : person.getLegacyLessons()) {
-                TuitionClass tuitionClass = null;
-                if (lesson.getClassId() != null && addressBook.hasTuitionClass(lesson.getClassId())) {
-                    tuitionClass = addressBook.getTuitionClass(lesson.getClassId());
-                }
-                if (tuitionClass == null) {
-                    tuitionClass = addressBook.getTuitionClassList().stream()
-                            .filter(item -> item.getSubject().value.equalsIgnoreCase(lesson.getSubject().value)
-                                    && item.getSchedule().equals(lesson.getSchedule()))
-                            .findFirst().orElse(null);
-                }
-                if (tuitionClass == null) {
-                    seedu.address.model.lesson.ClassId id = lesson.getClassId() != null
-                            ? lesson.getClassId() : addressBook.allocateClassId();
-                    tuitionClass = new TuitionClass(id, lesson.getSubject(), lesson.getCost(), lesson.getSchedule(),
-                            lesson.getDetails());
-                    addressBook.addTuitionClass(tuitionClass);
-                }
-                if (explicitlyDetailedLessons.contains(lesson)
-                        && !tuitionClass.getDetails().equals(lesson.getDetails())) {
-                    TuitionClass selected = tuitionClass;
-                    boolean hasStudents = addressBook.getPersonList().stream()
-                            .flatMap(student -> student.getEnrollments().stream())
-                            .anyMatch(item -> selected.getClassId().equals(item.getClassId()));
-                    if (tuitionClass.getDetails().equals(ClassDetails.EMPTY) && !hasStudents) {
-                        TuitionClass updated = tuitionClass.withDetails(lesson.getDetails());
-                        addressBook.setTuitionClass(tuitionClass, updated);
-                        tuitionClass = updated;
-                    } else {
-                        throw new IllegalValueException(MESSAGE_CLASS_DETAILS_CONFLICT);
-                    }
-                }
+                TuitionClass tuitionClass = resolveLegacyClass(addressBook, lesson);
                 Enrollment migrated = new Enrollment(person.getStudentId(), tuitionClass,
                         lesson.getCost(), lesson.getPaymentStatus());
                 migratedEnrollments++;
@@ -179,5 +148,73 @@ class JsonSerializableAddressBook {
                 + migratedEnrollments + " legacy enrolment(s).");
         return addressBook;
     }
+
+    /** Reads legacy detail provenance before any students are linked to the class catalogue. */
+    private List<LoadedStudent> loadStudents(AddressBook addressBook) throws IllegalValueException {
+        List<LoadedStudent> loadedStudents = new ArrayList<>();
+        for (JsonAdaptedPerson adapted : persons) {
+            Person person = adapted.toModelType();
+            Set<Lesson> explicitDetails = new HashSet<>();
+            for (Lesson lesson : person.getLegacyLessons()) {
+                if (adapted.hasExplicitClassDetails(lesson)) {
+                    explicitDetails.add(lesson);
+                }
+            }
+            for (Enrollment enrollment : person.getEnrollments()) {
+                if (!addressBook.hasTuitionClass(enrollment.getClassId())) {
+                    throw new IllegalValueException("Enrollment refers to a class that does not exist: "
+                            + enrollment.getClassId());
+                }
+            }
+            loadedStudents.add(new LoadedStudent(person, explicitDetails));
+        }
+        return loadedStudents;
+    }
+
+    /** Resolves omitted legacy details independently of record order, retaining explicit conflicts. */
+    private static void reconcileLegacyClassDetails(AddressBook addressBook, List<LoadedStudent> students)
+            throws IllegalValueException {
+        Set<ClassId> explicitClasses = new HashSet<>();
+        addressBook.getTuitionClassList().stream()
+                .filter(item -> !item.getDetails().equals(ClassDetails.EMPTY))
+                .map(TuitionClass::getClassId).forEach(explicitClasses::add);
+        students.stream().flatMap(student -> student.person().getEnrollments().stream())
+                .map(Enrollment::getClassId).forEach(explicitClasses::add);
+        for (LoadedStudent student : students) {
+            for (Lesson lesson : student.person().getLegacyLessons()) {
+                TuitionClass tuitionClass = resolveLegacyClass(addressBook, lesson);
+                if (!student.explicitDetails().contains(lesson)) {
+                    continue;
+                }
+                if (!explicitClasses.add(tuitionClass.getClassId())
+                        && !tuitionClass.getDetails().equals(lesson.getDetails())) {
+                    throw new IllegalValueException(MESSAGE_CLASS_DETAILS_CONFLICT);
+                }
+                if (!tuitionClass.getDetails().equals(lesson.getDetails())) {
+                    addressBook.setTuitionClass(tuitionClass, tuitionClass.withDetails(lesson.getDetails()));
+                }
+            }
+        }
+    }
+
+    private static TuitionClass resolveLegacyClass(AddressBook addressBook, Lesson lesson) {
+        if (lesson.getClassId() != null && addressBook.hasTuitionClass(lesson.getClassId())) {
+            return addressBook.getTuitionClass(lesson.getClassId());
+        }
+        TuitionClass existing = addressBook.getTuitionClassList().stream()
+                .filter(item -> item.getSubject().equals(lesson.getSubject())
+                        && item.getSchedule().equals(lesson.getSchedule()))
+                .findFirst().orElse(null);
+        if (existing != null) {
+            return existing;
+        }
+        ClassId id = lesson.getClassId() == null ? addressBook.allocateClassId() : lesson.getClassId();
+        TuitionClass created = new TuitionClass(id, lesson.getSubject(), lesson.getCost(), lesson.getSchedule(),
+                lesson.getDetails());
+        addressBook.addTuitionClass(created);
+        return created;
+    }
+
+    private record LoadedStudent(Person person, Set<Lesson> explicitDetails) { }
 
 }

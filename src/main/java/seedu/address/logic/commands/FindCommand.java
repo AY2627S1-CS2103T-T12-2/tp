@@ -19,31 +19,34 @@ import seedu.address.model.person.Person;
 import seedu.address.model.person.ScoredPersonPredicate;
 
 /**
- * Finds and lists all persons in the address book whose name, tag, or lesson matches the search input.
+ * Finds and lists all persons in the address book whose name, tag, subject, or lesson matches the search input.
  * Matching is case insensitive.
  */
 public class FindCommand extends Command {
 
     public static final String COMMAND_WORD = "find";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Finds students by name, tag, or lesson.\n"
+    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Finds students by name, tag, subject, or lesson.\n"
             + "Formats:\n"
             + COMMAND_WORD + " KEYWORD [MORE_KEYWORDS]...\n"
             + COMMAND_WORD + " t/TAG_KEYWORD [MORE_TAG_KEYWORDS]...\n"
+            + COMMAND_WORD + " sub/SUBJECT_KEYWORD [MORE_SUBJECT_KEYWORDS]...\n"
             + COMMAND_WORD + " c/DAY [TIME_HHmm]\n"
             + COMMAND_WORD + " c/TIME_HHmm\n"
             + COMMAND_WORD + " c/DATE [TIME_HHmm]\n"
             + "Examples: " + COMMAND_WORD + " ali; " + COMMAND_WORD + " t/pri; "
+            + COMMAND_WORD + " sub/Math Physics; "
             + COMMAND_WORD + " c/Monday 1800; " + COMMAND_WORD + " c/1800; "
             + COMMAND_WORD + " c/2026-10-20";
 
     public static final String MESSAGE_EMPTY_QUERY =
-            "Find requires a search value. Use: find KEYWORD, find t/TAG, or find c/LESSON.";
+            "Find requires a search value. Use: find KEYWORD, find t/TAG, find sub/SUBJECT, or find c/LESSON.";
     public static final String MESSAGE_PREFIX_WITH_NAME =
             "Find prefixes must come immediately after 'find'. "
-                    + "Use either find KEYWORD, find t/TAG, or find c/LESSON.";
+                    + "Use either find KEYWORD, find t/TAG, find sub/SUBJECT, or find c/LESSON.";
     public static final String MESSAGE_MULTIPLE_SEARCH_MODES =
-            "Find can search only one category at a time. Choose name keywords, t/TAG keywords, or c/LESSON keywords.";
+            "Find can search only one category at a time. "
+                    + "Choose name keywords, t/TAG keywords, sub/SUBJECT keywords, or c/LESSON keywords.";
     public static final String MESSAGE_DUPLICATE_TAG_PREFIX =
             "Find tag search accepts only one t/ prefix. Put multiple tag keywords after the same t/.";
     public static final String MESSAGE_DUPLICATE_CLASS_PREFIX =
