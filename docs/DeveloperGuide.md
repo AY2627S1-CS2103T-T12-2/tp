@@ -95,22 +95,17 @@ The `UI` component,
 * keeps a reference to the `Logic` component, because the `UI` relies on the `Logic` to execute commands.
 * depends on some classes in the `Model` component because it displays `Person` objects from the model.
 
-`PersonCard` renders enrolled classes as coloured badges in a vertical list below the student's email. A smaller,
-muted paid or unpaid label follows each badge without inheriting its background colour. Each badge and status are
-contained in one `HBox`, while the surrounding `VBox` places every class group on its own row. A single
-`ClassColorPalette` is owned by `PersonListPanel` and shared by every card, ensuring that the same logical class uses
-the same colour across students. The palette identifies a class using its case-insensitive subject and complete
-lesson timing, matching `Lesson#isSameClass`; cost and payment status are not part of the colour identity. A muted
-balance badge beside the student's name always displays `Person#getOutstandingBalance`, including when it is zero.
-Pinned students also display a `PINNED` badge beside their name. The badge is visible and participates in the layout
-only when `Person#isPinned` is true.
+`PersonCard` renders contact details, tags, enrolled-class groups, outstanding balance, and pin state for one student.
+`PersonListPanel` supplies the shared display state needed across cards. The
+[enrolled-class display](#enrolled-class-display), [pin feature](#pin-feature), and
+[privacy mode](#privacy-mode) sections describe these behaviors in detail.
 
 `MainWindow` passes the privacy preference from `Logic` to `PersonListPanel` and `StatusBarFooter`. The panel owns an
-observable privacy state shared by its `PersonCard` instances. Each card binds its phone, email, and address labels to
-that state, so toggling privacy mode replaces each value with a fixed seven-asterisk mask without modifying the
-underlying `Person`. The panel also refreshes its `ListView` to ensure newly created and currently displayed cells use
-the same state. `StatusBarFooter` keeps a visible privacy indicator active across the student-list, timetable, and
-class-list views.
+observable privacy state shared by its `PersonCard` instances. Each card binds its phone, email, address, and guardian
+labels to that state, so toggling privacy mode replaces each non-empty contact field with a fixed seven-asterisk mask
+without modifying the underlying `Person`. The panel also refreshes its `ListView` to ensure newly created and
+currently displayed cells use the same state. `StatusBarFooter` keeps a visible privacy indicator active across the
+student-list, timetable, and class-list views.
 
 ### Logic component
 
@@ -239,7 +234,28 @@ weekday. In all three cases, their time ranges must overlap; ranges meeting only
 without `scheduleType` are interpreted as weekly schedules, so existing address-book files load without manual
 migration. Weekly occurrences remain derived and are never expanded into persisted dated records.
 
+### Enrolled-class display
+
+`PersonListPanel` owns one `ClassColorPalette` and passes it to every `PersonCard`. The palette maps the same logical
+class to the same CSS colour across students. Its `ClassIdentity` normalizes the subject to lowercase and combines it
+with the complete stored schedule, matching `Lesson#isSameClass`; agreed rate and payment status are intentionally
+excluded because they can differ between enrolments in one class. Eight colour styles are available, and deterministic
+hash-based reuse keeps the mapping stable when there are more classes than colours.
+
+`PersonCard` sorts a student's resolved lessons by schedule and then case-insensitive subject. For each lesson, it
+creates an `HBox` containing the coloured subject-and-timing badge, teaching-mode label, and payment-status label. A
+surrounding `VBox` adds a separate wrapped line only when a meeting link, location, or note exists. Keeping payment and
+mode outside the coloured badge prevents those changing values from altering class identity or colour.
+
+The muted balance badge beside the student's name displays `Person#getOutstandingBalance`, which derives the sum of
+unpaid agreed rates rather than storing another value. This design lets payment updates refresh both the status label
+and balance from the same enrolment state while leaving the class colour unchanged.
+
 ### Pin feature
+
+The activity diagram below summarizes the common flow for `pin INDEX` and `unpin INDEX`.
+
+<puml src="diagrams/PinActivityDiagram.puml" alt="Validation and list reordering for pin and unpin commands" />
 
 Each `Person` stores a `pinned` boolean. `JsonAdaptedPerson` writes this value to the address-book data file and treats
 a missing value as `false`, allowing older files to remain compatible. Copy operations such as editing tags or lessons
@@ -289,6 +305,10 @@ clears when the user starts typing or when a non-`find` command succeeds.
 
 ### Privacy mode
 
+The sequence below shows how `privacy on` moves from command execution to preference storage and the reactive UI.
+
+<puml src="diagrams/PrivacySequenceDiagram.puml" alt="Interactions for enabling privacy mode" />
+
 `privacy on` and `privacy off` update `UserPrefs#privacyModeEnabled` through the model. `LogicManager` saves the updated
 preferences using the existing user-preferences storage, so the selection survives an application restart. A missing
 JSON field maps to Java's default `false` value, keeping older preference files compatible.
@@ -297,6 +317,11 @@ After any successful command, `MainWindow` reads the privacy state from `Logic` 
 `StatusBarFooter`. Existing `PersonCard` contact-label bindings react immediately, while a list refresh ensures all
 cells are rendered consistently. Disabling privacy mode binds the labels back to the original values held by `Person`;
 neither command changes address-book data.
+
+`PrivacyCommandParser` accepts only the exact lowercase modes `on` and `off`. `LogicManager` permits the command in the
+student list and both read-only views. When privacy mode is active, `AddCommand` and `EditCommand` pass the current
+privacy state to `Messages#format`, which masks phone, email, address, and non-empty guardian details in their success
+feedback. Other non-contact values remain visible.
 
 ### Timetable view
 
@@ -490,7 +515,12 @@ successful command, so searching does not remove students or enrolments from sto
 The [subject search guide](SubjectSearch.md) documents examples and input constraints.
 The [testing guide](Testing.md#subject-search-tests) lists automated coverage and commands for this feature.
 
-### Batch tag assignment
+### Tag management
+
+The sequence below shows the batch form `tag 1 3 t/exam-prep`. The single-student `tag` and `untag` forms follow the
+same parse, immutable replacement, and save flow.
+
+<puml src="diagrams/TagSequenceDiagram.puml" alt="Interactions for assigning a tag to multiple students" />
 
 `TagCommandParser` selects the legacy single-student mode when no `t/` prefix is present. When `t/` is present, it
 parses the whitespace-separated preamble as one or more unique displayed student indexes and parses exactly one tag
@@ -501,6 +531,17 @@ Before changing the model, `TagCommand` validates every displayed index and cate
 student who already has the tag is skipped. A student with 10 or more tags is reported as being at the tag limit.
 Only the remaining students receive immutable replacement `Person` objects containing the new tag. The command result
 lists all three outcome groups, or reports that no changes were made when every selected student is skipped.
+
+For the single-student form, `TagCommand` copies the student's existing `LinkedHashSet<Tag>`, then rejects the complete
+operation if any requested tag is already present or if the resulting set would exceed `Tag#MAX_TAGS_PER_PERSON`.
+`UntagCommandParser` accepts either one or more tag names or the standalone `-all` flag. `UntagCommand` similarly
+copies the existing tag set and rejects the complete operation when any requested tag is absent; otherwise, it removes
+the requested tags or clears the copy. Both commands call `Person#withTags`, which preserves the student's pin,
+guardian, and class details, before replacing the old `Person` through the model.
+
+Tag text is validated by `ParserUtil` before command execution. A tag contains at most 30 characters and consists of
+lowercase letters or digits separated by single hyphens. `JsonAdaptedTag` applies the same rules when loading data,
+while its legacy normalization keeps compatible older records readable.
 
 ### Batch class enrolment
 
@@ -685,7 +726,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *`    | tutor deleting a student or class           | see which enrolments and lessons will be affected                 | avoid removing related information accidentally                           |
 | `* *`    | tutor                                       | view my next few lessons when the application opens               | prepare without navigating the full timetable                             |
 | `* *`    | tutor with many students                    | sort and filter my students                                        | manage a large contact list easily                                         |
-| `* *`    | tutor with frequently accessed students     | pin important students above the rest                              | access their details quickly                                               |
+| `* *`    | tutor with frequently accessed students     | pin and unpin important students above the rest                    | access their details quickly                                               |
 | `* *`    | tutor                                       | add notes about each student                                       | remember their learning needs and progress                                 |
 | `* *`    | tutor who conducts in-person lessons        | store a student's home address                                     | travel to their lessons easily                                             |
 | `* *`    | tutor teaching minors                       | record a parent or guardian's contact details                      | contact them when necessary                                                |
@@ -701,7 +742,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *`    | tutor                                       | record homework or follow-up tasks for each student                | track their work                                                           |
 | `* *`    | tutor preparing for upcoming classes        | view upcoming classes together with student notes                  | prepare before teaching                                                    |
 | `* *`    | tutor                                       | record student attendance                                          | keep an accurate lesson history                                            |
-| `* *`    | privacy-conscious tutor                     | hide private contact details                                       | reduce the chance of someone else seeing them accidentally                 |
+| `* *`    | privacy-conscious tutor                     | hide private contact details on screen and in edit feedback        | reduce the chance of someone else seeing them accidentally                 |
 | `*`      | tutor                                       | record my hourly rate for each student or class                    | know how much to charge                                                     |
 | `*`      | tutor                                       | record whether a lesson has been paid for                          | track outstanding payments                                                 |
 | `*`      | tutor                                       | view the amount earned from lessons over a period                  | monitor my tutoring income                                                 |
@@ -812,21 +853,21 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 
       Use case resumes at step 2 for the original request.
 
-**Use case: Tag a student**
+**Use case: Add tags to students**
 
 **MSS**
 
-1. Tutor requests to add one or more tags to a specific student by index.
+1. Tutor requests to add one or more tags to a specific student using the displayed index.
 
 2. TutEasy checks that the index is valid.
 
 3. TutEasy validates each tag.
 
-4. TutEasy checks that none of the tags already exist for that student.
+4. TutEasy checks that none of the tags already exist for that student and that the result will not exceed 10 tags.
 
 5. TutEasy adds the tags to the student’s tag set.
 
-6. TutEasy displays the tags next to the student’s name.
+6. TutEasy refreshes the tags displayed on the student card.
 
 7. TutEasy displays a success message.
 
@@ -839,6 +880,15 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
     * 1a1. TutEasy shows an error message.
 
       Use case resumes at step 1.
+
+* 1b. Tutor requests to add one tag to multiple students using unique displayed indexes.
+
+    * 1b1. TutEasy validates every index and the tag before changing any student.
+    * 1b2. TutEasy skips students who already have the tag or have reached the 10-tag limit.
+    * 1b3. TutEasy adds the tag to every remaining selected student.
+    * 1b4. TutEasy reports the students in the added, already-tagged, and at-limit groups.
+
+      Use case ends.
 
 * 2a. The given index is out of range.
 
@@ -860,10 +910,10 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 
       Use case resumes at step 1.
 
-* 5a. The student already has the maximum number of tags.
+* 4b. Adding the supplied tags would exceed the 10-tag limit.
 
-    * 5a1. TutEasy rejects the new tag.
-    * 5a2. TutEasy shows a tag limit error message.
+    * 4b1. TutEasy rejects all supplied tags.
+    * 4b2. TutEasy shows a tag limit error message.
 
       Use case ends.
 
@@ -1093,25 +1143,42 @@ Use students whose names, tags, subjects, weekly schedules, and one-off schedule
 | `find c/2026-10-20` | Students enrolled in a one-off class on that exact date appear. |
 | `list` | The complete student list is restored. |
 
-### Pinning and tagging students
+### Pinning and unpinning students
+
+Use at least three students. Note their original order before running these tests.
 
 | Test input | Expected result |
 | --- | --- |
 | `pin 2` | The selected student receives a `PINNED` badge and moves above unpinned students. |
 | Repeat `pin 1` for that now-pinned student | Already-pinned error; ordering is unchanged. |
 | `unpin 1` | The selected pinned student is unpinned and returns to the unpinned group. |
+| Find at least two students, then pin a displayed unpinned result | Only matching students remain visible; the newly pinned result moves above matching unpinned results. |
+| Exit and relaunch after pinning a student | The student remains pinned and appears in the pinned group. |
+
+After each successful `pin` or `unpin`, verify that the displayed indexes are refreshed before using another
+index-based command.
+
+### Tagging and removing tags
+
+| Test input | Expected result |
+| --- | --- |
 | `tag 1 exam-prep needs-follow-up` | Both tags are added to student 1. |
+| Repeat `tag 1 exam-prep` | Duplicate-tag error; no tag is added or removed. |
+| Give student 1 ten tags, then run `tag 1 extra` | Tag-limit error; the existing ten tags remain unchanged. |
 | `untag 1 exam-prep` | Only `exam-prep` is removed. |
+| `untag 1 missing-tag` | Missing-tag error; the student's tags remain unchanged. |
 | `untag 1 -all` | All remaining tags are removed from student 1. |
 
 ### Privacy mode
 
 | Test input | Expected result |
 | --- | --- |
-| `privacy on` | Student and guardian phone, email, and address values are masked; the status bar reports privacy mode. |
+| `privacy on` | Student phone, email, and address values plus non-empty guardian contact details are masked; the status bar reports privacy mode. |
+| Add or edit a student while privacy mode is active | Contact details are masked in the success feedback; non-contact details such as names and tags remain visible. |
 | Navigate to `timetable` and `class list` | The privacy-mode status remains visible. |
 | `list`, then `privacy off` | The original contact details reappear unchanged. |
 | Enable privacy mode, exit, and relaunch | Privacy mode remains enabled. |
+| `privacy ON` or `privacy on now` | Invalid-command-format error; the existing privacy state is unchanged. |
 
 ### Finding by name, tag, or lesson
 
@@ -1298,6 +1365,18 @@ followed by a separate, muted `Unpaid` label, and each balance badge should init
 
 Mark one student as paid, exit the app, and relaunch it. The paid status should still appear, while the other student's
 status remains unpaid. Open the timetable and verify that both students still appear together in one Math class.
+
+### Displaying enrolled classes on student cards
+
+Use at least two students. Create a weekly Math class and a later weekly Physics class, then enrol both students in
+Math and the first student in Physics. Replace the example class IDs below with the IDs reported by TutEasy.
+
+| Test action | Expected result |
+| --- | --- |
+| Inspect both student cards | Both Math badges use the same colour and show the same subject and timing. Each has separate `Offline` and `Unpaid` labels. |
+| Inspect the first student's two class groups | Math and Physics appear on separate rows ordered by schedule, then subject. |
+| Mark the first student's Math enrolment as paid | Its Math colour is unchanged, its status becomes `Paid`, and only that student's balance decreases. |
+| Exit and relaunch TutEasy | The same classes, payment labels, balance values, order, and shared class colours are restored. |
 
 ### Assigning a tag to multiple students
 

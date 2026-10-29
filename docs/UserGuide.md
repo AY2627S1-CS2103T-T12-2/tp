@@ -263,9 +263,11 @@ are skipped while the remaining students are enrolled. The feedback identifies b
 are already enrolled, no changes are made and an informative message is shown. `cost/` cannot be supplied when multiple
 indexes are used.
 
-Enrolled classes appear as coloured badges below each student's email. Each badge includes the subject and lesson
-timing, and students enrolled in the same class receive a badge with the same colour. When a student has multiple
-classes, each badge group appears on its own row.
+Enrolled classes appear below each student's email. Every class group contains a coloured badge with the subject and
+complete lesson timing, followed by separate `Online` or `Offline` and `Paid` or `Unpaid` labels. Non-empty meeting
+links, locations, and notes appear on a wrapped details line below that group. Students enrolled in the same logical
+class receive the same badge colour, even when their agreed rates or payment statuses differ. When a student has
+multiple classes, each group appears on its own row and the groups are ordered by schedule, then subject.
 
 A subdued balance badge beside each student's name shows the total agreed rates of that student's unpaid enrolments.
 Paid enrolments are excluded. The badge remains visible as `Balance: 0` when the student has no unpaid enrolments.
@@ -352,6 +354,8 @@ Format: `pin INDEX`
 * The student must not already be pinned.
 * During a search, only matching students are shown; matching pinned students appear before matching unpinned students.
 * Search relevance and the existing list order are preserved within the pinned and unpinned groups.
+* After a successful command, the displayed list is reordered immediately and its index numbers are refreshed. Use
+  the newly displayed index for the next index-based command.
 
 Example: `pin 3`
 
@@ -365,6 +369,8 @@ Format: `unpin INDEX`
 
 * `INDEX` refers to the index number shown in the displayed student list.
 * The student must already be pinned.
+* After a successful command, the student moves into the unpinned group immediately. Their relative order within that
+  group follows the existing list order, or the active search ranking when the list is filtered.
 
 Example: `unpin 1`
 
@@ -400,7 +406,9 @@ Formats:
 * Spaces separate tags. For example, `exam prep` adds the two tags `exam` and `prep`, while `exam-prep` adds
   one tag. Use hyphens when a single tag contains multiple words.
 * A student can have at most 10 tags.
-* The first format preserves the existing behavior of adding one or more tags to one student.
+* The first format adds one or more tags to one student. All supplied tags are validated before the student is
+  updated. If any supplied tag already belongs to that student, or if adding all supplied tags would exceed the
+  10-tag limit, the command is rejected and no tag is added.
 * The batch format uses `t/` to separate one tag from one or more unique student indexes. This also allows numeric
   tags such as `t/2026` without confusing them with student indexes.
 * The batch command validates every index and the tag before updating any student. An invalid or repeated index, or
@@ -420,6 +428,11 @@ Examples:
 Removes one or more existing tags from a student, or removes all their tags.
 
 Format: `untag INDEX TAG [MORE_TAGS]` or `untag INDEX -all`
+
+* `INDEX` refers to the index number shown in the displayed student list.
+* Every supplied tag must already belong to the selected student. If any tag is missing, the command is rejected and
+  none of the supplied tags is removed.
+* Use `-all` by itself after the index to remove every tag. It cannot be combined with tag names or `--all`.
 
 Examples:
 * `untag 2 parent-follow-up`
@@ -492,13 +505,18 @@ Format: `clear`
 
 ### Hiding contact details: `privacy`
 
-Privacy mode replaces the phone, email, and address values on every student card with a fixed seven-asterisk mask,
-such as `Address: *******`. The underlying contact details are not changed or deleted.
+Privacy mode replaces the phone, email, address, and any non-empty guardian contact details on every student card with
+a fixed seven-asterisk mask, such as `Address: *******`. While the mode is active, contact details in success feedback
+from the `add` and `edit` commands are masked too. Names, tags, classes, payment information, and pin status remain
+visible. The underlying contact details are not changed or deleted.
 
 Formats:
 
 * `privacy on` masks all displayed contact details immediately.
 * `privacy off` restores the original contact details immediately.
+
+The mode must be exactly lowercase `on` or `off`, with no additional arguments. The `privacy` command is available
+from the student list, timetable, and class-list views.
 
 While privacy mode is active, the status bar displays `Privacy mode enabled`. The selected mode is saved and restored
 when TutEasy restarts. Privacy mode is disabled by default for existing preference files that do not contain this

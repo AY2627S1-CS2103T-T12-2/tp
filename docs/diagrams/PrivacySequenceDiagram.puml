@@ -1,0 +1,55 @@
+@startuml
+!include style.puml
+
+actor Tutor
+
+box UI UI_COLOR_T1
+participant ":MainWindow" as MainWindow UI_COLOR
+participant ":PersonListPanel" as PersonListPanel UI_COLOR
+participant ":StatusBarFooter" as StatusBarFooter UI_COLOR
+end box
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as LogicManager LOGIC_COLOR
+participant "c:PrivacyCommand" as PrivacyCommand LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant "m:Model" as Model MODEL_COLOR
+end box
+
+box Storage STORAGE_COLOR_T1
+participant ":Storage" as Storage STORAGE_COLOR
+end box
+
+Tutor -> MainWindow : enter "privacy on"
+activate MainWindow
+MainWindow -> LogicManager : execute("privacy on")
+activate LogicManager
+LogicManager -> PrivacyCommand : execute(m)
+activate PrivacyCommand
+PrivacyCommand -> Model : setPrivacyModeEnabled(true)
+activate Model
+Model --> PrivacyCommand
+deactivate Model
+PrivacyCommand --> LogicManager : CommandResult
+deactivate PrivacyCommand
+LogicManager -> Storage : saveUserPrefs(m.getUserPrefs())
+activate Storage
+Storage --> LogicManager
+deactivate Storage
+LogicManager --> MainWindow : CommandResult
+deactivate LogicManager
+
+MainWindow -> LogicManager : isPrivacyModeEnabled()
+LogicManager --> MainWindow : true
+MainWindow -> PersonListPanel : setPrivacyModeEnabled(true)
+activate PersonListPanel
+PersonListPanel -> PersonListPanel : update shared property\nand refresh list cells
+PersonListPanel --> MainWindow
+deactivate PersonListPanel
+MainWindow -> StatusBarFooter : setPrivacyModeEnabled(true)
+StatusBarFooter --> MainWindow
+MainWindow --> Tutor : mask contact labels\nand show status indicator
+deactivate MainWindow
+@enduml
