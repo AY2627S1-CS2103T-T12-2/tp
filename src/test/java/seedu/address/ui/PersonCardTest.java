@@ -20,6 +20,8 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import seedu.address.model.lesson.ClassDetails;
 import seedu.address.model.lesson.Cost;
@@ -79,6 +81,9 @@ public class PersonCardTest {
             assertLabel(card, "phone", person.getPhone().value, true);
             assertLabel(card, "email", person.getEmail().value, true);
             assertLabel(card, "address", person.getAddress().value, true);
+            assertTrue(((Label) card.getRoot().lookup("#phone")).isWrapText());
+            assertTrue(((Label) card.getRoot().lookup("#email")).isWrapText());
+            assertTrue(((Label) card.getRoot().lookup("#address")).isWrapText());
             assertEquals(List.of("Math · Mon 18:00–19:30", "Physics · Wed 17:00–18:30"),
                     getClassGroups(card).stream().map(PersonCardTest::getClassDetails).toList());
             assertEquals(List.of("Unpaid", "Paid"),
@@ -96,6 +101,12 @@ public class PersonCardTest {
                 assertTrue(group.getStyleClass().contains("enrolled-class-group"));
                 assertEquals(5, group.getSpacing());
                 assertTrue(getClassBadge(group).getStyleClass().contains("enrolled-class-badge"));
+                assertTrue(getClassBadge(group).isWrapText());
+                assertEquals(0.0, getClassBadge(group).getMinWidth());
+                assertEquals(Double.MAX_VALUE, getClassBadge(group).getMaxWidth());
+                assertEquals(Priority.ALWAYS, HBox.getHgrow(getClassBadge(group)));
+                assertEquals(Region.USE_PREF_SIZE, getModeLabel(group).getMinWidth());
+                assertEquals(Region.USE_PREF_SIZE, getPaymentLabel(group).getMinWidth());
                 assertTrue(getColorStyleClass(group).startsWith(ClassColorPalette.STYLE_CLASS_PREFIX));
                 assertTrue(getModeLabel(group).getStyleClass().contains("class-mode-offline"));
             });

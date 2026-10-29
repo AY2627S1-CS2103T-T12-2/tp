@@ -3,6 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Text?>
 <?import javafx.scene.text.TextFlow?>
@@ -11,12 +12,14 @@
       spacing="12" styleClass="tuition-class-card">
   <padding><Insets top="10" right="12" bottom="10" left="12" /></padding>
   <Label fx:id="classId" styleClass="class-id-badge" minWidth="64" />
-  <VBox spacing="3" HBox.hgrow="ALWAYS">
-    <Label fx:id="subject" styleClass="cell_big_label" />
+  <VBox minWidth="0" spacing="3" HBox.hgrow="ALWAYS">
+    <Label fx:id="subject" maxWidth="Infinity" minWidth="0" styleClass="cell_big_label" wrapText="true" />
     <Label fx:id="schedule" styleClass="cell_small_label" />
     <TextFlow fx:id="detailsFlow">
       <Text fx:id="details" styleClass="cell-small-text" />
     </TextFlow>
   </VBox>
-  <Label fx:id="cost" styleClass="cell_small_label" />
+  <Label fx:id="cost" styleClass="cell_small_label">
+    <minWidth><Region fx:constant="USE_PREF_SIZE" /></minWidth>
+  </Label>
 </HBox>

@@ -32,9 +32,12 @@
         <Label fx:id="balance" text="Balance: 0" styleClass="balance-badge" />
       </HBox>
       <FlowPane fx:id="tags" hgap="5" vgap="3" styleClass="tag-container" />
-      <Label fx:id="phone" styleClass="cell_small_label" text="\$phone" />
-      <Label fx:id="address" styleClass="cell_small_label" text="\$address" />
-      <Label fx:id="email" styleClass="cell_small_label" text="\$email" />
+      <Label fx:id="phone" maxWidth="Infinity" minWidth="0" styleClass="cell_small_label" text="\$phone"
+             wrapText="true" />
+      <Label fx:id="address" maxWidth="Infinity" minWidth="0" styleClass="cell_small_label" text="\$address"
+             wrapText="true" />
+      <Label fx:id="email" maxWidth="Infinity" minWidth="0" styleClass="cell_small_label" text="\$email"
+             wrapText="true" />
       <VBox fx:id="classes" spacing="3" styleClass="enrolled-class-container" />
       <Label fx:id="guardian" styleClass="cell_small_label" wrapText="true" />
       <Label fx:id="subjects" styleClass="cell_small_label" wrapText="true" />

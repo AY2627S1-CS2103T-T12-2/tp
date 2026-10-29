@@ -16,6 +16,7 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import seedu.address.model.lesson.Lesson;
@@ -167,12 +168,18 @@ public class PersonCard extends UiPart<Region> {
         Label classBadge = new Label(formatClassBadge(enrolledClass));
         classBadge.getStyleClass().addAll(ENROLLED_CLASS_BADGE_STYLE_CLASS,
                 classColorPalette.getStyleClass(enrolledClass));
+        classBadge.setMinWidth(0);
+        classBadge.setMaxWidth(Double.MAX_VALUE);
+        classBadge.setWrapText(true);
+        HBox.setHgrow(classBadge, Priority.ALWAYS);
         Label classMode = new Label(enrolledClass.getDetails().mode().toDisplayString());
         classMode.getStyleClass().addAll(CLASS_MODE_STYLE_CLASS,
                 CLASS_MODE_STYLE_CLASS + "-" + enrolledClass.getDetails().mode().name().toLowerCase(Locale.ROOT));
+        classMode.setMinWidth(Region.USE_PREF_SIZE);
         Label paymentStatus = new Label(enrolledClass.getPaymentStatus().toDisplayString());
         paymentStatus.getStyleClass().addAll(PAYMENT_STATUS_STYLE_CLASS,
                 PAYMENT_STATUS_STYLE_CLASS + "-" + enrolledClass.getPaymentStatus().toString());
+        paymentStatus.setMinWidth(Region.USE_PREF_SIZE);
         classGroup.getChildren().addAll(classBadge, classMode, paymentStatus);
         classItem.getChildren().add(classGroup);
 
