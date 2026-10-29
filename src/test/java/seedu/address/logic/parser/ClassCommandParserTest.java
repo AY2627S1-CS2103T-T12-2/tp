@@ -134,6 +134,14 @@ public class ClassCommandParserTest {
     }
 
     @Test
+    public void parse_unenrolMultipleIndexes_reportsSingleStudentLimit() {
+        assertParseFailure(parser, " unenrol 1 2 id/C001",
+                ClassUnenrolCommandParser.MESSAGE_REQUIRES_ONE_STUDENT);
+        assertParseFailure(parser, " unenrol 1 2 sub/Math c/Monday1800-1930",
+                ClassUnenrolCommandParser.MESSAGE_REQUIRES_ONE_STUDENT);
+    }
+
+    @Test
     public void parse_deleteAllFieldsPresent_success() {
         assertParseSuccess(parser, " delete sub/Math c/Monday1800-1930",
                 new ClassDeleteCommand(SUBJECT, TIMING));
