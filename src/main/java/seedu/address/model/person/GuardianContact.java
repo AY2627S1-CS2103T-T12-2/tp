@@ -10,14 +10,17 @@ import java.util.stream.Stream;
 public record GuardianContact(String name, String phone, String email) {
 
     public static final GuardianContact EMPTY = new GuardianContact("", "", "");
+    public static final int MAX_NAME_LENGTH = 100;
     public static final String MESSAGE_NAME_CONSTRAINTS = "Guardian names must start with a letter or digit "
-            + "and contain only letters, digits, spaces, hyphens and apostrophes.";
+            + "and contain only letters, digits, spaces, hyphens and apostrophes, and must not exceed "
+            + MAX_NAME_LENGTH + " characters.";
     private static final String NAME_REGEX = "[\\p{Alnum}][\\p{Alnum} '\\u2019-]*";
 
     /** Creates a contact; guardian names also accept common name punctuation. */
     public GuardianContact {
         requireAllNonNull(name, phone, email);
-        checkArgument(name.isEmpty() || name.matches(NAME_REGEX), MESSAGE_NAME_CONSTRAINTS);
+        checkArgument(name.isEmpty() || name.length() <= MAX_NAME_LENGTH && name.matches(NAME_REGEX),
+                MESSAGE_NAME_CONSTRAINTS);
         checkArgument(phone.isEmpty() || Phone.isValidPhone(phone), "Guardian phone: " + Phone.MESSAGE_CONSTRAINTS);
         checkArgument(email.isEmpty() || Email.isValidEmail(email), "Guardian email: " + Email.MESSAGE_CONSTRAINTS);
     }

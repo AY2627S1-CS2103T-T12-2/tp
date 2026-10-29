@@ -35,7 +35,9 @@ public class PhoneTest {
         // valid phone numbers
         assertTrue(Phone.isValidPhone("911")); // exactly 3 numbers
         assertTrue(Phone.isValidPhone("93121534"));
-        assertTrue(Phone.isValidPhone("124293842033123")); // long phone numbers
+        assertTrue(Phone.isValidPhone("1".repeat(Phone.MAX_LENGTH - 1)));
+        assertTrue(Phone.isValidPhone("1".repeat(Phone.MAX_LENGTH)));
+        assertFalse(Phone.isValidPhone("1".repeat(Phone.MAX_LENGTH + 1)));
     }
 
     @Test

@@ -35,6 +35,20 @@ public class GuardianContactTest {
     }
 
     @Test
+    public void constructor_contactLengthBoundaries_acceptsMaximumAndRejectsExcessiveValues() {
+        assertEquals(GuardianContact.MAX_NAME_LENGTH - 1,
+                new GuardianContact("A".repeat(GuardianContact.MAX_NAME_LENGTH - 1), "", "").name().length());
+        assertEquals(GuardianContact.MAX_NAME_LENGTH,
+                new GuardianContact("A".repeat(GuardianContact.MAX_NAME_LENGTH), "", "").name().length());
+        assertThrows(IllegalArgumentException.class, () ->
+                new GuardianContact("A".repeat(GuardianContact.MAX_NAME_LENGTH + 1), "", ""));
+        assertThrows(IllegalArgumentException.class, () ->
+                new GuardianContact("", "1".repeat(Phone.MAX_LENGTH + 1), ""));
+        assertThrows(IllegalArgumentException.class, () ->
+                new GuardianContact("", "", "a".repeat(Email.MAX_LENGTH) + "@example.com"));
+    }
+
+    @Test
     public void independentOptionalFields_displayWithoutEmptySeparators() {
         GuardianContact nameOnly = new GuardianContact("Mary", "", "");
         GuardianContact emailOnly = new GuardianContact("", "", "mary@example.com");
