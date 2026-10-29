@@ -258,13 +258,13 @@ public class ParserUtilTest {
 
     @Test
     public void parseLessonSchedule_invalidCalendarValues_reportsSpecificValue() {
-        ParseException invalidDate = org.junit.jupiter.api.Assertions.assertThrows(ParseException.class,
-                () -> ParserUtil.parseLessonSchedule("2031-02-29T0900-1000"));
+        ParseException invalidDate = org.junit.jupiter.api.Assertions.assertThrows(
+                ParseException.class, () -> ParserUtil.parseLessonSchedule("2031-02-29T0900-1000"));
         assertEquals("Invalid date '2031-02-29'. Enter a real calendar date in yyyy-MM-dd format.",
                 invalidDate.getMessage());
 
-        ParseException invalidTime = org.junit.jupiter.api.Assertions.assertThrows(ParseException.class,
-                () -> ParserUtil.parseLessonSchedule("Monday2460-2500"));
+        ParseException invalidTime = org.junit.jupiter.api.Assertions.assertThrows(
+                ParseException.class, () -> ParserUtil.parseLessonSchedule("Monday2460-2500"));
         assertEquals("Invalid time '2460'. Times must use 24-hour HHmm from 0000 to 2359.",
                 invalidTime.getMessage());
     }
