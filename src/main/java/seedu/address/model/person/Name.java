@@ -11,8 +11,10 @@ import java.util.Locale;
  */
 public class Name {
 
+    public static final int MAX_LENGTH = 100;
     public static final String MESSAGE_CONSTRAINTS =
-            "Names should only contain alphanumeric characters and spaces, and should not be blank";
+            "Names should only contain alphanumeric characters and spaces, should not be blank, "
+                    + "and should not exceed " + MAX_LENGTH + " characters";
 
     /*
      * The first character of the name must not be a whitespace,
@@ -37,7 +39,7 @@ public class Name {
      * Returns true if a given string is a valid name.
      */
     public static boolean isValidName(String test) {
-        return test.matches(VALIDATION_REGEX);
+        return test.length() <= MAX_LENGTH && test.matches(VALIDATION_REGEX);
     }
 
     /** Compares names for new-command duplicate checks without changing their display spelling. */
