@@ -11,6 +11,7 @@ import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -128,7 +129,11 @@ public class TimetablePanel extends UiPart<Region> {
                 setGraphic(null);
                 setText(null);
             } else {
-                setGraphic(new TimetableDayCard(timetableDay, isToday(timetableDay, currentDate)).getRoot());
+                Region dayCard = new TimetableDayCard(timetableDay,
+                        isToday(timetableDay, currentDate)).getRoot();
+                dayCard.prefWidthProperty().bind(Bindings.createDoubleBinding(() -> Math.max(0,
+                        getWidth() - snappedLeftInset() - snappedRightInset()), widthProperty(), insetsProperty()));
+                setGraphic(dayCard);
             }
         }
     }

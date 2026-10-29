@@ -131,11 +131,9 @@ public class ClassEnrolCommand extends ClassCommand {
         }
 
         if (!isBatchExistingClassCommand()) {
-            Lesson displayedLesson = legacyLesson != null ? legacyLesson
-                    : new Lesson(tuitionClass.getClassId(), tuitionClass.getSubject(), tuitionClass.getDefaultRate(),
-                            tuitionClass.getSchedule(), seedu.address.model.lesson.PaymentStatus.UNPAID,
-                            tuitionClass.getDetails());
-            return new CommandResult(String.format(MESSAGE_SUCCESS, selectedPersons.get(0).getName(), displayedLesson));
+            String displayedClass = tuitionClass.getSubject() + ", " + tuitionClass.getSchedule();
+            return new CommandResult(String.format(MESSAGE_SUCCESS,
+                    selectedPersons.get(0).getName(), displayedClass));
         }
         String enrolledStudentNames = formatStudentNames(personsToEnrol);
         if (alreadyEnrolledPersons.isEmpty()) {
