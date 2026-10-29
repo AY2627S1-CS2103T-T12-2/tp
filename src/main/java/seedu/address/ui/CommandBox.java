@@ -26,6 +26,10 @@ public class CommandBox extends UiPart<Region> {
     private static final String PRIVACY_FORMAT_HINT = "privacy on | privacy off";
     private static final String PIN_FORMAT_HINT = "pin INDEX";
     private static final String UNPIN_FORMAT_HINT = "unpin INDEX";
+    private static final String TAG_COMMAND = "tag";
+    private static final String TAG_FORMAT_HINT = "tag INDEX TAG... | tag INDEX... t/TAG";
+    private static final String UNTAG_COMMAND = "untag";
+    private static final String UNTAG_FORMAT_HINT = "untag INDEX TAG... | untag INDEX -all";
 
     private final CommandExecutor commandExecutor;
 
@@ -144,6 +148,24 @@ public class CommandBox extends UiPart<Region> {
 
         if (commandText.equals("unpin") || commandText.equals("unpin ")) {
             return UNPIN_FORMAT_HINT;
+        }
+
+        if (TAG_COMMAND.startsWith(commandText) && commandText.length() >= 2
+                && commandText.length() < TAG_COMMAND.length()) {
+            return TAG_COMMAND;
+        }
+
+        if (commandText.equals(TAG_COMMAND) || commandText.equals(TAG_COMMAND + " ")) {
+            return TAG_FORMAT_HINT;
+        }
+
+        if (UNTAG_COMMAND.startsWith(commandText) && commandText.length() >= 3
+                && commandText.length() < UNTAG_COMMAND.length()) {
+            return UNTAG_COMMAND;
+        }
+
+        if (commandText.equals(UNTAG_COMMAND) || commandText.equals(UNTAG_COMMAND + " ")) {
+            return UNTAG_FORMAT_HINT;
         }
 
         return "";
