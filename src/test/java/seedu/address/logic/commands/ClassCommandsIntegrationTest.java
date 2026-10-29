@@ -9,6 +9,7 @@ import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
@@ -33,6 +35,7 @@ import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.lesson.Subject;
 import seedu.address.model.lesson.TuitionClass;
 import seedu.address.model.person.Person;
+import seedu.address.model.timetable.TimetableBuilder;
 
 public class ClassCommandsIntegrationTest {
 
@@ -670,6 +673,32 @@ public class ClassCommandsIntegrationTest {
     }
 
     @Test
+    public void edit_subjectCapitalizationOnly_updatesClassEnrollmentSearchAndTimetable() throws Exception {
+        ClassId classId = model.allocateClassId();
+        model.addTuitionClass(new TuitionClass(classId, new Subject("Math"), new Cost("30"),
+                new LessonTiming("Monday1800-1900")));
+        new ClassEnrolCommand(Index.fromOneBased(1), classId).execute(model);
+        Person student = model.getFilteredPersonList().get(0);
+
+        new AddressBookParser().parseCommand("class edit id/" + classId + " sub/MATH").execute(model);
+
+        assertEquals(classId, model.getTuitionClass(classId).getClassId());
+        assertEquals("MATH", model.getTuitionClass(classId).getSubject().value);
+        Person updatedStudent = model.getAddressBook().getPersonList().stream()
+                .filter(person -> person.getStudentId().equals(student.getStudentId()))
+                .findFirst().orElseThrow();
+        Lesson updatedLesson = updatedStudent.getLessons().iterator().next();
+        assertEquals(classId, updatedLesson.getClassId());
+        assertEquals("MATH", updatedLesson.getSubject().value);
+        assertEquals("MATH", TimetableBuilder.build(model.getTuitionClassList(),
+                model.getAddressBook().getPersonList(), LocalDate.of(2026, 10, 5))
+                .get(1).getEntries().get(0).getLesson().getSubject().value);
+
+        new AddressBookParser().parseCommand("find sub/MATH").execute(model);
+        assertTrue(model.getFilteredPersonList().contains(updatedStudent));
+    }
+
+    @Test
     public void enrol_missingStableId_failure() {
         ClassId missingClassId = new ClassId("C999");
 
@@ -793,6 +822,11 @@ public class ClassCommandsIntegrationTest {
         assertNotEquals(edit, new ClassEditCommand(new ClassId("C001"),
                 java.util.Optional.of(new Subject("Math")), java.util.Optional.of(new Cost("31")),
                 java.util.Optional.empty()));
+        assertNotEquals(edit, new ClassEditCommand(new ClassId("C001"), java.util.Optional.empty(),
+                java.util.Optional.of(new Cost("32")), java.util.Optional.empty()));
+        assertNotEquals(edit, new ClassEditCommand(new ClassId("C001"), java.util.Optional.empty(),
+                java.util.Optional.of(new Cost("31")),
+                java.util.Optional.of(new LessonTiming("Monday1800-1900"))));
         assertNotEquals(edit, null);
         assertEquals(new ClassListCommand(), new ClassListCommand());
         assertNotEquals(new ClassListCommand(), null);
