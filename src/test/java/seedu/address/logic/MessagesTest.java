@@ -44,6 +44,17 @@ public class MessagesTest {
     }
 
     @Test
+    public void getClassEditOverlapMessage_multipleConflicts_usesEditOperation() {
+        String expectedMessage = "Cannot edit Chemistry (Monday 18:00-19:00) because it overlaps with:"
+                + System.lineSeparator() + "- Physics (Monday 17:00-18:30)"
+                + System.lineSeparator() + "- Math (Monday 18:00-19:30)"
+                + System.lineSeparator() + "Choose a non-overlapping time.";
+
+        assertEquals(expectedMessage,
+                Messages.getClassEditOverlapMessage(CANDIDATE, List.of(EARLIER_CONFLICT, LATER_CONFLICT)));
+    }
+
+    @Test
     public void getClassOverlapMessage_nullCandidate_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () ->
                 Messages.getClassOverlapMessage(null, List.of(EARLIER_CONFLICT)));

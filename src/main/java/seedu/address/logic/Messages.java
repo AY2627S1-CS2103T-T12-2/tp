@@ -69,6 +69,17 @@ public class Messages {
      * Returns an actionable error message for a candidate class that overlaps existing classes.
      */
     public static String getClassOverlapMessage(Lesson candidate, List<Lesson> conflicts) {
+        return formatClassOverlapMessage("add", candidate, conflicts);
+    }
+
+    /**
+     * Returns an actionable error message for an edited class that overlaps existing classes.
+     */
+    public static String getClassEditOverlapMessage(Lesson candidate, List<Lesson> conflicts) {
+        return formatClassOverlapMessage("edit", candidate, conflicts);
+    }
+
+    private static String formatClassOverlapMessage(String operation, Lesson candidate, List<Lesson> conflicts) {
         requireNonNull(candidate);
         requireNonNull(conflicts);
         assert !conflicts.isEmpty();
@@ -77,7 +88,7 @@ public class Messages {
                 .map(Messages::formatLesson)
                 .map(formattedLesson -> "- " + formattedLesson)
                 .collect(Collectors.joining(System.lineSeparator()));
-        return "Cannot add " + formatLesson(candidate) + " because it overlaps with:"
+        return "Cannot " + operation + " " + formatLesson(candidate) + " because it overlaps with:"
                 + System.lineSeparator() + conflictDetails
                 + System.lineSeparator() + "Choose a non-overlapping time.";
     }
