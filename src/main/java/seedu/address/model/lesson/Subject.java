@@ -15,8 +15,9 @@ public class Subject {
     /** Creates a subject. */
     public Subject(String value) {
         requireNonNull(value);
-        checkArgument(isValidSubject(value), MESSAGE_CONSTRAINTS);
-        this.value = value;
+        String normalizedValue = value.replaceAll(" {2,}", " ");
+        checkArgument(isValidSubject(normalizedValue), MESSAGE_CONSTRAINTS);
+        this.value = normalizedValue;
     }
 
     public static boolean isValidSubject(String test) {

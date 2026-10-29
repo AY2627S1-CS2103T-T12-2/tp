@@ -6,7 +6,9 @@
 
 # TutEasy User Guide
 
-TutEasy is a **desktop application for managing contacts, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI). If you type quickly, TutEasy can help you manage contacts faster than traditional GUI applications.
+TutEasy is a desktop application for private tutors who manage students, classes, enrolments, and lesson schedules.
+It is optimized for fast keyboard-driven use through a Command Line Interface (CLI), while its Graphical User
+Interface (GUI) keeps student and timetable information easy to review.
 
 <!-- * Table of Contents -->
 <page-nav-print />
@@ -18,24 +20,24 @@ TutEasy is a **desktop application for managing contacts, optimized for use thro
 1. Ensure that Java `25` or later is installed on your computer.<br>
    **Mac users:** Ensure you have the precise JDK version prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html).
 
-1. Download the latest `.jar` file from [here](https://github.com/se-edu/addressbook-level3/releases).
+1. Download `tuteasy.jar` from the
+   [latest TutEasy release](https://github.com/AY2627S1-CS2103T-T12-2/tp/releases/latest).
 
 1. Copy the file to the folder you want to use as the _home folder_ for TutEasy.
 
 1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar tuteasy.jar`.<br>
-   A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
-   ![Ui](images/Ui.png)
+   The TutEasy window should appear in a few seconds with sample student and class data.
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
    Some example commands you can try:
 
-   * `list` : Lists all contacts.
+   * `list` : Shows all students.
 
-   * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a contact named `John Doe` to TutEasy.
+   * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a student named `John Doe`.
 
-   * `delete 3` : Deletes the 3rd contact shown in the current list.
+   * `class add sub/Mathematics cost/40 c/Monday1800-1930` : Adds a weekly Mathematics class.
 
-   * `clear` : Deletes all contacts.
+   * `timetable` : Opens the read-only weekly timetable.
 
    * `exit` : Exits the app.
 
@@ -71,16 +73,15 @@ Subject searches are described in the [subject search guide](SubjectSearch.md).
 
 ### Viewing help: `help`
 
-Shows a message explaining how to access the help page.
-
-![help message](images/helpMessage.png)
+Opens a window containing the URL of this User Guide. You can also open it from the **Help** menu or by pressing `F1`.
+Use **Copy URL** in the Help window to copy the link.
 
 Format: `help`
 
 
-### Adding a person: `add`
+### Adding a student: `add`
 
-Adds a person to the address book.
+Adds a student to TutEasy, optionally with guardian contacts and one scheduled class.
 
 Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [gn/GUARDIAN_NAME] [gp/GUARDIAN_PHONE] [ge/GUARDIAN_EMAIL] [sub/SUBJECT cost/COST c/SCHEDULE [mode/online|offline] [link/URL] [location/LOCATION] [notes/NOTES]]`
 
@@ -90,7 +91,22 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [gn/GUARDIAN_NAM
 and use only lowercase letters, numbers, and single hyphens between characters.
 </box>
 
-* `sub/SUBJECT`, `cost/COST`, and `c/SCHEDULE` must be supplied together when adding a class.
+| Fields | Required? | What to enter |
+| --- | --- | --- |
+| `n/`, `p/`, `e/`, `a/` | Yes | Student name, phone, email and address. None may be blank. |
+| `t/` | No | Repeat this prefix for multiple tags, up to the tag limit above. |
+| `gn/`, `gp/`, `ge/` | No | Any combination of guardian name, phone and email. |
+| `sub/`, `cost/`, `c/` | Together, to enrol in a scheduled class | Subject, agreed rate and complete schedule. |
+| `mode/`, `link/`, `location/`, `notes/` | No | Extra details for the scheduled class supplied in the same command. |
+
+* Student names contain letters, digits and spaces and start with a letter or digit. Phone numbers contain only
+  digits and have at least three digits; email addresses must follow the [email rules below](#guardian-field-rules).
+* A name differing from an existing student's name only in capitalization or repeated spaces is rejected as a
+  duplicate, even if its phone or email differs. For example, `Alex Yeoh`, `alex yeoh` and `Alex  Yeoh` conflict.
+  Your entered capitalization and spacing are retained for display. This rule also applies when renaming with `edit`.
+* To include a scheduled class, supply `sub/SUBJECT`, `cost/COST`, and `c/SCHEDULE` together. Subjects contain letters,
+  digits and spaces. The agreed rate is non-negative, with at most two decimal places, e.g. `30`, `35.50`, or `0`.
+  Supplying only some of these fields rejects the entire command; no student or class is added.
 * Times use the 24-hour range `0000`–`2359`, and the end time must be later than the start time.
 * A weekly schedule uses `DAYHHmm-HHmm`, for example `Monday1800-1930`.
 * A one-off schedule uses `yyyy-MM-ddTHHmm-HHmm`, for example `2026-10-20T1800-1930`.
@@ -99,49 +115,85 @@ and use only lowercase letters, numbers, and single hyphens between characters.
 Examples:
 * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
 * `add n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
-* `add n/John Davis p/91234567 e/johndavis@gmail.com a/Clementi t/exam-prep sub/Math cost/30 c/Monday1800-1930`
+* `add n/John Davis p/91234567 e/johndavis@gmail.com a/Clementi t/exam-prep sub/Math cost/30 c/Thursday1400-1530`
 * `add n/Jane Tan p/92345678 e/jane@example.com a/Bishan sub/Math cost/30 c/2026-10-20T1800-1930`
 
-### Adding guardian and class details to a contact
+### Adding guardian and class details to a student
 
-The `add` command accepts optional guardian name (`gn/`), phone (`gp/`), and email (`ge/`) fields.
-These are independent: for example, supply just `gp/` when only a parent's phone is known.
-Non-empty guardian values follow the same validation rules as student contact fields.
-The details appear on the student card and are saved across restarts. Privacy mode masks guardian details
-alongside the student's phone, email, and address.
+Guardian name (`gn/`), phone (`gp/`) and email (`ge/`) are independent optional fields. You can supply only a phone,
+only an email, or any combination; none requires the others. Omitted or empty guardian values mean not provided.
+Leading and trailing spaces around field values are trimmed. Guardian details appear on the student card and persist
+across restarts. Privacy mode masks them on student cards alongside the student's phone, email and address.
 
-When adding a contact with a class (`sub/`, `cost/`, and complete `c/SCHEDULE`), you may also supply
-`mode/online` or `mode/offline`. An online class may optionally have an HTTP(S) meeting URL in `link/`.
-Offline classes cannot store a non-empty link. New classes default to offline when the mode is omitted.
-Mode values are case-insensitive. Optional `location/` and `notes/` each accept up to 500 characters
-of single-line text. Class fields require a complete class in the same `add` command.
+#### Guardian field rules
 
-Examples:
+| Field | Rule for a non-empty value | Example |
+| --- | --- | --- |
+| `gn/` | Starts with a letter or digit; contains only letters, digits, spaces, hyphens and apostrophes (`'` or `’`). | `gn/Mary-Anne O'Connor` |
+| `gp/` | At least three digits; no spaces, `+`, brackets or hyphens. | `gp/98765432` |
+| `ge/` | Uses the email rules below. | `ge/mary.oconnor@example.com` |
 
-* `add n/Alice Tan p/91234567 e/alice@example.com a/Clementi gn/Mary Tan gp/98765432 ge/mary@example.com sub/Math cost/30 c/Saturday1800-1930 mode/online link/https://meet.example.com/math`
-* `add n/Bob Tan p/81234567 e/bob@example.com a/Jurong gp/89999999`
-* `add n/Cara Tan p/71234567 e/cara@example.com a/Tampines sub/Physics cost/40 c/Saturday1600-1730 mode/offline location/Room 2 notes/Bring calculator`
+Email rules, for both students and guardians:
 
-Each prefix may be supplied once. Links must contain a valid host and cannot contain spaces or
-embedded credentials. A link is allowed only when the class is online.
+* Use `local-part@domain`. The local part contains letters/digits and may use `+`, `_`, `.` or `-` between
+  alphanumeric groups; it cannot begin or end with punctuation or contain adjacent punctuation characters.
+* Domain labels are separated by dots. Each starts and ends with a letter/digit, with hyphens allowed between
+  alphanumeric groups. The final label is at least two characters long. Spaces are not allowed.
 
-Class IDs identify independently stored shared classes. When adding a contact to an existing class,
-omitted fields inherit the class catalogue's values even when the class has no enrolled students.
-If the catalogue class has no students and no extra details, the first contact may fill its mode,
-link, location, and notes. For classes already in use, explicit values must agree with the shared values.
-Existing classmates, guardian contacts, and payment statuses are not changed by adding a contact.
-Mode and details appear on student cards and timetable entries and are saved once in the shared class catalogue.
-Each student's enrolment stores only its class reference, agreed rate, and payment status.
-Older saved classes without a mode default to offline, or online if they already contain a link.
+For example, `add n/Bob Tan p/81234567 e/bob@example.com a/Jurong gp/89999999` creates a student with only a
+guardian phone. Guardian name punctuation is supported independently of the student-name rule.
 
-The new field-entry scope is `add` only. `edit` and `class enrol` retain their existing syntax;
-ordinary contact edits and enrolments preserve stored attributes. Aaron's `class edit` changes
-subject, cost, or timing while retaining mode, link, location, notes, and individual payment status. Guardian/class-field editing is
-not provided in this change.
+#### Class mode, link, location and notes
 
-Class details remain in the class catalogue after its last student unenrols. `class delete id/CLASS_ID`
-removes the class and all of its enrolments. Class listing and timetable entries display the shared details,
-including classes with no students. Use `list` to return from either read-only view before changing data.
+These fields accompany a complete scheduled class (`sub/`, `cost/` and `c/`) in the same `add` command.
+Each prefix in this command format can appear once, except `t/`, which may repeat.
+
+| Field | Rule |
+| --- | --- |
+| `mode/` | `online` or `offline`, ignoring case. A new class defaults to offline if omitted. |
+| `link/` | Optional for online classes; must be an absolute HTTP(S) URL with a host. No spaces or embedded username/password; an explicit port must be between 1 and 65535. Offline classes reject a non-empty link. |
+| `location/` | Optional single-line text, up to 500 characters, without control characters. Available for either mode. |
+| `notes/` | Optional single-line text, up to 500 characters, without control characters. Available for either mode. |
+
+For a **new** class, a link requires explicit `mode/online`. Supplying a link alone does not change the default mode.
+An online class may have no link. Examples below assume these student names and lesson times are unused:
+
+```text
+add n/Alice Tan p/91234567 e/alice@example.com a/Clementi gn/Mary-Anne O'Connor gp/98765432 ge/mary.oconnor@example.com sub/Algebra cost/30 c/Thursday1000-1130 mode/online link/https://meet.example.com/algebra location/Virtual room notes/Bring worksheet
+```
+
+```text
+add n/Dana Tan p/71234567 e/dana@example.com a/Tampines sub/Biology cost/40 c/Saturday1600-1730 mode/offline location/Room 2 notes/Bring calculator
+```
+
+#### Joining an existing class and inheriting details
+
+TutEasy matches an existing class by its subject (case-insensitive) and complete schedule, including the exact date for
+a one-off class. Use the existing subject: `Math` and `Mathematics` are different subjects. A different class at an
+overlapping time is rejected.
+
+When a match exists, omitted mode, link, location and notes inherit the class's recorded values, including when the
+class has no students. Explicit values must agree with those shared values. The exception is an empty class with no
+recorded extra details: its first student may fill them in. A conflicting command is rejected before the student is
+added or the shared class is changed.
+
+After the Alice example above, this enrols a second student in the same online Algebra class, inheriting its link,
+location and notes, at an individual agreed rate of 35:
+
+```text
+add n/Ben Tan p/82345678 e/ben@example.com a/Bishan sub/Algebra cost/35 c/Thursday1000-1130
+```
+
+Supplying `mode/offline` for that same Algebra class would be rejected because its shared mode is online. Omitting
+`mode/` inherits online; supplying `link/` with an empty value would conflict with its existing non-empty link.
+The new student's guardian details and agreed rate are individual. Existing classmates' contacts, rates and payment
+statuses are unchanged; the new enrolment starts unpaid.
+
+Mode and extra class details appear on student cards, class listings and timetable entries. They remain after the last
+student unenrols. `class delete id/CLASS_ID` removes the class and all its enrolments. `edit` does not accept guardian
+or class-detail fields; `class enrol` inherits existing class details. `class edit` changes subject, default cost or
+schedule while preserving mode, link, location, notes and individual payment statuses. Use `list` to leave either
+read-only view before modifying data.
 
 ### Adding a class: `class add`
 
@@ -248,10 +300,14 @@ Payment status describes the current enrolment as a whole; it is not a payment h
 or billing months. Correspondingly, the displayed balance is the sum of the current unpaid enrolments rather than a
 history of accumulated charges.
 
+A successful status change is saved automatically and restored after restarting TutEasy. The balance updates to reflect
+the new unpaid total. Repeating the current status reports that it is already set. An invalid student index, invalid
+status, or student who is not enrolled in the specified class receives an error without changing the enrolment.
+
 ### Deleting a class: `class delete`
 
 Deletes a class globally by removing it from every enrolled student. Students and their other information are not
-deleted. The command searches the complete address book even when the displayed student list is filtered.
+deleted. The command searches all student records even when the displayed student list is filtered.
 
 Format: `class delete id/CLASS_ID`
 
@@ -277,11 +333,11 @@ Format: `timetable`
 
 While the timetable is open, `class list`, `list`, `privacy`, `help`, and `exit` are available. `class list` replaces
 the timetable with the class list. Use `list` to return to the student list and re-enable modifying commands. Re-entering
-`timetable` starts again from the current week rather than the previously viewed week.
+`timetable` after leaving the timetable starts again from the current week rather than the previously viewed week.
 
-### Listing all persons: `list`
+### Listing all students: `list`
 
-Shows all students in the address book. Pinned students appear before unpinned students.
+Shows all students in TutEasy. Pinned students appear before unpinned students.
 
 Format: `list`
 
@@ -312,21 +368,21 @@ Format: `unpin INDEX`
 
 Example: `unpin 1`
 
-### Editing a person: `edit`
+### Editing a student: `edit`
 
-Edits an existing person in the address book.
+Edits an existing student.
 
 Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]... `
 
-* Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, ...
+* Edits the student at the specified `INDEX`. The index refers to the index number shown in the displayed student list. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
-* When editing tags, all of the person's existing tags are removed; adding tags is not cumulative.
-* To remove all of a person's tags, enter `t/` without a tag after it.
+* When editing tags, all of the student's existing tags are removed; adding tags is not cumulative.
+* To remove all of a student's tags, enter `t/` without a tag after it.
 
 Examples:
-*  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
-*  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing tags.
+*  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st student to be `91234567` and `johndoe@example.com` respectively.
+*  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd student to be `Betsy Crower` and clears all existing tags.
 
 ### Tagging students: `tag`
 
@@ -369,23 +425,32 @@ Examples:
 * `untag 2 parent-follow-up`
 * `untag 5 -all`
 
-### Locating persons by name, tag, or lesson: `find`
+### Locating students by name, tag, subject, or schedule: `find`
 
-Finds students whose names, tags, or lesson timings partially match the given search input.
+Finds students whose names, tags, subjects, or lesson timings partially match the given search input.
 
 Formats:
 * `find KEYWORD [MORE_KEYWORDS]`
 * `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]`
+* `find sub/SUBJECT_KEYWORD [MORE_SUBJECT_KEYWORDS]`
 * `find c/DAY [TIME_HHmm]`, `find c/TIME_HHmm`, or `find c/DATE [TIME_HHmm]`
 
 * The search is case-insensitive; for example, `hans` matches `Hans`.
-* Without `t/`, the search considers only names.
+* With no search prefix, the search considers only names. Choose one search category per command.
+* With `sub/`, any case-insensitive partial keyword may match an enrolled class subject. Multiple keywords are
+  alternatives (OR): `find sub/physics chemistry` finds students taking either subject, once each. A multi-word query
+  such as `find sub/Computer Science` also matches Environmental Science through `Science`. Subject results place
+  pinned matches first and retain original address-book order within each pin group; they do not use relevance scoring.
+  Use one `sub/` prefix with non-empty alphanumeric keywords, without name text or `t/`/`c/` in the same command.
+  Invalid input keeps the previous results. See the [subject-search guide](SubjectSearch.md) for examples and details.
 * With `t/`, the search considers only tags. Stored tags use lowercase, but tag search keywords are case-insensitive
   for input convenience, e.g. `find t/PRI` matches `priority`.
 * Name and tag searches use partial matching, e.g. `ali` matches `Alice`, and `pri` matches `priority`.
 * With `c/`, search by lesson day, exact date, time, or a supported combination. Days accept full names or prefixes,
   e.g. `Monday` or `Mon`. Exact dates use `yyyy-MM-dd`. Times use HHmm style from `0000` to `2359`, e.g. `1800`;
   shorter fragments such as `18` are accepted for partial matching.
+* An empty search, empty `t/` or `c/` value, or invalid tag or lesson keyword is rejected with an error. The current
+  displayed results remain unchanged.
 * Name and tag searches return students matching at least one keyword. Matching pinned students are shown before
   matching unpinned students. Within each group, students with more matching keywords are shown first; ties keep the
   current list order.
@@ -394,34 +459,34 @@ Formats:
 Examples:
 * `find Joh` returns `John` and `John Doe`
 * `find t/fri` returns students tagged `friends`
+* `find sub/mAtH` returns students taking subjects such as Mathematics; `find sub/phys chemistry` matches either subject.
 * `find c/Monday` returns students with Monday lessons
 * `find c/1800` returns students with lessons containing `1800`
 * `find c/Mon 1800` returns students with Monday lessons containing `1800`
 * `find c/2026-10-20` returns students with a one-off lesson on 20 October 2026
 * `find c/2026-10-20 1800` additionally requires the one-off lesson to contain `1800`
-* `find alex david` returns `Alex Yeoh`, `David Li`<br>
-  ![result for 'find alex david'](images/findAlexDavidResult.png)
+* `find alex david` returns students whose names match `alex` or `david`
 
 The command box shows light-grey hints for common `find` inputs, such as `find`, the available search formats, the
 lesson example `find c/Monday 1800`, and the post-search `Type 'list'...` hint.
 
-### Deleting a person: `delete`
+### Deleting a student: `delete`
 
-Deletes the specified person from the address book.
+Deletes the specified student.
 
 Format: `delete INDEX`
 
-* Deletes the person at the specified `INDEX`.
-* The index refers to the index number shown in the displayed person list.
+* Deletes the student at the specified `INDEX`.
+* The index refers to the index number shown in the displayed student list.
 * The index **must be a positive integer** 1, 2, 3, ...
 
 Examples:
-* `list` followed by `delete 2` deletes the 2nd person in the address book.
-* `find Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
+* `list` followed by `delete 2` deletes the 2nd student in TutEasy.
+* `find Betsy` followed by `delete 1` deletes the 1st student in the results of the `find` command.
 
 ### Clearing all entries: `clear`
 
-Clears all entries from the address book.
+Deletes all student records, classes, and enrolments from TutEasy.
 
 Format: `clear`
 
@@ -458,20 +523,26 @@ TutEasy data is saved automatically as a JSON file `[JAR file location]/data/add
 <box type="warning" seamless>
 
 **Caution:**
-If your changes make the data file invalid, TutEasy starts with an empty address book at the next run. The invalid file remains on disk until you run a command (TutEasy saves after every command). Still, we recommend backing up the file before editing it.<br>
+If your changes make the data file invalid, TutEasy starts with no student or class data at the next run. The invalid
+file remains on disk until you run a successful command (TutEasy saves after every successful command). Back up the
+file before editing it.<br>
 Furthermore, certain edits can cause TutEasy to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </box>
-
-### Archiving data files `[coming in v2.0]`
-
-_Details coming soon ..._
-
---------------------------------------------------------------------------------------------------------------------
 
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
 **A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous TutEasy home folder.
+
+**Q**: Why can I not add, edit, or delete data from the timetable or class list?<br>
+**A**: Those views are read-only. Enter `list` to return to the student list, then run the modifying command.
+
+**Q**: Why is a weekly class shown in several weeks, while a one-off class appears only once?<br>
+**A**: A weekly schedule recurs on its weekday. A one-off schedule uses an exact date and appears only in the week
+containing that date.
+
+**Q**: Does moving between timetable weeks change my saved data?<br>
+**A**: No. Previous week, Next week, and Today only change the timetable projection being displayed.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -486,21 +557,24 @@ _Details coming soon ..._
 
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [gn/GUARDIAN_NAME] [gp/GUARDIAN_PHONE] [ge/GUARDIAN_EMAIL] [sub/SUBJECT cost/COST c/SCHEDULE [mode/online\|offline] [link/URL] [location/LOCATION] [notes/NOTES]]` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/Clementi t/friend sub/Math cost/30 c/Monday1800-1930`
-**Add class** | `class add sub/SUBJECT cost/COST c/SCHEDULE`<br> e.g., `class add sub/Physics cost/35 c/Wednesday1800-1930`
+**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [gn/GUARDIAN_NAME] [gp/GUARDIAN_PHONE] [ge/GUARDIAN_EMAIL] [sub/SUBJECT cost/COST c/SCHEDULE [mode/online\|offline] [link/URL] [location/LOCATION] [notes/NOTES]]` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/Clementi sub/Math cost/30 c/Thursday1400-1530`
+**Add class** | `class add sub/SUBJECT cost/COST c/SCHEDULE`<br> e.g., `class add sub/Physics cost/35 c/Wednesday1700-1830`
 **List classes** | `class list`
 **Edit class** | `class edit id/CLASS_ID [sub/SUBJECT] [cost/COST] [c/SCHEDULE]`<br> e.g., `class edit id/C001 cost/40`
-**Enrol in class** | `class enrol STUDENT_INDEX id/CLASS_ID`<br>or `class enrol STUDENT_INDEX [STUDENT_INDEX]... sub/SUBJECT c/SCHEDULE`<br> e.g., `class enrol 1 3 5 sub/Physics c/Wednesday1800-1930`
+**Enrol in class** | `class enrol STUDENT_INDEX id/CLASS_ID`<br>or `class enrol STUDENT_INDEX [STUDENT_INDEX]... sub/SUBJECT c/SCHEDULE`<br>or `class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/SCHEDULE`<br> e.g., `class enrol 1 3 5 sub/Physics c/Wednesday1700-1830`
 **Unenrol from class** | `class unenrol STUDENT_INDEX id/CLASS_ID`<br> e.g., `class unenrol 1 id/C001`
-**Update payment status** | `class payment STUDENT_INDEX id/CLASS_ID status/paid|unpaid`<br> e.g., `class payment 1 id/C001 status/paid`
+**Update payment status** | `class payment STUDENT_INDEX id/CLASS_ID status/paid\|unpaid`<br> e.g., `class payment 1 id/C001 status/paid`
 **Delete class** | `class delete id/CLASS_ID`<br> e.g., `class delete id/C001`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Tag**    | `tag INDEX TAG [MORE_TAGS]` or `tag STUDENT_INDEX [MORE_INDEXES] t/TAG`<br> e.g., `tag 3 exam-prep needs-follow-up`, `tag 1 3 5 t/math-2026`
 **Untag**  | `untag INDEX TAG [MORE_TAGS]` or `untag INDEX -all`<br> e.g., `untag 2 parent-follow-up`
-**Find**   | `find KEYWORD [MORE_KEYWORDS]`, `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]`, `find c/DAY [TIME_HHmm]`, `find c/TIME_HHmm`, or `find c/DATE [TIME_HHmm]`<br> e.g., `find Jam`, `find t/fri`, `find c/Mon 1800`, `find c/2026-10-20`
+**Find**   | `find KEYWORD [MORE_KEYWORDS]`, `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]`, `find sub/SUBJECT_KEYWORD [MORE_SUBJECT_KEYWORDS]`, `find c/DAY [TIME_HHmm]`, `find c/TIME_HHmm`, or `find c/DATE [TIME_HHmm]`<br> e.g., `find Jam`, `find t/fri`, `find sub/Math Physics`, `find c/Mon 1800`, `find c/2026-10-20`
 **List**   | `list`
+**Pin**    | `pin INDEX`<br> e.g., `pin 3`
+**Unpin**  | `unpin INDEX`<br> e.g., `unpin 1`
 **Help**   | `help`
 **Timetable** | `timetable`
 **Privacy mode** | `privacy on` or `privacy off`
+**Exit** | `exit`

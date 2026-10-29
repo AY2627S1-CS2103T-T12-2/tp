@@ -41,7 +41,7 @@ import seedu.address.model.tag.Tag;
  */
 public class StudentDetailsIntegrationTest {
     private static final String BASE = " n/John Davis p/91234567 e/johndavis@gmail.com a/Clementi";
-    private static final String DETAILS = " sub/Math sub/CS2103T cost/30 c/Monday1800";
+    private static final String DETAILS = " sub/Math cost/30 c/Monday1800-1900";
 
     @TempDir
     public Path tempDir;
@@ -54,9 +54,14 @@ public class StudentDetailsIntegrationTest {
     @Test
     public void add_allStudentDetails_storedInModel() throws Exception {
         Person person = addTo(new ModelManager(), BASE + DETAILS);
-        assertEquals(Set.of(new Subject("Math"), new Subject("CS2103T")), person.getSubjects());
-        assertEquals(Optional.of(new Cost("30")), person.getCost());
-        assertEquals(Optional.of(new Lesson("Monday1800")), person.getLesson());
+        assertEquals(1, person.getEnrollments().size());
+        var enrolment = person.getEnrollments().iterator().next();
+        assertEquals("Math", enrolment.getTuitionClass().getSubject().toString());
+        assertEquals("30", enrolment.getAgreedRate().toString());
+        assertEquals("Monday1800-1900", enrolment.getTuitionClass().getSchedule().toStorageString());
+        assertTrue(person.getSubjects().isEmpty());
+        assertTrue(person.getCost().isEmpty());
+        assertTrue(person.getLesson().isEmpty());
     }
 
     @Test
@@ -66,24 +71,18 @@ public class StudentDetailsIntegrationTest {
         assertTrue(basic.getCost().isEmpty());
         assertTrue(basic.getLesson().isEmpty());
 
-        Person withoutCost = addTo(new ModelManager(), BASE + " sub/Science c/Sunday0000");
-        assertEquals(Set.of(new Subject("Science")), withoutCost.getSubjects());
-        assertTrue(withoutCost.getCost().isEmpty());
-        assertEquals(Optional.of(new Lesson("Sunday0000")), withoutCost.getLesson());
-
-        Person withoutLesson = addTo(new ModelManager(), BASE + " sub/A cost/1");
-        assertEquals(Optional.of(new Cost("1")), withoutLesson.getCost());
-        assertTrue(withoutLesson.getLesson().isEmpty());
+        assertTrue(basic.getEnrollments().isEmpty());
     }
 
     @Test
-    public void add_reorderedFieldsAndRepeatedSubjects_accepted() throws Exception {
+    public void add_reorderedFields_accepted() throws Exception {
         Person person = addTo(new ModelManager(),
-                " cost/30 sub/Math n/John Davis c/Monday1800 a/Clementi"
-                        + " e/johndavis@gmail.com p/91234567 sub/Math sub/A");
-        assertEquals(Set.of(new Subject("Math"), new Subject("A")), person.getSubjects());
-        assertEquals(Optional.of(new Cost("30")), person.getCost());
-        assertEquals(Optional.of(new Lesson("Monday1800")), person.getLesson());
+                " cost/30 sub/Math n/John Davis c/Monday1800-1900 a/Clementi"
+                        + " e/johndavis@gmail.com p/91234567");
+        var enrolment = person.getEnrollments().iterator().next();
+        assertEquals("Math", enrolment.getTuitionClass().getSubject().toString());
+        assertEquals("30", enrolment.getAgreedRate().toString());
+        assertEquals("Monday1800-1900", enrolment.getTuitionClass().getSchedule().toStorageString());
     }
 
     @Test
@@ -116,6 +115,7 @@ public class StudentDetailsIntegrationTest {
         AddCommandParser parser = new AddCommandParser();
         assertThrows(ParseException.class, () -> parser.parse(BASE + " cost/30 cost/40"));
         assertThrows(ParseException.class, () -> parser.parse(BASE + " c/Monday1800 c/Tuesday1900"));
+        assertThrows(ParseException.class, () -> parser.parse(BASE + DETAILS + " sub/Math"));
     }
 
     @Test
@@ -123,7 +123,7 @@ public class StudentDetailsIntegrationTest {
         Model model = new ModelManager();
         Person original = addTo(model, BASE + DETAILS);
         CommandException error = assertThrows(CommandException.class, () ->
-                addTo(model, BASE + " sub/Physics cost/40 c/Tuesday1900"));
+                addTo(model, BASE + " sub/Physics cost/40 c/Tuesday1900-2000"));
         assertEquals(AddCommand.MESSAGE_DUPLICATE_PERSON, error.getMessage());
         assertEquals(List.of(original), model.getAddressBook().getPersonList());
     }
@@ -137,9 +137,8 @@ public class StudentDetailsIntegrationTest {
         new EditCommand(Index.fromOneBased(1), changes).execute(model);
         Person edited = model.getFilteredPersonList().get(0);
         assertEquals(new Phone("98765432"), edited.getPhone());
-        assertEquals(original.getSubjects(), edited.getSubjects());
-        assertEquals(original.getCost(), edited.getCost());
-        assertEquals(original.getLesson(), edited.getLesson());
+        assertEquals(original.getEnrollments(), edited.getEnrollments());
+        assertEquals(original.getLessons(), edited.getLessons());
     }
 
     @Test
@@ -150,28 +149,25 @@ public class StudentDetailsIntegrationTest {
         new AddressBookParser().parseCommand("tag 1 exam-prep").execute(model);
         Person tagged = model.getFilteredPersonList().get(0);
         assertEquals(Set.of(new Tag("friends"), new Tag("exam-prep")), tagged.getTags());
-        assertEquals(original.getSubjects(), tagged.getSubjects());
-        assertEquals(original.getCost(), tagged.getCost());
-        assertEquals(original.getLesson(), tagged.getLesson());
+        assertEquals(original.getEnrollments(), tagged.getEnrollments());
+        assertEquals(original.getLessons(), tagged.getLessons());
 
         new AddressBookParser().parseCommand("untag 1 friends").execute(model);
         Person untagged = model.getFilteredPersonList().get(0);
         assertEquals(Set.of(new Tag("exam-prep")), untagged.getTags());
-        assertEquals(original.getSubjects(), untagged.getSubjects());
-        assertEquals(original.getCost(), untagged.getCost());
-        assertEquals(original.getLesson(), untagged.getLesson());
+        assertEquals(original.getEnrollments(), untagged.getEnrollments());
+        assertEquals(original.getLessons(), untagged.getLessons());
 
         new AddressBookParser().parseCommand("untag 1 -all").execute(model);
         Person withoutTags = model.getFilteredPersonList().get(0);
         assertTrue(withoutTags.getTags().isEmpty());
-        assertEquals(original.getSubjects(), withoutTags.getSubjects());
-        assertEquals(original.getCost(), withoutTags.getCost());
-        assertEquals(original.getLesson(), withoutTags.getLesson());
+        assertEquals(original.getEnrollments(), withoutTags.getEnrollments());
+        assertEquals(original.getLessons(), withoutTags.getLessons());
     }
 
     @Test
-    public void saveAndReload_retainsStudentDetailsAndOmittedCost() throws Exception {
-        for (String details : List.of(DETAILS, " sub/A c/Sunday2359", "")) {
+    public void saveAndReload_retainsScheduledAndBasicStudents() throws Exception {
+        for (String details : List.of(DETAILS, "")) {
             Model model = new ModelManager();
             Person original = addTo(model, BASE + details);
             Path file = tempDir.resolve("students.json");
@@ -180,6 +176,23 @@ public class StudentDetailsIntegrationTest {
                     .getPersonList().get(0);
             assertEquals(original, restored);
             assertEquals(original.hashCode(), restored.hashCode());
+        }
+    }
+
+    @Test
+    public void loadLegacyJson_partialClassFields_surviveSaveAndReload() throws Exception {
+        for (JsonAdaptedPerson record : List.of(adapted(List.of("Math"), null, null),
+                adapted(List.of(), "20", null), adapted(List.of("English"), "20", null))) {
+            var original = new JsonSerializableAddressBook(List.of(record)).toModelType();
+            Path file = tempDir.resolve("legacy-students.json");
+            JsonAddressBookStorage storage = new JsonAddressBookStorage(file);
+            storage.saveAddressBook(original);
+            var restored = storage.readAddressBook().orElseThrow();
+            assertEquals(original, restored);
+            Person student = restored.getPersonList().get(0);
+            assertTrue(student.getEnrollments().isEmpty());
+            assertEquals(record.toModelType().getSubjects(), student.getSubjects());
+            assertEquals(record.toModelType().getCost(), student.getCost());
         }
     }
 
