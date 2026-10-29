@@ -37,6 +37,7 @@ import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.PrivacyCommand;
 import seedu.address.logic.commands.TimetableCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.logic.parser.EditCommandParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
@@ -108,6 +109,19 @@ public class LogicManagerTest {
         assertTrue(model.getAddressBook().getPersonList().stream()
                 .allMatch(person -> person.getLessons().stream()
                         .anyMatch(lesson -> lesson.getSubject().equals(new Subject("Computer Science")))));
+    }
+
+    @Test
+    public void execute_unsupportedGuardianEditAfterAddress_preservesStudentAndSavedData() throws Exception {
+        logic.execute("add n/Alice p/91234567 e/alice@example.com a/One gp/99999999");
+        Person originalStudent = model.getAddressBook().getPersonList().getFirst();
+        String originalJson = Files.readString(storage.getAddressBookFilePath());
+
+        assertParseException("edit 1 a/Two gp/88888888", EditCommandParser.MESSAGE_UNSUPPORTED_GUARDIAN_EDIT);
+
+        assertEquals(originalStudent, model.getAddressBook().getPersonList().getFirst());
+        assertEquals(originalJson, Files.readString(storage.getAddressBookFilePath()));
+        assertEquals(originalStudent, storage.readAddressBook().orElseThrow().getPersonList().getFirst());
     }
 
     @Test
