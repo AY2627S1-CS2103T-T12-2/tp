@@ -208,6 +208,12 @@ public class ClassCommandParserTest {
     }
 
     @Test
+    public void parse_enrolMultipleIndexesWithClassId_reportsSupportedSyntax() {
+        assertParseFailure(parser, " enrol 1 2 id/C001",
+                ClassEnrolCommandParser.MESSAGE_ID_REQUIRES_ONE_STUDENT);
+    }
+
+    @Test
     public void parse_enrolInvalidSubject_failure() {
         assertParseFailure(parser, " enrol 1 sub/Math! cost/30 c/Monday1800-1930",
                 Subject.MESSAGE_CONSTRAINTS);

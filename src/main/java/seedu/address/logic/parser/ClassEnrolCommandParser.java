@@ -18,6 +18,10 @@ import seedu.address.model.lesson.Subject;
 /** Parses arguments for the {@code class enrol} command. */
 public class ClassEnrolCommandParser implements Parser<ClassEnrolCommand> {
 
+    public static final String MESSAGE_ID_REQUIRES_ONE_STUDENT =
+            "Class ID enrolment accepts exactly one student index. To enrol multiple students, use: "
+                    + "class enrol STUDENT_INDEX [STUDENT_INDEX]... sub/SUBJECT c/SCHEDULE";
+
     @Override
     public ClassEnrolCommand parse(String args) throws ParseException {
         ArgumentMultimap arguments = ArgumentTokenizer.tokenize(args,
@@ -36,8 +40,11 @@ public class ClassEnrolCommandParser implements Parser<ClassEnrolCommand> {
         arguments.verifyNoDuplicatePrefixesFor(PREFIX_CLASS_ID, PREFIX_SUBJECT, PREFIX_COST, PREFIX_CLASS);
 
         if (usesOnlyId) {
-            Index index = ParserUtil.parseIndex(arguments.getPreamble());
-            return new ClassEnrolCommand(index,
+            List<Index> indexes = ParserUtil.parseIndexes(arguments.getPreamble());
+            if (indexes.size() != 1) {
+                throw new ParseException(MESSAGE_ID_REQUIRES_ONE_STUDENT);
+            }
+            return new ClassEnrolCommand(indexes.get(0),
                     ParserUtil.parseClassId(arguments.getValue(PREFIX_CLASS_ID).get()));
         }
         List<Index> indexes = ParserUtil.parseIndexes(arguments.getPreamble());
