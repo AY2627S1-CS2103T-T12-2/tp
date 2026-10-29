@@ -24,6 +24,10 @@ public class OneOffLessonScheduleTest {
         assertFalse(OneOffLessonSchedule.isValidOneOffLessonSchedule("2026-10-20T1930-1800"));
         assertFalse(OneOffLessonSchedule.isValidOneOffLessonSchedule("2026-10-20T1800-1800"));
         assertFalse(OneOffLessonSchedule.isValidOneOffLessonSchedule("2026-10-20T2400-2500"));
+        assertEquals("Invalid date '2031-02-29'. Enter a real calendar date in yyyy-MM-dd format.",
+                OneOffLessonSchedule.getValidationError("2031-02-29T0900-1000").orElseThrow());
+        assertEquals("Invalid time '2460'. Times must use 24-hour HHmm from 0000 to 2359.",
+                OneOffLessonSchedule.getValidationError("2031-01-05T2460-2500").orElseThrow());
     }
 
     @Test
