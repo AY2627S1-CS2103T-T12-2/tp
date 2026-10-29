@@ -11,12 +11,26 @@ import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
 import seedu.address.model.lesson.Subject;
+import seedu.address.model.person.Person;
+import seedu.address.testutil.PersonBuilder;
 
 public class MessagesTest {
 
     private static final Lesson CANDIDATE = lesson("Chemistry", "40", "Monday1800-1900");
     private static final Lesson EARLIER_CONFLICT = lesson("Physics", "35", "Monday1700-1830");
     private static final Lesson LATER_CONFLICT = lesson("Math", "30", "Monday1800-1930");
+
+    @Test
+    public void format_privacyEnabled_masksStudentAndGuardianContactDetails() {
+        Person person = new PersonBuilder()
+                .withTags("priority")
+                .withGuardianContact("Mary Bee", "81234567", "mary@example.com")
+                .build();
+        String expectedMessage = "Amy Bee; Phone: *******; Email: *******; Address: *******; "
+                + "Tags: [priority]; Guardian: *******";
+
+        assertEquals(expectedMessage, Messages.format(person, true));
+    }
 
     @Test
     public void getClassOverlapMessage_multipleConflicts_formatsMessage() {
