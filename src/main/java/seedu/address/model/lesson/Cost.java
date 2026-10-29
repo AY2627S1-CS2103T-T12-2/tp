@@ -8,9 +8,12 @@ import java.math.BigDecimal;
 /** Represents the non-negative per-student, per-session cost of a lesson. */
 public class Cost {
 
+    public static final BigDecimal MAX_VALUE = new BigDecimal("1000000.00");
+
     public static final String MESSAGE_CONSTRAINTS =
-            "Cost should be a non-negative number with at most two decimal places.";
+            "Cost should be a non-negative number not exceeding 1000000.00, with at most two decimal places.";
     public static final String VALIDATION_REGEX = "(?:0|[1-9]\\d*)(?:\\.\\d{1,2})?";
+    private static final int MAX_INPUT_LENGTH = MAX_VALUE.toPlainString().length();
 
     public final BigDecimal value;
 
@@ -21,8 +24,11 @@ public class Cost {
         this.value = new BigDecimal(value).stripTrailingZeros();
     }
 
+    /** Returns whether the value is a supported cost within the maximum. */
     public static boolean isValidCost(String test) {
-        return test.matches(VALIDATION_REGEX);
+        return test.length() <= MAX_INPUT_LENGTH
+                && test.matches(VALIDATION_REGEX)
+                && new BigDecimal(test).compareTo(MAX_VALUE) <= 0;
     }
 
     @Override
