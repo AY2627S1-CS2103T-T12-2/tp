@@ -94,7 +94,12 @@ public class TagCommandParserTest {
 
     @Test
     public void parse_batchMultipleTags_throwsParseException() {
-        assertParseFailure(parser, "1 2 t/exam-prep urgent", Tag.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "1 2 t/exam-prep urgent", TagCommand.MESSAGE_BATCH_MULTIPLE_TAGS);
+    }
+
+    @Test
+    public void parse_batchMultipleTagsIncludingInvalidTag_throwsTagConstraintException() {
+        assertParseFailure(parser, "1 2 t/exam-prep Invalid", Tag.MESSAGE_CONSTRAINTS);
     }
 
     @Test

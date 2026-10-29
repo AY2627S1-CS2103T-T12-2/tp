@@ -273,6 +273,18 @@ public class ModelManager implements Model {
     }
 
     @Override
+    public FilteredPersonListState getFilteredPersonListState() {
+        return new FilteredPersonListState(filteredPersons.getPredicate(), sortedFilteredPersons.getComparator());
+    }
+
+    @Override
+    public void restoreFilteredPersonListState(FilteredPersonListState state) {
+        requireNonNull(state);
+        filteredPersons.setPredicate(state.predicate());
+        sortedFilteredPersons.setComparator(state.comparator());
+    }
+
+    @Override
     public void updateFilteredPersonList(Predicate<Person> predicate) {
         requireNonNull(predicate);
         filteredPersons.setPredicate(predicate);

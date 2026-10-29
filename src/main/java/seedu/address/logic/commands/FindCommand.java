@@ -2,6 +2,7 @@ package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
@@ -86,9 +87,14 @@ public class FindCommand extends Command {
     }
 
     private Comparator<Person> getScoreComparator(Model model, ScoredPersonPredicate scoredPredicate) {
-        List<Person> originalOrder = model.getAddressBook().getPersonList();
+        List<Person> currentOrder = new ArrayList<>(model.getFilteredPersonList());
+        for (Person person : model.getAddressBook().getPersonList()) {
+            if (!currentOrder.contains(person)) {
+                currentOrder.add(person);
+            }
+        }
         return Comparator.<Person>comparingInt(scoredPredicate::score).reversed()
-                .thenComparingInt(originalOrder::indexOf);
+                .thenComparingInt(currentOrder::indexOf);
     }
 
     @Override

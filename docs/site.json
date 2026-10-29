@@ -13,10 +13,16 @@
     "site.json",
     "*.md",
     "*.njk",
+    "ManualTests-v1.4.md",
+    "TIMETABLE_IMPLEMENTATION_PLAN.md",
     ".git/*",
     "node_modules/*"
   ],
-  "pagesExclude": ["node_modules/*"],
+  "pagesExclude": [
+    "node_modules/*",
+    "ManualTests-v1.4.md",
+    "TIMETABLE_IMPLEMENTATION_PLAN.md"
+  ],
   "pages": [
     {
       "glob": ["**/index.md", "**/*.md"]

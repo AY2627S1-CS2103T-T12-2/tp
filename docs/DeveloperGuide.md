@@ -13,13 +13,18 @@
 
 ## **Acknowledgements**
 
-* _{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
+TutEasy is based on the [AddressBook-Level3 project](https://se-education.org/addressbook-level3/) created by the
+[SE-EDU initiative](https://se-education.org). It uses JavaFX for its desktop interface, Jackson for JSON
+serialization, JUnit for testing, Gradle for builds, and MarkBind for this documentation site.
 
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Setting up, getting started**
 
-Refer to the guide [_Setting up and getting started_](SettingUp.md).
+TutEasy requires JDK 25. Fork and clone the repository, import it into IntelliJ IDEA as a Gradle project, and configure
+the project SDK as JDK 25. Run `seedu.address.Main` to launch the application, and run `./gradlew test` (macOS/Linux)
+or `gradlew.bat test` (Windows) to verify the setup. See
+[_Setting up and getting started_](SettingUp.md) for the full IDE, code-style, and CI instructions.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -27,7 +32,7 @@ Refer to the guide [_Setting up and getting started_](SettingUp.md).
 
 ### Architecture
 
-<puml src="diagrams/ArchitectureDiagram.puml" width="280" />
+<puml src="diagrams/ArchitectureDiagram.puml" width="280" alt="High-level architecture of TutEasy" />
 
 The ***Architecture Diagram*** given above explains the high-level design of the App.
 
@@ -35,7 +40,7 @@ The following provides a quick overview of the main components and their interac
 
 **Main components of the architecture**
 
-**`Main`** (consisting of classes [`Main`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/Main.java) and [`MainApp`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/MainApp.java)) is in charge of the app launch and shut down.
+**`Main`** (consisting of classes [`Main`](https://github.com/AY2627S1-CS2103T-T12-2/tp/tree/master/src/main/java/seedu/address/Main.java) and [`MainApp`](https://github.com/AY2627S1-CS2103T-T12-2/tp/tree/master/src/main/java/seedu/address/MainApp.java)) is in charge of the app launch and shut down.
 * At app launch, it initializes the other components in the correct sequence, and connects them up with each other.
 * At shut down, it shuts down the other components and invokes cleanup methods where necessary.
 
@@ -52,35 +57,36 @@ The bulk of the app's work is done by the following four components:
 
 The *Sequence Diagram* below shows how the components interact with each other for the scenario where the user issues the command `delete 1`.
 
-<puml src="diagrams/ArchitectureSequenceDiagram.puml" width="574" />
+<puml src="diagrams/ArchitectureSequenceDiagram.puml" width="574" alt="Interaction between architecture components" />
 
 Each of the four main components (also shown in the diagram above),
 
 * defines its *API* in an `interface` with the same name as the Component.
-* provides its functionality through a concrete `{Component Name}Manager` class that implements the corresponding API interface.
+* provides its functionality through a concrete manager class that implements the corresponding API interface, such
+  as `LogicManager` implementing `Logic`.
 
 For example, the `Logic` component defines its API in `Logic.java` and implements it in `LogicManager.java`. Other components interact with a component through its interface rather than its concrete class, preventing them from coupling to that component's implementation, as illustrated in the following partial class diagram.
 
-<puml src="diagrams/ComponentManagers.puml" width="300" />
+<puml src="diagrams/ComponentManagers.puml" width="300" alt="Component APIs and manager implementations" />
 
 The sections below give more details of each component.
 
 ### UI component
 
-The **API** of this component is specified in [`Ui.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/Ui.java)
+The **API** of this component is specified in [`Ui.java`](https://github.com/AY2627S1-CS2103T-T12-2/tp/tree/master/src/main/java/seedu/address/ui/Ui.java).
 
 <puml src="diagrams/UiClassDiagram.puml" alt="Structure of the UI Component"/>
 
 The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`,
 `TimetablePanel`, `ClassListPanel`, and `StatusBarFooter`. `MainWindow` switches the main content placeholder among the
-person list, read-only timetable, and read-only class list according to the `ViewChange` carried by a successful
+student list, read-only timetable, and read-only class list according to the `ViewChange` carried by a successful
 `CommandResult`. These UI classes inherit from the abstract `UiPart` class, which captures common behavior among
 classes that represent visible GUI parts.
 
 `MainWindow` constructs `TimetablePanel` with callbacks for obtaining the application date and loading a timetable for
 an anchor date. The panel owns only transient navigation state and does not access `Model` or storage directly.
 
-The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
+The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/AY2627S1-CS2103T-T12-2/tp/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/AY2627S1-CS2103T-T12-2/tp/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
 
 The `UI` component,
 
@@ -108,7 +114,7 @@ class-list views.
 
 ### Logic component
 
-**API** : [`Logic.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/logic/Logic.java)
+**API**: [`Logic.java`](https://github.com/AY2627S1-CS2103T-T12-2/tp/tree/master/src/main/java/seedu/address/logic/Logic.java)
 
 Here's a (partial) class diagram of the `Logic` component:
 
@@ -128,11 +134,11 @@ How the `Logic` component works:
 
 1. When `Logic` is called upon to execute a command, the command is passed to an `AddressBookParser` object, which in turn creates a parser that matches the command (e.g., `DeleteCommandParser`) and uses it to parse the command.
 1. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `DeleteCommand`) which is executed by the `LogicManager`.
-1. The command can communicate with the `Model` when it is executed (e.g. to delete a person).<br>
+1. The command can communicate with the `Model` when it is executed (e.g. to delete a student).<br>
    Note that although this is shown as a single step in the diagram above for simplicity, the code can require several interactions between the command object and the `Model` to complete the operation.
 1. The result of the command execution is encapsulated as a `CommandResult` object which is returned from `Logic`.
 
-`LogicManager` also tracks whether the person list, timetable, or class list is active. In the read-only timetable and
+`LogicManager` also tracks whether the student list, timetable, or class list is active. In the read-only timetable and
 class-list views, it rejects modifying commands before execution while allowing navigation, `privacy`, `help`, and
 `exit`. `timetable`, `class list`, and `list` return view-change instructions that keep this state synchronized with
 `MainWindow`.
@@ -149,14 +155,14 @@ How the parsing works:
 * All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
 
 ### Model component
-**API** : [`Model.java`](https://github.com/AY2627S1-CS2103T-T12-2/tp/blob/master/src/main/java/seedu/address/model/Model.java)
+**API**: [`Model.java`](https://github.com/AY2627S1-CS2103T-T12-2/tp/tree/master/src/main/java/seedu/address/model/Model.java)
 
 <puml src="diagrams/ModelClassDiagram.puml" width="450" />
 
 
 The `Model` component,
 
-* stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
+* stores all students as `Person` objects in a `UniquePersonList`.
 * stores independent `TuitionClass` objects in a `UniqueTuitionClassList`. Each class has a stable `ClassId`, subject,
   cost, and complete lesson timing.
 * represents the student-to-class association using an `Enrollment` value with stable `EnrollmentId`, `StudentId`, and
@@ -169,8 +175,8 @@ The `Model` component,
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
 * stores a `UserPrefs` object that represents the user’s GUI settings and privacy preference. This is exposed to the
   outside as a `ReadOnlyUserPrefs` object.
-* derives immutable, date-backed timetable day and class entries from every person's lessons. The timetable is not
-  stored separately, and it uses the complete address book rather than the filtered person list.
+* derives immutable, date-backed timetable day and class entries from every student's classes. The timetable is not
+  stored separately, and it uses all student records rather than the filtered student list.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
 
@@ -184,12 +190,12 @@ The `Model` component,
 
 ### Storage component
 
-**API** : [`Storage.java`](https://github.com/AY2627S1-CS2103T-T12-2/tp/blob/master/src/main/java/seedu/address/storage/Storage.java)
+**API**: [`Storage.java`](https://github.com/AY2627S1-CS2103T-T12-2/tp/tree/master/src/main/java/seedu/address/storage/Storage.java)
 
 <puml src="diagrams/StorageClassDiagram.puml" width="550" />
 
 The `Storage` component,
-* can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
+* can save both TutEasy data and user preferences in JSON format, and read them back into corresponding objects.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 * reconstructs shared classes before resolving enrolment references. `JsonAdaptedPerson` owns guardian fields;
@@ -269,6 +275,8 @@ while allowing case-insensitive search input for user convenience.
 Lesson keywords accept a weekday/prefix such as `Mon`, an HHmm-style time within `0000`-`2359`, or both; shorter
 numeric fragments such as `18` are accepted for partial matching. An exact ISO date such as `2026-10-20` matches a
 one-off schedule, while a weekday search also matches one-off schedules occurring on that weekday.
+`FindCommandParserTest` covers empty and invalid search inputs, while `FindCommandTest` covers partial matching and
+result ranking. Parse failures occur before command construction, so the active filter remains unchanged.
 
 `FindCommand` applies the predicate through `Model#updateFilteredPersonList`. Predicates that implement
 `ScoredPersonPredicate` also provide a relevance score, so `FindCommand` requests a sorted filtered list with stronger
@@ -292,12 +300,17 @@ neither command changes address-book data.
 
 ### Timetable view
 
+The sequence below shows how the current-week timetable is opened and how navigation reloads a date-backed projection
+without modifying stored data.
+
+<puml src="diagrams/TimetableSequenceDiagram.puml" alt="Interactions for opening and navigating the timetable" />
+
 `TimetableCommand` does not modify model data. It returns a `CommandResult` requesting the `TIMETABLE` view.
 `MainWindow` responds by replacing `PersonListPanel` with a newly built `TimetablePanel`. It supplies
 `logic::getCurrentDate` and `logic::getTimetable` callbacks, so the panel can refresh date-dependent state without
 reading the model directly. Creating a new panel whenever timetable mode is entered resets the view to the current week.
 
-`ModelManager#getTimetable(LocalDate)` passes the central class list and complete person list to `TimetableBuilder`.
+`ModelManager#getTimetable(LocalDate)` passes the central class list and complete student list to `TimetableBuilder`.
 The builder uses `WeekRange` to normalize the supplied anchor date to a complete Sunday-to-Saturday range. `WeekRange`
 performs safe epoch-day calculations, exposes optional adjacent weeks, and rejects an anchor whose complete week is
 outside the supported `LocalDate` range. The builder uses `LessonSchedule#occursOn(LocalDate)` to place weekly schedules
@@ -310,7 +323,7 @@ and end time.
 `WeekRange` values and reload through the callback. Today always requests a fresh application date and projection, even
 when the same week remains selected. The current date is highlighted and scrolled to the top where possible; other weeks
 start at Sunday. `TimetableDayCard` displays the dated heading and empty state, while `TimetableEntryCard` displays a
-class's time, subject, and students. Entering `list` restores the existing person panel and normal command availability.
+class's time, subject, and students. Entering `list` restores the existing student panel and normal command availability.
 `class list` returns a `CLASS_LIST` view change; `MainWindow` replaces the current panel with `ClassListPanel`, including
 when the timetable is open.
 
@@ -375,7 +388,7 @@ the new policy.
 
 #### Shared class details and inheritance
 
-A contact added with a complete lesson can include `mode/online|offline`, `link/`, `location/`, and
+A student added with a complete class can include `mode/online|offline`, `link/`, `location/`, and
 `notes/`. `ClassDetails` stores an immutable `ClassMode`, meeting link, location, and notes. Online
 classes may omit the link; offline classes reject non-empty links. Links must be absolute HTTP(S)
 URIs with a host and no credentials. Location and notes are limited to 500 single-line characters.
@@ -388,7 +401,7 @@ entries therefore display the current shared class values without duplicating th
 
 `ClassDetailsUpdate` represents optional `add` input. It resolves classes from the class catalogue,
 including empty classes. New classes default to offline. An empty, undescribed catalogue class can
-receive its extra details through its first contact. For occupied classes or classes with recorded
+receive its extra details through its first student. For occupied classes or classes with recorded
 details, omitted input inherits shared values and conflicting explicit values fail before adding data.
 
 The lookup uses the case-insensitive subject and complete `LessonSchedule`. The supplied `cost/` is this student's
@@ -451,7 +464,8 @@ unenrolment, preservation of IDs/metadata/guardians/payments, empty-class persis
 formats, conflict rejection, and catalogue UI display. `StudentIdentityIntegrationTest` covers normalized conflicts,
 filtered renames, existing-record compatibility and punctuated guardian-name persistence. `FeatureLoggingIntegrationTest`
 checks diagnostic events and exclusion of private values at detailed log levels. See the
-[manual checks below](#student-creation-guardians-and-class-details) for reproducible command sequences.
+[manual checks below](#student-creation-guardians-and-class-details) and the
+[manual-testing appendix](#appendix-instructions-for-manual-testing) for reproducible end-to-end workflows.
 
 ### Subject search
 
@@ -589,11 +603,12 @@ The following activity diagram summarizes what happens when a user executes a ne
   * Pros: Will use less memory (e.g. for `delete`, just save the person being deleted).
   * Cons: We must ensure that the implementation of each individual command is correct.
 
-_{more aspects and alternatives to be added}_
-
 ### \[Proposed\] Data archiving
 
-_{Explain here how the data archiving feature will be implemented}_
+Data archiving can be implemented by adding an `archived` state to students and classes while retaining their stable
+IDs and enrolments in storage. The default student and class lists would filter archived records, while dedicated
+commands would archive, restore, and list them. Timetable construction would exclude archived classes by default.
+The storage adapters would treat a missing `archived` field as `false` to preserve compatibility with existing data.
 
 
 --------------------------------------------------------------------------------------------------------------------
@@ -621,10 +636,11 @@ TutEasy is designed for student tutors who:
 * want to keep their tutoring schedule separate from their school or personal calendar
 * use other platforms to communicate with students and parents, as TutEasy focuses on student and lesson management
 
-**Value proposition**: 
-TutEasy helps tutors manage their tutoring schedules efficiently through a CLI-based desktop application. It stores student and lesson information (such as contact details, class timings, teaching modes, class timing etc.) in a central location. 
+**Value proposition**:
 
-Features such as timetable view mode and search features allow tutors to organise, retrieve and display information in an organised manner. Tutors can use TutEasy to  keep track of their students' necessary information, allowing them to prepare for upcoming lessons and avoid scheduling conflicts.
+TutEasy gives private tutors one keyboard-driven desktop application for maintaining student contact details, classes,
+enrolments, payment status, and weekly or one-off schedules. Search, class-list, privacy, and timetable views help tutors
+retrieve the information they need while keeping the stored student and class data in one place.
 
 
 ### User stories
@@ -641,7 +657,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *`  | tutor                                       | create a class with its subject and weekly timeslot                | represent a teaching arrangement in my schedule                           |
 | `* * *`  | tutor                                       | edit or remove a class independently of its students               | change my timetable without incorrectly altering student records          |
 | `* * *`  | tutor                                       | add students to or remove students from a class                    | maintain individual and group class rosters                               |
-| `* * *`  | tutor teaching a student multiple subjects  | enroll the same student in multiple classes                        | represent their different teaching arrangements accurately               |
+| `* * *`  | tutor teaching a student multiple subjects  | enrol the same student in multiple classes                         | represent their different teaching arrangements accurately               |
 | `* * *`  | tutor                                       | record each class's day, start time, and end time                  | know when I am teaching and identify scheduling overlaps                  |
 | `* * *`  | tutor with weekly classes                   | have each weekly class recur automatically                         | avoid entering the same class every week                                  |
 | `* * *`  | tutor                                       | view my tutoring classes in a weekly timetable                     | understand my schedule at a glance                                        |
@@ -666,7 +682,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *`    | tutor                                       | archive inactive students and discontinued classes                | hide old records without permanently deleting their history               |
 | `* *`    | tutor                                       | be warned about possible duplicate students or classes            | avoid creating redundant records accidentally                             |
 | `* *`    | tutor                                       | export and restore a backup of my records                          | recover from device or file failure                                       |
-| `* *`    | tutor deleting a student or class           | see which enrollments and lessons will be affected                | avoid removing related information accidentally                           |
+| `* *`    | tutor deleting a student or class           | see which enrolments and lessons will be affected                 | avoid removing related information accidentally                           |
 | `* *`    | tutor                                       | view my next few lessons when the application opens               | prepare without navigating the full timetable                             |
 | `* *`    | tutor with many students                    | sort and filter my students                                        | manage a large contact list easily                                         |
 | `* *`    | tutor with frequently accessed students     | pin important students above the rest                              | access their details quickly                                               |
@@ -765,7 +781,7 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 
 3. TutEasy identifies the student at the specified index.
 
-4. TutEasy deletes the student from the address book.
+4. TutEasy deletes the student from its student records.
 
 5. TutEasy refreshes the student list immediately.
 
@@ -784,7 +800,7 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 
 * 4a. The deletion cannot be saved due to a storage failure.
 
-    * 4a1. The student’s contact remains in the address book.
+    * 4a1. The student's record remains in TutEasy.
     * 4a2. TutEasy shows an error message.
 
       Use case ends.
@@ -944,14 +960,15 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 ### Non-Functional Requirements
 
 1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
-2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
+2.  Should be able to hold up to 1000 students without noticeable sluggishness in performance for typical usage.
 3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
 4.  With 1000 student records and 10,000 lesson records, each documented command should display either a success or an error message within 2 seconds on a computer with a 2 GHz dual-core processor and 8 GB of RAM.
 5.  With 1000 student records and 10,000 lesson records, the application should be ready to accept a command within 5 seconds of launch on a computer with a 2 GHz dual-core processor, 8 GB of RAM, and a solid-state drive.
 6.  All documented features should remain usable when the user's computer has no network connection.
 7.  The application should not transmit any tutor, student, or lesson data over a network.
 8.  After the application reports that a data-modifying command has succeeded, the resulting data should still be present after the application is terminated and restarted immediately.
-9.  If a data file cannot be read, the application should leave that file unchanged unless the user explicitly confirms that it may be replaced.
+9.  If a data file cannot be read, TutEasy should start with an empty data set and leave the unreadable file unchanged
+    until the next successful command triggers a save.
 10. The application should be distributed as a single JAR file that requires no software other than Java `25` or above on a supported OS.
 11. In a usability test, at least four out of five first-time users who match the target user profile should be able to add a student, schedule a lesson, and find that lesson within 10 minutes after reading the Quick Start section of the User Guide, without assistance.
 12. At a display resolution of 1280 x 720 and 100% OS display scaling, no text or control required for a documented workflow should be clipped or overlap another UI element.
@@ -959,7 +976,7 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 ### Glossary
 
 * **Mainstream OS**: A commonly used operating system, such as Windows, macOS or Linux.
-* **Student**: A person whose details are stored by the tutor and who can be enrolled in one or more classes.
+* **Student**: An individual whose details are stored by the tutor and who can be enrolled in one or more classes.
 * **Tutor**: The user of TutEasy who manages student records, classes and lessons.
 * **Contact details**: Information used to contact a student or their parent or guardian, such as a phone number, email address or home address.
 * **Private contact detail**: A contact detail that the tutor considers sensitive and does not want others to see.
@@ -1002,36 +1019,115 @@ testers are expected to do more *exploratory* testing.
 
 1. Initial launch
 
-   1. Download the JAR file and copy it into an empty folder.
+   1. Ensure Java 25 or later is installed. Download `tuteasy.jar` and copy it into an empty folder.
 
-   1. Double-click the JAR file.<br>
-      Expected: The GUI opens with a set of sample contacts. The window size may not be optimal.
+   1. Open a terminal in that folder and run `java -jar tuteasy.jar`.<br>
+      Expected: The TutEasy window opens with sample students and classes. The status bar shows the data-file path.
+
+1. Exiting with a command
+
+   1. Enter `exit`.<br>
+      Expected: The TutEasy and Help windows close without an error.
+
+   1. Relaunch with `java -jar tuteasy.jar`.<br>
+      Expected: The application starts normally and previously saved data remains available.
+
+1. Exiting with the window controls
+
+   1. Close the main window using the operating system's close button.<br>
+      Expected: TutEasy closes cleanly. Relaunching the same JAR succeeds.
 
 1. Saving window preferences
 
    1. Resize the window to an optimal size. Move the window to a different location. Close the window.
 
-   1. Relaunch the app by double-clicking the JAR file.<br>
+   1. Relaunch the app with `java -jar tuteasy.jar`.<br>
        Expected: The most recent window size and location are retained.
 
-1. _{ more test cases … }_
+### Help
 
-### Deleting a person
+| Test action | Expected result |
+| --- | --- |
+| Enter `help` | The Help window opens and displays the TutEasy User Guide URL. |
+| Press `F1` while the command box is focused | The same Help window opens or receives focus. |
+| Select **Help** from the menu | The same Help window opens or receives focus. |
+| Select **Copy URL** | The clipboard contains `https://ay2627s1-cs2103t-t12-2.github.io/tp/UserGuide.html`. |
 
-1. Deleting a person while all persons are being shown
+### Adding, editing, listing, and deleting students
 
-   1. Prerequisites: List all persons using the `list` command, with multiple persons in the list.
+Use a disposable data folder and run `clear` before this section.
 
-   1. Test case: `delete 1`<br>
-      Expected: The first contact is deleted from the list. The status message shows the deleted contact's details.
+| Test input | Expected result |
+| --- | --- |
+| `add n/Alice Tan p/91234567 e/alice@example.com a/Clementi t/priority` | Alice is added with the supplied details and tag. |
+| Repeat the previous command | Duplicate-student error; no second Alice is added. |
+| `add n/Bob Tan p/81234567 e/bob@example.com a/Jurong gn/Mary Tan gp/98765432 ge/mary@example.com` | Bob is added with guardian details. |
+| `add n/Cara Lim p/82223333 e/cara@example.com a/Bishan sub/Physics cost/45 c/2026-11-03T1600-1730 mode/online link/https://meet.example.com/physics location/Online notes/Bring calculator` | Cara is added and enrolled in a one-off online class with the supplied shared details. |
+| Add an offline class while supplying `link/https://meet.example.com/invalid` | Validation error; neither the student nor class is added. |
+| `edit 1 p/90000000 e/alice.tan@example.com` | Only Alice's phone and email change. |
+| `edit 0 n/Invalid` | Invalid-index error; no student changes. |
+| `list` | All students are shown. |
+| `delete 1` | The first displayed student is deleted and the result identifies that student. |
+| `delete 0` | Invalid-index error; no student is deleted. |
 
-   1. Test case: `delete 0`<br>
-      Expected: No person is deleted. The status message shows error details.
+Also try `delete`, `delete x`, and an index larger than the displayed list. Each should show an actionable error and
+leave all student data unchanged.
 
-   1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
-      Expected: Similar to previous.
+### Clearing all data
 
-1. _{ more test cases … }_
+1. Add at least one student and one independent class.
+1. Enter `clear`.<br>
+   Expected: All students, classes, and enrolments are removed.
+1. Exit and relaunch TutEasy.<br>
+   Expected: The cleared state is retained.
+
+### Searching and returning to the student list
+
+Use students whose names, tags, subjects, weekly schedules, and one-off schedules are distinguishable.
+
+| Test input | Expected result |
+| --- | --- |
+| `find ali bob` | Students whose names partially match `ali` or `bob` appear. |
+| `find t/pri` | Students with a partially matching tag such as `priority` appear. |
+| `find c/Mon 1800` | Students with a Monday schedule containing `1800` appear. |
+| `find c/2026-10-20` | Students enrolled in a one-off class on that exact date appear. |
+| `list` | The complete student list is restored. |
+
+### Pinning and tagging students
+
+| Test input | Expected result |
+| --- | --- |
+| `pin 2` | The selected student receives a `PINNED` badge and moves above unpinned students. |
+| Repeat `pin 1` for that now-pinned student | Already-pinned error; ordering is unchanged. |
+| `unpin 1` | The selected pinned student is unpinned and returns to the unpinned group. |
+| `tag 1 exam-prep needs-follow-up` | Both tags are added to student 1. |
+| `untag 1 exam-prep` | Only `exam-prep` is removed. |
+| `untag 1 -all` | All remaining tags are removed from student 1. |
+
+### Privacy mode
+
+| Test input | Expected result |
+| --- | --- |
+| `privacy on` | Student and guardian phone, email, and address values are masked; the status bar reports privacy mode. |
+| Navigate to `timetable` and `class list` | The privacy-mode status remains visible. |
+| `list`, then `privacy off` | The original contact details reappear unchanged. |
+| Enable privacy mode, exit, and relaunch | Privacy mode remains enabled. |
+
+### Finding by name, tag, or lesson
+
+Start with a disposable, empty data file and add two students:
+
+* `add n/Amy Smith p/91234567 e/amy@example.com a/One t/exam-prep sub/Math cost/30 c/Monday1800-1930`
+* `add n/Ben Lee p/81234567 e/ben@example.com a/Two t/friends sub/Physics cost/35 c/Tuesday1900-2030`
+
+| Test input | Expected result |
+| --- | --- |
+| `find am` | Amy appears; the partial name match is case-insensitive. |
+| `find t/EXAM` | Amy appears because the tag keyword partially matches `exam-prep`, ignoring case. |
+| `find c/Mon 18` | Amy appears because the lesson matches the weekday prefix and time fragment. |
+| `find`, `find t/`, or `find c/` | A validation error is shown; the displayed results and records are unchanged. |
+| `find t/exam*` or `find c/Funday` | An invalid-keyword error is shown; the displayed results and records are unchanged. |
+| `list` | The filter clears and both students appear. |
 
 ### Student creation, guardians and class details
 
@@ -1147,6 +1243,44 @@ subjects and Bob has one. `clear` deletes records, so never run this fixture set
 After a subject search, exit and relaunch the app. All remaining students and their enrolments should be present;
 the full student list should be displayed. Repeat `find sub/math` to check that saved class subjects remain searchable.
 
+### Managing classes and individual enrolments
+
+Use at least two students. Replace `C001` below with the class ID reported by TutEasy if it differs.
+
+| Test input | Expected result |
+| --- | --- |
+| `class add sub/Math cost/30 c/Monday1800-1930` | An independent weekly class is created with a stable ID such as `C001`. |
+| Repeat the previous command | Duplicate-class error; no second class is created. |
+| Add an overlapping Monday class | Overlap error; no class is created. |
+| `class list` | A read-only class list opens and includes the ID, subject, schedule, and default cost. |
+| `class edit id/C001 sub/Mathematics cost/35` | The class keeps its ID and schedule while its subject and default cost change. |
+| `list`, then `class enrol 1 id/C001` | Student 1 is enrolled at the current default cost. |
+| Repeat the previous enrolment | Already-enrolled feedback; no duplicate enrolment is created. |
+| `class unenrol 1 id/C001` | Student 1 is removed from the class; the independent class remains in `class list`. |
+| `class enrol 1 sub/Mathematics cost/40 c/Monday1800-1930` | Student 1 is enrolled with an agreed rate of 40. |
+| `class delete id/C001` | The class and all of its enrolments are removed without deleting any student. |
+
+### Timetable view
+
+Prepare a weekly class on the current weekday, a one-off class on today's date, classes on at least two other days,
+and a class with two students whose names are not already alphabetical.
+
+| Test action | Expected result |
+| --- | --- |
+| Enter `timetable` | The complete Sunday-to-Saturday week containing today appears. Today is highlighted and scrolled into view where possible. |
+| Inspect the header | The displayed date range matches the selected week, including month or year boundaries where applicable. |
+| Inspect the entries | Classes are chronological; student names inside a class are alphabetical. Empty days still have dated headings. |
+| Inspect today's entries | Both the matching weekly class and today's one-off class appear. |
+| Select **Next week** | The range advances exactly seven days. The weekly class recurs; today's one-off class is absent. |
+| Select **Previous week** | The range moves back exactly seven days. |
+| Select **Today** | The current week is reloaded and today is highlighted again. |
+| Enter a modifying command such as `delete 1` | A read-only error appears and no data changes. |
+| Enter `class list`, then `timetable` | The read-only class list opens, then the timetable opens again at the current week. |
+| Enter `list` | The student list returns and modifying commands are enabled. |
+
+Navigate away from the current week, enter `list`, and enter `timetable` again. The newly created timetable panel should
+start at the current week rather than the previously selected week.
+
 ### Updating payment status
 
 Create `Math` at `Monday1800-1930` using `class add`, note its generated ID (for example `C001`), and enrol two
@@ -1178,6 +1312,8 @@ otherwise, selected students do not have the target tag and have fewer than 10 t
 | `tag 1 1 3 t/exam-prep` | Duplicate-index error; no student changes. |
 | `tag 1 999 t/exam-prep` | Invalid-index error; no student changes. |
 | `tag 1 3 t/ExamPrep` | Invalid-tag error under the existing lowercase tag rules; no student changes. |
+| `tag 1 2 t/exam-prep urgent` | Batch-mode error says exactly one tag is allowed; no student changes. |
+| `tag 1 2 t/exam-prep Invalid` | Invalid-tag error; no student changes. |
 | `tag 1 3 t/2026` | Both students receive the numeric tag `2026`. |
 | `tag 3 exam-prep needs-follow-up` | The legacy format still adds both tags to student 3. |
 
@@ -1199,8 +1335,30 @@ test also verifies that batch enrolment looks up the independent class rather th
 
 ### Saving data
 
-1. Dealing with missing/corrupted data files
+Use a disposable folder and keep backup copies outside TutEasy's `data` folder.
 
-   1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
+1. Automatic saving
 
-1. _{ more test cases … }_
+   1. Add a student, class, enrolment, and payment status, then enter `exit`.
+   1. Relaunch the same JAR from the same folder.<br>
+      Expected: All saved values are restored. The complete student list is shown on startup.
+
+1. Missing data file
+
+   1. Close TutEasy and move `data/addressbook.json` to a backup location.
+   1. Relaunch TutEasy.<br>
+      Expected: TutEasy starts with sample data and does not fail to launch.
+
+1. Corrupted data file
+
+   1. Close TutEasy, back up `data/addressbook.json`, and replace its contents with invalid JSON.
+   1. Relaunch TutEasy without entering any command.<br>
+      Expected: TutEasy starts with an empty data set. The corrupted file remains unchanged at this point.
+   1. Enter a successful command such as `add` with valid student details.<br>
+      Expected: TutEasy saves the new valid data. Restore the backup after completing the test if required.
+
+1. Read-only data location
+
+   1. Run TutEasy from a folder where the current user cannot write, then execute a data-modifying command.<br>
+      Expected: TutEasy reports that it cannot save because of insufficient permissions instead of silently losing
+      the error.

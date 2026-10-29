@@ -90,7 +90,8 @@ public class AddCommand extends Command {
         model.addPerson(student);
         logger.info("Student created with " + student.getLessons().size() + " class enrolment(s); guardian present: "
                 + !student.getGuardianContact().isEmpty() + ".");
-        return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.format(student)));
+        return new CommandResult(String.format(MESSAGE_SUCCESS,
+                Messages.format(student, model.isPrivacyModeEnabled())));
     }
 
     @Override

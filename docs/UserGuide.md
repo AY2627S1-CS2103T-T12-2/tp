@@ -6,7 +6,9 @@
 
 # TutEasy User Guide
 
-TutEasy is a **desktop application for managing contacts, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI). If you type quickly, TutEasy can help you manage contacts faster than traditional GUI applications.
+TutEasy is a desktop application for private tutors who manage students, classes, enrolments, and lesson schedules.
+It is optimized for fast keyboard-driven use through a Command Line Interface (CLI), while its Graphical User
+Interface (GUI) keeps student and timetable information easy to review.
 
 <!-- * Table of Contents -->
 <page-nav-print />
@@ -18,24 +20,24 @@ TutEasy is a **desktop application for managing contacts, optimized for use thro
 1. Ensure that Java `25` or later is installed on your computer.<br>
    **Mac users:** Ensure you have the precise JDK version prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html).
 
-1. Download the latest `.jar` file from [here](https://github.com/se-edu/addressbook-level3/releases).
+1. Download `tuteasy.jar` from the
+   [latest TutEasy release](https://github.com/AY2627S1-CS2103T-T12-2/tp/releases/latest).
 
 1. Copy the file to the folder you want to use as the _home folder_ for TutEasy.
 
 1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar tuteasy.jar`.<br>
-   A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
-   ![Ui](images/Ui.png)
+   The TutEasy window should appear in a few seconds with sample student and class data.
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
    Some example commands you can try:
 
-   * `list` : Lists all contacts.
+   * `list` : Shows all students.
 
-   * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a contact named `John Doe` to TutEasy.
+   * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a student named `John Doe`.
 
-   * `delete 3` : Deletes the 3rd contact shown in the current list.
+   * `class add sub/Mathematics cost/40 c/Monday1800-1930` : Adds a weekly Mathematics class.
 
-   * `clear` : Deletes all contacts.
+   * `timetable` : Opens the read-only weekly timetable.
 
    * `exit` : Exits the app.
 
@@ -71,16 +73,15 @@ Subject searches are described in the [subject search guide](SubjectSearch.md).
 
 ### Viewing help: `help`
 
-Shows a message explaining how to access the help page.
-
-![help message](images/helpMessage.png)
+Opens a window containing the URL of this User Guide. You can also open it from the **Help** menu or by pressing `F1`.
+Use **Copy URL** in the Help window to copy the link.
 
 Format: `help`
 
 
-### Adding a person: `add`
+### Adding a student: `add`
 
-Adds a student, optionally with guardian contacts and one scheduled class.
+Adds a student to TutEasy, optionally with guardian contacts and one scheduled class.
 
 Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [gn/GUARDIAN_NAME] [gp/GUARDIAN_PHONE] [ge/GUARDIAN_EMAIL] [sub/SUBJECT cost/COST c/SCHEDULE [mode/online|offline] [link/URL] [location/LOCATION] [notes/NOTES]]`
 
@@ -117,7 +118,7 @@ Examples:
 * `add n/John Davis p/91234567 e/johndavis@gmail.com a/Clementi t/exam-prep sub/Math cost/30 c/Thursday1400-1530`
 * `add n/Jane Tan p/92345678 e/jane@example.com a/Bishan sub/Math cost/30 c/2026-10-20T1800-1930`
 
-### Adding guardian and class details to a contact
+### Adding guardian and class details to a student
 
 Guardian name (`gn/`), phone (`gp/`) and email (`ge/`) are independent optional fields. You can supply only a phone,
 only an email, or any combination; none requires the others. Omitted or empty guardian values mean not provided.
@@ -299,10 +300,14 @@ Payment status describes the current enrolment as a whole; it is not a payment h
 or billing months. Correspondingly, the displayed balance is the sum of the current unpaid enrolments rather than a
 history of accumulated charges.
 
+A successful status change is saved automatically and restored after restarting TutEasy. The balance updates to reflect
+the new unpaid total. Repeating the current status reports that it is already set. An invalid student index, invalid
+status, or student who is not enrolled in the specified class receives an error without changing the enrolment.
+
 ### Deleting a class: `class delete`
 
 Deletes a class globally by removing it from every enrolled student. Students and their other information are not
-deleted. The command searches the complete address book even when the displayed student list is filtered.
+deleted. The command searches all student records even when the displayed student list is filtered.
 
 Format: `class delete id/CLASS_ID`
 
@@ -328,11 +333,11 @@ Format: `timetable`
 
 While the timetable is open, `class list`, `list`, `privacy`, `help`, and `exit` are available. `class list` replaces
 the timetable with the class list. Use `list` to return to the student list and re-enable modifying commands. Re-entering
-`timetable` starts again from the current week rather than the previously viewed week.
+`timetable` after leaving the timetable starts again from the current week rather than the previously viewed week.
 
-### Listing all persons: `list`
+### Listing all students: `list`
 
-Shows all students in the address book. Pinned students appear before unpinned students.
+Shows all students in TutEasy. Pinned students appear before unpinned students.
 
 Format: `list`
 
@@ -363,21 +368,21 @@ Format: `unpin INDEX`
 
 Example: `unpin 1`
 
-### Editing a person: `edit`
+### Editing a student: `edit`
 
-Edits an existing person in the address book.
+Edits an existing student.
 
 Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]... `
 
-* Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, ...
+* Edits the student at the specified `INDEX`. The index refers to the index number shown in the displayed student list. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
-* When editing tags, all of the person's existing tags are removed; adding tags is not cumulative.
-* To remove all of a person's tags, enter `t/` without a tag after it.
+* When editing tags, all of the student's existing tags are removed; adding tags is not cumulative.
+* To remove all of a student's tags, enter `t/` without a tag after it.
 
 Examples:
-*  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
-*  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing tags.
+*  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st student to be `91234567` and `johndoe@example.com` respectively.
+*  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd student to be `Betsy Crower` and clears all existing tags.
 
 ### Tagging students: `tag`
 
@@ -420,7 +425,7 @@ Examples:
 * `untag 2 parent-follow-up`
 * `untag 5 -all`
 
-### Locating persons by name, tag, subject, or lesson: `find`
+### Locating students by name, tag, subject, or schedule: `find`
 
 Finds students whose names, tags, subjects, or lesson timings partially match the given search input.
 
@@ -444,6 +449,8 @@ Formats:
 * With `c/`, search by lesson day, exact date, time, or a supported combination. Days accept full names or prefixes,
   e.g. `Monday` or `Mon`. Exact dates use `yyyy-MM-dd`. Times use HHmm style from `0000` to `2359`, e.g. `1800`;
   shorter fragments such as `18` are accepted for partial matching.
+* An empty search, empty `t/` or `c/` value, or invalid tag or lesson keyword is rejected with an error. The current
+  displayed results remain unchanged.
 * Name and tag searches return students matching at least one keyword. Matching pinned students are shown before
   matching unpinned students. Within each group, students with more matching keywords are shown first; ties keep the
   current list order.
@@ -458,29 +465,28 @@ Examples:
 * `find c/Mon 1800` returns students with Monday lessons containing `1800`
 * `find c/2026-10-20` returns students with a one-off lesson on 20 October 2026
 * `find c/2026-10-20 1800` additionally requires the one-off lesson to contain `1800`
-* `find alex david` returns `Alex Yeoh`, `David Li`<br>
-  ![result for 'find alex david'](images/findAlexDavidResult.png)
+* `find alex david` returns students whose names match `alex` or `david`
 
 The command box shows light-grey hints for common `find` inputs, such as `find`, the available search formats, the
 lesson example `find c/Monday 1800`, and the post-search `Type 'list'...` hint.
 
-### Deleting a person: `delete`
+### Deleting a student: `delete`
 
-Deletes the specified person from the address book.
+Deletes the specified student.
 
 Format: `delete INDEX`
 
-* Deletes the person at the specified `INDEX`.
-* The index refers to the index number shown in the displayed person list.
+* Deletes the student at the specified `INDEX`.
+* The index refers to the index number shown in the displayed student list.
 * The index **must be a positive integer** 1, 2, 3, ...
 
 Examples:
-* `list` followed by `delete 2` deletes the 2nd person in the address book.
-* `find Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
+* `list` followed by `delete 2` deletes the 2nd student in TutEasy.
+* `find Betsy` followed by `delete 1` deletes the 1st student in the results of the `find` command.
 
 ### Clearing all entries: `clear`
 
-Clears all entries from the address book.
+Deletes all student records, classes, and enrolments from TutEasy.
 
 Format: `clear`
 
@@ -517,20 +523,26 @@ TutEasy data is saved automatically as a JSON file `[JAR file location]/data/add
 <box type="warning" seamless>
 
 **Caution:**
-If your changes make the data file invalid, TutEasy starts with an empty address book at the next run. The invalid file remains on disk until you run a command (TutEasy saves after every command). Still, we recommend backing up the file before editing it.<br>
+If your changes make the data file invalid, TutEasy starts with no student or class data at the next run. The invalid
+file remains on disk until you run a successful command (TutEasy saves after every successful command). Back up the
+file before editing it.<br>
 Furthermore, certain edits can cause TutEasy to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </box>
-
-### Archiving data files `[coming in v2.0]`
-
-_Details coming soon ..._
-
---------------------------------------------------------------------------------------------------------------------
 
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
 **A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous TutEasy home folder.
+
+**Q**: Why can I not add, edit, or delete data from the timetable or class list?<br>
+**A**: Those views are read-only. Enter `list` to return to the student list, then run the modifying command.
+
+**Q**: Why is a weekly class shown in several weeks, while a one-off class appears only once?<br>
+**A**: A weekly schedule recurs on its weekday. A one-off schedule uses an exact date and appears only in the week
+containing that date.
+
+**Q**: Does moving between timetable weeks change my saved data?<br>
+**A**: No. Previous week, Next week, and Today only change the timetable projection being displayed.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -549,9 +561,9 @@ Action     | Format, Examples
 **Add class** | `class add sub/SUBJECT cost/COST c/SCHEDULE`<br> e.g., `class add sub/Physics cost/35 c/Wednesday1700-1830`
 **List classes** | `class list`
 **Edit class** | `class edit id/CLASS_ID [sub/SUBJECT] [cost/COST] [c/SCHEDULE]`<br> e.g., `class edit id/C001 cost/40`
-**Enrol in class** | `class enrol STUDENT_INDEX id/CLASS_ID`<br>or `class enrol STUDENT_INDEX [STUDENT_INDEX]... sub/SUBJECT c/SCHEDULE`<br> e.g., `class enrol 1 3 5 sub/Physics c/Wednesday1700-1830`
+**Enrol in class** | `class enrol STUDENT_INDEX id/CLASS_ID`<br>or `class enrol STUDENT_INDEX [STUDENT_INDEX]... sub/SUBJECT c/SCHEDULE`<br>or `class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/SCHEDULE`<br> e.g., `class enrol 1 3 5 sub/Physics c/Wednesday1700-1830`
 **Unenrol from class** | `class unenrol STUDENT_INDEX id/CLASS_ID`<br> e.g., `class unenrol 1 id/C001`
-**Update payment status** | `class payment STUDENT_INDEX id/CLASS_ID status/paid|unpaid`<br> e.g., `class payment 1 id/C001 status/paid`
+**Update payment status** | `class payment STUDENT_INDEX id/CLASS_ID status/paid\|unpaid`<br> e.g., `class payment 1 id/C001 status/paid`
 **Delete class** | `class delete id/CLASS_ID`<br> e.g., `class delete id/C001`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
@@ -560,6 +572,9 @@ Action     | Format, Examples
 **Untag**  | `untag INDEX TAG [MORE_TAGS]` or `untag INDEX -all`<br> e.g., `untag 2 parent-follow-up`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`, `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]`, `find sub/SUBJECT_KEYWORD [MORE_SUBJECT_KEYWORDS]`, `find c/DAY [TIME_HHmm]`, `find c/TIME_HHmm`, or `find c/DATE [TIME_HHmm]`<br> e.g., `find Jam`, `find t/fri`, `find sub/Math Physics`, `find c/Mon 1800`, `find c/2026-10-20`
 **List**   | `list`
+**Pin**    | `pin INDEX`<br> e.g., `pin 3`
+**Unpin**  | `unpin INDEX`<br> e.g., `unpin 1`
 **Help**   | `help`
 **Timetable** | `timetable`
 **Privacy mode** | `privacy on` or `privacy off`
+**Exit** | `exit`
