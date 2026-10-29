@@ -82,6 +82,15 @@ public class NameContainsKeywordsPredicateTest {
     }
 
     @Test
+    public void score_repeatedKeywordWithDifferentCase_countsOnce() {
+        NameContainsKeywordsPredicate predicate =
+                new NameContainsKeywordsPredicate(List.of("alice", "ALICE", "bob"));
+        Person alice = new PersonBuilder().withName("Alice").build();
+
+        assertEquals(1, predicate.score(alice));
+    }
+
+    @Test
     public void toStringMethod() {
         List<String> keywords = List.of("keyword1", "keyword2");
         NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(keywords);
