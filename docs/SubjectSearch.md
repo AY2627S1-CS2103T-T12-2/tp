@@ -11,6 +11,7 @@ Use `find sub/KEYWORD [MORE_KEYWORDS]...` to find students by their subjects.
 * `find sub/Math` matches Math, Mathematics, and Additional Mathematics.
 * `find sub/physics chemistry` returns students taking either subject.
 * `find sub/COMPUTER SCIENCE` matches either keyword within subject names, ignoring case.
+* `find sub/C++` matches subjects containing the supported `+` punctuation.
 
 For multi-word subjects, keywords are separate alternatives (an OR search). For example, `find sub/Computer Science`
 also matches a student taking Environmental Science. Use a more distinctive keyword, such as `Computer`, to narrow
@@ -21,7 +22,8 @@ Subject results put pinned matches first. Within each pin group, results keep or
 use keyword relevance scoring. Search covers all students, including those outside an existing search.
 Use `list` to return to the full student list. A search with no matches displays an empty list and a zero-result message.
 
-Provide one `sub/` prefix with at least one keyword. Keywords contain letters and numbers.
+Provide one `sub/` prefix with at least one keyword. Keywords may include the same common punctuation supported by
+subject names: `+`, `-`, `&`, apostrophes, periods, and parentheses.
 Do not combine subject search with name, tag (`t/`), or class (`c/`) search in the same command.
 For example, `find sub/Math t/priority` and `find Alice sub/Math` are rejected.
 In the read-only timetable or class-list view, first use `list` to return to the student view.
