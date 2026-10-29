@@ -82,6 +82,19 @@ public class EditCommandParserTest {
     }
 
     @Test
+    public void parse_unsupportedGuardianFieldsAfterAddress_failure() {
+        assertParseFailure(parser, "1 a/Two gn/Mary", EditCommandParser.MESSAGE_UNSUPPORTED_GUARDIAN_EDIT);
+        assertParseFailure(parser, "1 a/Two  gp/88888888", EditCommandParser.MESSAGE_UNSUPPORTED_GUARDIAN_EDIT);
+        assertParseFailure(parser, "1 a/Two ge/mary@example.com",
+                EditCommandParser.MESSAGE_UNSUPPORTED_GUARDIAN_EDIT);
+    }
+
+    @Test
+    public void parse_unsupportedGuardianFieldAlone_failure() {
+        assertParseFailure(parser, "1 gp/88888888", EditCommandParser.MESSAGE_UNSUPPORTED_GUARDIAN_EDIT);
+    }
+
+    @Test
     public void parse_invalidValue_failure() {
         assertParseFailure(parser, "1" + INVALID_NAME_DESC, Name.MESSAGE_CONSTRAINTS); // invalid name
         assertParseFailure(parser, "1" + INVALID_PHONE_DESC, Phone.MESSAGE_CONSTRAINTS); // invalid phone
