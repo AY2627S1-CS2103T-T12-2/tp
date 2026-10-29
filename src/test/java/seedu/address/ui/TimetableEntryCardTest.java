@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import javafx.application.Platform;
 import javafx.scene.control.Label;
+import javafx.scene.layout.VBox;
 import seedu.address.model.lesson.ClassDetails;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
@@ -68,6 +69,11 @@ public class TimetableEntryCardTest {
             assertLabel(card, "time", "18:00-19:30");
             assertLabel(card, "subject", "Math");
             assertLabel(card, "students", "Alice Tan");
+            Label subject = (Label) card.getRoot().lookup("#subject");
+            assertTrue(subject.isWrapText());
+            assertEquals(0.0, subject.getMinWidth());
+            assertEquals(Double.POSITIVE_INFINITY, subject.getMaxWidth());
+            assertEquals(0.0, ((VBox) subject.getParent()).getMinWidth());
         });
     }
 

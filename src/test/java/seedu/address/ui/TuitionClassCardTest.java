@@ -14,7 +14,9 @@ import org.junit.jupiter.api.Test;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import seedu.address.model.lesson.ClassDetails;
@@ -56,6 +58,13 @@ public class TuitionClassCardTest {
             assertLabel(card, "subject", "Math");
             assertLabel(card, "schedule", "Monday 18:00–19:30");
             assertLabel(card, "cost", "Cost: 30");
+            Label subject = (Label) card.getRoot().lookup("#subject");
+            Label cost = (Label) card.getRoot().lookup("#cost");
+            assertEquals(0.0, subject.getMinWidth());
+            assertEquals(Double.POSITIVE_INFINITY, subject.getMaxWidth());
+            assertTrue(subject.isWrapText());
+            assertEquals(0.0, ((VBox) subject.getParent()).getMinWidth());
+            assertEquals(Region.USE_PREF_SIZE, cost.getMinWidth());
         });
     }
 

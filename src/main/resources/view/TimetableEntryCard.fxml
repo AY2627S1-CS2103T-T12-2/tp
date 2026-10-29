@@ -11,8 +11,8 @@
     <Insets top="6" right="10" bottom="6" left="18" />
   </padding>
   <Label fx:id="time" styleClass="timetable-entry-time" minWidth="105" />
-  <VBox spacing="2" HBox.hgrow="ALWAYS">
-    <Label fx:id="subject" styleClass="timetable-entry-subject" />
+  <VBox minWidth="0" spacing="2" HBox.hgrow="ALWAYS">
+    <Label fx:id="subject" maxWidth="Infinity" minWidth="0" styleClass="timetable-entry-subject" wrapText="true" />
     <Label fx:id="details" styleClass="timetable-entry-students" wrapText="true" />
     <Label fx:id="students" styleClass="timetable-entry-students" wrapText="true" />
   </VBox>
