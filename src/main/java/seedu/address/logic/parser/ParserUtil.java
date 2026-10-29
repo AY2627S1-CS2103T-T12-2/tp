@@ -225,8 +225,9 @@ public class ParserUtil {
     public static LessonTiming parseLessonTiming(String timing) throws ParseException {
         requireNonNull(timing);
         String trimmedTiming = timing.trim();
-        if (!LessonTiming.isValidLessonTiming(trimmedTiming)) {
-            throw new ParseException(LessonTiming.MESSAGE_CONSTRAINTS);
+        java.util.Optional<String> validationError = LessonTiming.getValidationError(trimmedTiming);
+        if (validationError.isPresent()) {
+            throw new ParseException(validationError.get());
         }
         return new LessonTiming(trimmedTiming);
     }
@@ -236,8 +237,9 @@ public class ParserUtil {
         requireNonNull(schedule);
         String trimmedSchedule = schedule.trim();
         if (!trimmedSchedule.isEmpty() && Character.isDigit(trimmedSchedule.charAt(0))) {
-            if (!OneOffLessonSchedule.isValidOneOffLessonSchedule(trimmedSchedule)) {
-                throw new ParseException(OneOffLessonSchedule.MESSAGE_CONSTRAINTS);
+            java.util.Optional<String> validationError = OneOffLessonSchedule.getValidationError(trimmedSchedule);
+            if (validationError.isPresent()) {
+                throw new ParseException(validationError.get());
             }
             return new OneOffLessonSchedule(trimmedSchedule);
         }
