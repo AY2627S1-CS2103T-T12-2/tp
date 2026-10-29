@@ -12,7 +12,7 @@ public class Cost {
 
     public static final String MESSAGE_CONSTRAINTS =
             "Cost should be a non-negative number not exceeding 1000000.00, with at most two decimal places.";
-    public static final String VALIDATION_REGEX = "(?:0|[1-9]\\d*)(?:\\.\\d{1,2})?";
+    public static final String VALIDATION_REGEX = "(?:\\d+(?:\\.\\d{1,2})?|\\.\\d{1,2})";
     private static final int MAX_INPUT_LENGTH = MAX_VALUE.toPlainString().length();
 
     public final BigDecimal value;
