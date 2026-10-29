@@ -1,8 +1,10 @@
 package seedu.address.storage;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -23,6 +25,7 @@ import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.TuitionClass;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.StudentId;
+import seedu.address.storage.JsonAdaptedLesson.ExplicitDetails;
 
 /**
  * An Immutable AddressBook that is serializable to JSON format.
@@ -85,6 +88,9 @@ class JsonSerializableAddressBook {
         int migratedEnrollments = 0;
         boolean hasLegacyNameVariants = false;
         for (JsonAdaptedTuitionClass adaptedClass : classes) {
+            if (adaptedClass == null) {
+                throw new IllegalValueException("Classes list must not contain null entries.");
+            }
             TuitionClass tuitionClass = adaptedClass.toModelType();
             if (addressBook.hasTuitionClass(tuitionClass.getClassId())
                     || addressBook.hasTuitionClassWithDetails(tuitionClass)) {
@@ -92,8 +98,8 @@ class JsonSerializableAddressBook {
             }
             addressBook.addTuitionClass(tuitionClass);
         }
-        java.util.Set<EnrollmentId> enrollmentIds = new java.util.HashSet<>();
-        java.util.Set<StudentId> studentIds = new java.util.HashSet<>();
+        Set<EnrollmentId> enrollmentIds = new HashSet<>();
+        Set<StudentId> studentIds = new HashSet<>();
         List<LoadedStudent> loadedStudents = loadStudents(addressBook);
         reconcileLegacyClassDetails(addressBook, loadedStudents);
         for (LoadedStudent loadedStudent : loadedStudents) {
@@ -154,12 +160,13 @@ class JsonSerializableAddressBook {
     private List<LoadedStudent> loadStudents(AddressBook addressBook) throws IllegalValueException {
         List<LoadedStudent> loadedStudents = new ArrayList<>();
         for (JsonAdaptedPerson adapted : persons) {
+            if (adapted == null) {
+                throw new IllegalValueException("Persons list must not contain null entries.");
+            }
             Person person = adapted.toModelType();
-            Set<Lesson> explicitDetails = new HashSet<>();
+            Map<Lesson, ExplicitDetails> explicitDetails = new HashMap<>();
             for (Lesson lesson : person.getLegacyLessons()) {
-                if (adapted.hasExplicitClassDetails(lesson)) {
-                    explicitDetails.add(lesson);
-                }
+                explicitDetails.put(lesson, adapted.getExplicitClassDetails(lesson));
             }
             for (Enrollment enrollment : person.getEnrollments()) {
                 if (!addressBook.hasTuitionClass(enrollment.getClassId())) {
@@ -175,24 +182,32 @@ class JsonSerializableAddressBook {
     /** Resolves omitted legacy details independently of record order, retaining explicit conflicts. */
     private static void reconcileLegacyClassDetails(AddressBook addressBook, List<LoadedStudent> students)
             throws IllegalValueException {
-        Set<ClassId> explicitClasses = new HashSet<>();
+        Map<ClassId, ExplicitDetails> explicitClasses = new HashMap<>();
         addressBook.getTuitionClassList().stream()
                 .filter(item -> !item.getDetails().equals(ClassDetails.EMPTY))
-                .map(TuitionClass::getClassId).forEach(explicitClasses::add);
+                .forEach(item -> explicitClasses.put(item.getClassId(), ExplicitDetails.complete(item.getDetails())));
         students.stream().flatMap(student -> student.person().getEnrollments().stream())
-                .map(Enrollment::getClassId).forEach(explicitClasses::add);
+                .map(Enrollment::getClassId).forEach(id -> explicitClasses.put(id,
+                        ExplicitDetails.complete(addressBook.getTuitionClass(id).getDetails())));
         for (LoadedStudent student : students) {
             for (Lesson lesson : student.person().getLegacyLessons()) {
                 TuitionClass tuitionClass = resolveLegacyClass(addressBook, lesson);
-                if (!student.explicitDetails().contains(lesson)) {
-                    continue;
-                }
-                if (!explicitClasses.add(tuitionClass.getClassId())
-                        && !tuitionClass.getDetails().equals(lesson.getDetails())) {
+                ExplicitDetails previous = explicitClasses.getOrDefault(
+                        tuitionClass.getClassId(), ExplicitDetails.NONE);
+                ExplicitDetails supplied = student.explicitDetails().get(lesson);
+                if (previous.conflictsWith(supplied)) {
                     throw new IllegalValueException(MESSAGE_CLASS_DETAILS_CONFLICT);
                 }
-                if (!tuitionClass.getDetails().equals(lesson.getDetails())) {
-                    addressBook.setTuitionClass(tuitionClass, tuitionClass.withDetails(lesson.getDetails()));
+                ExplicitDetails combined = previous.withProvided(supplied);
+                ClassDetails details;
+                try {
+                    details = combined.applyTo(tuitionClass.getDetails());
+                } catch (IllegalArgumentException exception) {
+                    throw new IllegalValueException(MESSAGE_CLASS_DETAILS_CONFLICT);
+                }
+                explicitClasses.put(tuitionClass.getClassId(), combined);
+                if (!tuitionClass.getDetails().equals(details)) {
+                    addressBook.setTuitionClass(tuitionClass, tuitionClass.withDetails(details));
                 }
             }
         }
@@ -216,6 +231,6 @@ class JsonSerializableAddressBook {
         return created;
     }
 
-    private record LoadedStudent(Person person, Set<Lesson> explicitDetails) { }
+    private record LoadedStudent(Person person, Map<Lesson, ExplicitDetails> explicitDetails) { }
 
 }

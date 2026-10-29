@@ -30,7 +30,8 @@ public class ClassDetailsTest {
     public void constructor_invalidLinks_rejectsInput() {
         for (String link : List.of("example.com", "https://", "http:/path", "ftp://example.com", "javascript:alert(1)",
                 "https://user:pass@example.com", "https://example.com/with space", "https://example.com:99999",
-                "https://example.com:0", "https://example.com:-2")) {
+                "https://example.com:0", "https://example.com:-2", "https://example.com:",
+                "https://example.com:/room", "http://[::1]:/room")) {
             assertThrows(IllegalArgumentException.class, () -> new ClassDetails(link, "", ""), link);
         }
     }

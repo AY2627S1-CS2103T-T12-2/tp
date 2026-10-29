@@ -150,15 +150,16 @@ class JsonAdaptedPerson {
         lesson = source.getLesson().map(Object::toString).orElse(null);
     }
 
-    /** Distinguishes old enrolments without class fields from explicitly supplied empty fields. */
-    boolean hasExplicitClassDetails(Lesson lesson) throws IllegalValueException {
+    /** Retains each supplied class field so omitted fields can inherit shared values independently. */
+    JsonAdaptedLesson.ExplicitDetails getExplicitClassDetails(Lesson lesson) throws IllegalValueException {
+        JsonAdaptedLesson.ExplicitDetails details = JsonAdaptedLesson.ExplicitDetails.NONE;
         for (JsonAdaptedLesson adapted : lessons) {
             if (!adapted.isAssociationRecord()
                     && adapted.hasExplicitDetails() && adapted.toModelType().equals(lesson)) {
-                return true;
+                details = details.withProvided(adapted.getExplicitDetails());
             }
         }
-        return false;
+        return details;
     }
 
     /**
@@ -169,6 +170,9 @@ class JsonAdaptedPerson {
     public Person toModelType() throws IllegalValueException {
         final List<Tag> personTags = new ArrayList<>();
         for (JsonAdaptedTag tag : tags) {
+            if (tag == null) {
+                throw new IllegalValueException("Tags list must not contain null entries.");
+            }
             personTags.add(tag.toModelType());
         }
 
@@ -220,6 +224,9 @@ class JsonAdaptedPerson {
         final Set<Enrollment> modelEnrollments = new LinkedHashSet<>();
         final Set<EnrollmentId> enrollmentIds = new LinkedHashSet<>();
         for (JsonAdaptedLesson adaptedLesson : lessons) {
+            if (adaptedLesson == null) {
+                throw new IllegalValueException("Lessons list must not contain null entries.");
+            }
             if (adaptedLesson.isAssociationRecord()) {
                 Enrollment enrollment = adaptedLesson.toEnrollmentModelType();
                 if (!modelStudentId.equals(enrollment.getStudentId())) {

@@ -142,6 +142,14 @@ public class ArgumentTokenizerTest {
     }
 
     @Test
+    public void tokenize_whitespaceSeparatedPrefixes_recognizedWithoutSplittingEmbeddedText() {
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(
+                "\tp/one\np/two\rp/three p/embeddedp/value", pSlash);
+        assertPreambleEmpty(arguments);
+        assertArgumentPresent(arguments, pSlash, "one", "two", "three", "embeddedp/value");
+    }
+
+    @Test
     public void tokenizeWithFreeTextFields_quotedPrefixes_preservedLiterally() throws Exception {
         Prefix notes = new Prefix("notes/");
         ArgumentMultimap arguments = ArgumentTokenizer.tokenizeWithFreeTextFields(

@@ -39,6 +39,7 @@ import seedu.address.logic.commands.TimetableCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.EditCommandParser;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
@@ -122,6 +123,31 @@ public class LogicManagerTest {
         assertEquals(originalStudent, model.getAddressBook().getPersonList().getFirst());
         assertEquals(originalJson, Files.readString(storage.getAddressBookFilePath()));
         assertEquals(originalStudent, storage.readAddressBook().orElseThrow().getPersonList().getFirst());
+    }
+
+    @Test
+    public void execute_unsupportedClassEdits_preserveDataFilterAndSavedFile() throws Exception {
+        logic.execute("add n/Alice p/91234567 e/alice@example.com a/One gp/99999999"
+                + " sub/Math cost/30 c/Monday1800-1900 mode/online notes/Review");
+        logic.execute("add n/Bob p/81234567 e/bob@example.com a/Elsewhere");
+        logic.execute("class payment 1 id/C001 status/paid");
+        logic.execute("pin 1");
+        logic.execute("find sub/Math");
+        AddressBook original = new AddressBook(model.getAddressBook());
+        List<Person> originalResults = List.copyOf(model.getFilteredPersonList());
+        String originalJson = Files.readString(storage.getAddressBookFilePath());
+        String expected = "Class fields cannot be changed with edit. "
+                + "Remove them and use a supported edit field.";
+
+        for (String field : List.of("sub/Physics", "cost/40", "c/Tuesday1800-1900", "mode/offline",
+                "link/https://example.com", "location/Room 2", "notes/Bring notes", "id/C001", "status/unpaid",
+                "sub/Math cost/30 c/Monday1800-1900 mode/online", "\tsub/Physics")) {
+            assertThrows(ParseException.class, expected, () -> logic.execute("edit 1 a/Two " + field));
+            assertEquals(original, model.getAddressBook());
+            assertEquals(originalResults, model.getFilteredPersonList());
+            assertEquals(originalJson, Files.readString(storage.getAddressBookFilePath()));
+            assertEquals(original, storage.readAddressBook().orElseThrow());
+        }
     }
 
     @Test

@@ -32,6 +32,8 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_THIRD_PERSON;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
@@ -92,6 +94,26 @@ public class EditCommandParserTest {
     @Test
     public void parse_unsupportedGuardianFieldAlone_failure() {
         assertParseFailure(parser, "1 gp/88888888", EditCommandParser.MESSAGE_UNSUPPORTED_GUARDIAN_EDIT);
+    }
+
+    @Test
+    public void parse_unsupportedClassFields_failure() {
+        String expected = "Class fields cannot be changed with edit. "
+                + "Remove them and use a supported edit field.";
+        for (String field : List.of("sub/Math", "cost/30", "c/Monday1800-1900", "mode/online",
+                "link/https://example.com", "location/Room 2", "notes/Review", "id/C001", "status/paid")) {
+            assertParseFailure(parser, "1 a/Two " + field, expected);
+            assertParseFailure(parser, "1 " + field + " a/Two", expected);
+            assertParseFailure(parser, "1 " + field, expected);
+        }
+        assertParseFailure(parser, "1 a/Two sub/Math cost/30 c/Monday1800-1900 mode/online", expected);
+        assertParseFailure(parser, "1 a/Two notes/", expected);
+    }
+
+    @Test
+    public void parse_tabSeparatedUnsupportedFields_failure() {
+        assertParseFailure(parser, "1 a/Two\tsub/Math", EditCommandParser.MESSAGE_UNSUPPORTED_CLASS_EDIT);
+        assertParseFailure(parser, "1 a/Two\tgp/88888888", EditCommandParser.MESSAGE_UNSUPPORTED_GUARDIAN_EDIT);
     }
 
     @Test

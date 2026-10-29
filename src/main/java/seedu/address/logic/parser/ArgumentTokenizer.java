@@ -155,9 +155,18 @@ public class ArgumentTokenizer {
      * {@code fromIndex} = 0, this method returns 5.
      */
     private static int findPrefixPosition(String argsString, String prefix, int fromIndex) {
-        int prefixIndex = argsString.indexOf(" " + prefix, fromIndex);
-        return prefixIndex == -1 ? -1
-                : prefixIndex + 1; // +1 as offset for whitespace
+        int searchFrom = fromIndex + 1;
+        while (searchFrom < argsString.length()) {
+            int prefixIndex = argsString.indexOf(prefix, searchFrom);
+            if (prefixIndex == -1) {
+                return -1;
+            }
+            if (Character.isWhitespace(argsString.charAt(prefixIndex - 1))) {
+                return prefixIndex;
+            }
+            searchFrom = prefixIndex + 1;
+        }
+        return -1;
     }
 
     /**
