@@ -4,7 +4,9 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
@@ -17,6 +19,7 @@ import seedu.address.model.person.LessonContainsKeywordsPredicate;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.ScoredPersonPredicate;
+import seedu.address.model.person.StudentId;
 
 /**
  * Finds and lists all persons in the address book whose name, tag, subject, or lesson matches the search input.
@@ -96,8 +99,13 @@ public class FindCommand extends Command {
                 currentOrder.add(person);
             }
         }
+        Map<StudentId, Integer> orderByStudentId = new HashMap<>();
+        for (int i = 0; i < currentOrder.size(); i++) {
+            orderByStudentId.put(currentOrder.get(i).getStudentId(), i);
+        }
         return Comparator.<Person>comparingInt(scoredPredicate::score).reversed()
-                .thenComparingInt(currentOrder::indexOf);
+                .thenComparingInt(person -> orderByStudentId.getOrDefault(
+                        person.getStudentId(), Integer.MAX_VALUE));
     }
 
     @Override
