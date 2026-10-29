@@ -16,6 +16,7 @@ import seedu.address.logic.commands.ClassListCommand;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.ExitCommand;
+import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.PrivacyCommand;
@@ -89,7 +90,9 @@ public class LogicManager implements Logic {
 
         try {
             commandResult = command.execute(model);
-            storage.saveAddressBook(model.getAddressBook());
+            if (modifiesAddressBook(command)) {
+                storage.saveAddressBook(model.getAddressBook());
+            }
             if (command instanceof PrivacyCommand) {
                 storage.saveUserPrefs(model.getUserPrefs());
             }
@@ -112,6 +115,14 @@ public class LogicManager implements Logic {
         }
 
         return commandResult;
+    }
+
+    /** Defaults new commands to saving so persistence never depends on value-equality semantics. */
+    private boolean modifiesAddressBook(Command command) {
+        return !(command instanceof HelpCommand || command instanceof ExitCommand
+                || command instanceof ListCommand || command instanceof FindCommand
+                || command instanceof TimetableCommand || command instanceof ClassListCommand
+                || command instanceof PrivacyCommand);
     }
 
     /** Restores in-memory state when command execution or persistence fails. */

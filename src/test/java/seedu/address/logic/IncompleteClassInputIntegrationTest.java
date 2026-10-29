@@ -59,6 +59,7 @@ public class IncompleteClassInputIntegrationTest {
         ModelManager model = new ModelManager();
         StorageManager storage = storage();
         LogicManager logic = new LogicManager(model, storage);
+        storage.saveAddressBook(model.getAddressBook());
         logic.execute("list");
         String savedBefore = Files.readString(storage.getAddressBookFilePath());
         for (String fields : List.of(" sub/English cost/20 c/Monday1800", " sub/English cost/20 c/",

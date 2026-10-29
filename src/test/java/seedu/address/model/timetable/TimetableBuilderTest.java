@@ -27,6 +27,16 @@ public class TimetableBuilderTest {
     private static final LocalDate SATURDAY = LocalDate.of(2026, 10, 10);
 
     @Test
+    public void build_numberedStudents_usesNaturalOrder() {
+        Lesson shared = lesson("Math", "30", "Friday1800-1930");
+        List<Person> students = List.of("Student 10", "Student 2", "student 1").stream()
+                .map(name -> new PersonBuilder().withName(name).withLessons(shared).build()).toList();
+        assertEquals(List.of("student 1", "Student 2", "Student 10"),
+                TimetableBuilder.build(students, THURSDAY).get(5).getEntries().get(0)
+                        .getStudents().stream().map(person -> person.getName().fullName).toList());
+    }
+
+    @Test
     public void build_createsCompleteSundayThroughSaturdayIncludingEmptyDays() {
         List<TimetableDay> fromSunday = TimetableBuilder.build(List.of(), SUNDAY);
         List<TimetableDay> fromThursday = TimetableBuilder.build(List.of(), THURSDAY);

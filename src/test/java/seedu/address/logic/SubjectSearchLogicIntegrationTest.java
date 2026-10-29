@@ -41,7 +41,7 @@ public class SubjectSearchLogicIntegrationTest {
     private Person bob;
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws Exception {
         model = new ModelManager();
         alice = new PersonBuilder().withName("Alice").withLessons(lesson("Math")).build();
         bob = new PersonBuilder().withName("Bob").withLessons(lesson("Physics")).build();
@@ -49,6 +49,7 @@ public class SubjectSearchLogicIntegrationTest {
         model.addPerson(bob);
         storage = new StorageManager(new JsonAddressBookStorage(temporaryFolder.resolve("students.json")),
                 new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json")));
+        storage.saveAddressBook(model.getAddressBook());
         logic = new LogicManager(model, storage);
     }
 
@@ -117,6 +118,7 @@ public class SubjectSearchLogicIntegrationTest {
                 base.getTags(), Set.of(new seedu.address.model.person.Subject("Computer Science")),
                 Optional.empty(), Optional.empty());
         model.addPerson(legacyStudent);
+        storage.saveAddressBook(model.getAddressBook());
         logic.execute("list");
         Model reloaded = new ModelManager(storage.readAddressBook().orElseThrow(), new UserPrefs());
         Logic restartedLogic = new LogicManager(reloaded, storage);

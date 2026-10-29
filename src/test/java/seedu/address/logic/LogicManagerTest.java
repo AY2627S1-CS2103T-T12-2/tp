@@ -79,6 +79,32 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_capitalizationOnlyClassEdit_persistsDisplayChange() throws Exception {
+        logic.execute("class add sub/Math cost/30 c/Friday1400-1500");
+        logic.execute("class edit id/C001 sub/MATH");
+        assertEquals("MATH", storage.readAddressBook().orElseThrow()
+                .getTuitionClassList().getFirst().getSubject().value);
+    }
+
+    @Test
+    public void execute_readOnlyAndPrivacyCommands_doNotWriteAddressBook() throws Exception {
+        JsonAddressBookStorage failingStorage = new JsonAddressBookStorage(storage.getAddressBookFilePath()) {
+            @Override
+            public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
+                throw new AccessDeniedException("read only");
+            }
+        };
+        logic = new LogicManager(model, new StorageManager(failingStorage,
+                new JsonUserPrefsStorage(storage.getUserPrefsFilePath())));
+        for (String command : List.of("help", "find Alice", "list", "timetable", "help", "class list",
+                "privacy on", "list", "exit")) {
+            logic.execute(command);
+        }
+        assertTrue(storage.readUserPrefs().orElseThrow().isPrivacyModeEnabled());
+        assertFalse(Files.exists(storage.getAddressBookFilePath()));
+    }
+
+    @Test
     public void execute_invalidCommandFormat_throwsParseException() {
         String invalidCommand = "uicfhmowqewca";
         assertParseException(invalidCommand, MESSAGE_UNKNOWN_COMMAND);
@@ -284,7 +310,7 @@ public class LogicManagerTest {
                 new JsonUserPrefsStorage(storage.getUserPrefsFilePath())));
 
         String expectedMessage = String.format(LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage());
-        assertThrows(CommandException.class, expectedMessage, () -> logic.execute("find Carol"));
+        assertThrows(CommandException.class, expectedMessage, () -> logic.execute("delete 1"));
 
         assertEquals(List.of(bob, amy), model.getFilteredPersonList());
     }

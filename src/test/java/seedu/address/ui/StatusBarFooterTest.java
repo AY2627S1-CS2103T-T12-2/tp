@@ -39,6 +39,9 @@ public class StatusBarFooterTest {
     public void setPrivacyModeEnabled_updatesPersistentIndicator() throws Exception {
         runOnFxThread(() -> {
             StatusBarFooter footer = new StatusBarFooter(Path.of("data", "addressbook.json"), false);
+            Label saveLocation = (Label) footer.getRoot().lookup("#saveLocationStatus");
+            assertEquals(Path.of("data", "addressbook.json").toAbsolutePath().normalize().toString(),
+                    saveLocation.getText());
             Label privacyStatus = (Label) footer.getRoot().lookup("#privacyStatus");
 
             assertNotNull(privacyStatus);
