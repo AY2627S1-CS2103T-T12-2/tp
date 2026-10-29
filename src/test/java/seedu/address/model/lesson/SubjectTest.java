@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 public class SubjectTest {
@@ -39,5 +41,22 @@ public class SubjectTest {
         assertNotEquals(computerScience, new Subject("Computer Studies"));
         assertNotEquals(computerScience, "Computer Science");
         assertNotEquals(computerScience, null);
+    }
+
+    @Test
+    public void validValues_commonSubjectPunctuationAcceptedAndPreserved() {
+        for (String value : List.of("A-Math", "C++ Programming", "Design & Technology",
+                "English (Advanced)", "St. John's Studies")) {
+            assertTrue(Subject.isValidSubject(value), value);
+            assertEquals(value, new Subject(value).toString());
+        }
+    }
+
+    @Test
+    public void invalidPunctuation_rejected() {
+        for (String value : List.of("-Math", "+C", "Math!", "Math,", "Math/Science")) {
+            assertFalse(Subject.isValidSubject(value), value);
+            assertThrows(IllegalArgumentException.class, () -> new Subject(value), value);
+        }
     }
 }
