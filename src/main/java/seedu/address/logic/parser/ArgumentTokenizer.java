@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -20,8 +22,11 @@ import seedu.address.logic.parser.exceptions.ParseException;
 public class ArgumentTokenizer {
 
     public static final String MESSAGE_INVALID_QUOTED_VALUE =
-            "Use matching double quotes around the whole notes/ or location/ value. "
+            "Use matching double quotes around the whole address, notes, or location value. "
                     + "Separate any following fields with spaces.";
+    public static final String MESSAGE_UNKNOWN_PREFIX = "Unrecognised parameter-like token: %s";
+    private static final Pattern PREFIX_LIKE_TOKEN =
+            Pattern.compile("(?<!\\S)([A-Za-z][A-Za-z0-9-]*/)");
 
     /**
      * Tokenizes an arguments string and returns an {@code ArgumentMultimap} object that maps prefixes to their
@@ -46,6 +51,7 @@ public class ArgumentTokenizer {
         List<PrefixPosition> positions = findAllPrefixPositions(argsString, prefixes);
         positions.sort((first, second) -> Integer.compare(first.getStartPosition(), second.getStartPosition()));
         List<PrefixPosition> fields = new ArrayList<>();
+        List<QuotedRange> quotedRanges = new ArrayList<>();
         Set<Prefix> seen = new HashSet<>();
         boolean inFreeText = false;
         int quotedEnd = -1;
@@ -66,9 +72,11 @@ public class ArgumentTokenizer {
             }
             if (inFreeText && valueStart < argsString.length() && argsString.charAt(valueStart) == '"') {
                 quotedEnd = findClosingQuote(argsString, valueStart);
+                quotedRanges.add(new QuotedRange(valueStart, quotedEnd));
                 inFreeText = false;
             }
         }
+        verifyNoUnknownPrefixes(argsString, quotedRanges, prefixes);
         ArgumentMultimap rawArguments = extractArguments(argsString, fields);
         ArgumentMultimap arguments = new ArgumentMultimap();
         arguments.put(new Prefix(""), rawArguments.getPreamble());
@@ -78,6 +86,21 @@ public class ArgumentTokenizer {
             }
         }
         return arguments;
+    }
+
+    private static void verifyNoUnknownPrefixes(String argsString, List<QuotedRange> quotedRanges,
+            Prefix... prefixes) throws ParseException {
+        Set<String> knownPrefixes = Arrays.stream(prefixes)
+                .map(Prefix::getPrefix)
+                .collect(Collectors.toSet());
+        Matcher matcher = PREFIX_LIKE_TOKEN.matcher(argsString);
+        while (matcher.find()) {
+            String candidate = matcher.group(1);
+            boolean isQuoted = quotedRanges.stream().anyMatch(range -> range.contains(matcher.start(1)));
+            if (!isQuoted && !knownPrefixes.contains(candidate)) {
+                throw new ParseException(String.format(MESSAGE_UNKNOWN_PREFIX, candidate));
+            }
+        }
     }
 
     private static int findClosingQuote(String value, int openingQuote) throws ParseException {
@@ -236,6 +259,20 @@ public class ArgumentTokenizer {
 
         Prefix getPrefix() {
             return prefix;
+        }
+    }
+
+    private static class QuotedRange {
+        private final int startPosition;
+        private final int endPosition;
+
+        QuotedRange(int startPosition, int endPosition) {
+            this.startPosition = startPosition;
+            this.endPosition = endPosition;
+        }
+
+        boolean contains(int position) {
+            return startPosition <= position && position <= endPosition;
         }
     }
 

@@ -51,6 +51,8 @@ import seedu.address.model.tag.Tag;
 import seedu.address.testutil.PersonBuilder;
 
 public class AddCommandParserTest {
+    private static final String MESSAGE_UNKNOWN_PREFIX = "Unrecognised parameter-like token: modee/";
+
     private AddCommandParser parser = new AddCommandParser();
 
     @Test
@@ -139,6 +141,25 @@ public class AddCommandParserTest {
         // zero tags
         Person expectedPerson = new PersonBuilder(AMY).withTags().build();
         assertParseSuccess(parser, NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY + ADDRESS_DESC_AMY,
+                new AddCommand(expectedPerson));
+    }
+
+    @Test
+    public void parse_unknownPrefixLikeTokenInAddress_failure() {
+        assertParseFailure(parser, " n/Alice p/91234567 e/alice@example.com a/Home modee/online",
+                MESSAGE_UNKNOWN_PREFIX);
+    }
+
+    @Test
+    public void parse_quotedAddressWithRecognisedPrefix_success() {
+        Person expectedPerson = new PersonBuilder()
+                .withName("Alice")
+                .withPhone("91234567")
+                .withEmail("alice@example.com")
+                .withAddress("Unit p/333")
+                .build();
+
+        assertParseSuccess(parser, " n/Alice p/91234567 e/alice@example.com a/\"Unit p/333\"",
                 new AddCommand(expectedPerson));
     }
 

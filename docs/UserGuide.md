@@ -101,7 +101,10 @@ and use only lowercase letters, numbers, and single hyphens between characters.
 
 * Student names contain letters, digits and spaces, start with a letter or digit, and contain at most 100 characters.
   Phone numbers contain only digits and have between 3 and 15 digits. Email addresses must follow the
-  [email rules below](#guardian-field-rules). Addresses may contain at most 500 characters.
+  [email rules below](#guardian-field-rules). Addresses may contain at most 500 characters. If an address contains
+  prefix-like text, quote the whole value, e.g. `a/"Unit p/333"`. Inside a quoted address, use `\"` for a literal
+  double quote and `\\` for a literal backslash. Unrecognised prefix-like text outside quotes is rejected as a likely
+  typo.
 * A name differing from an existing student's name only in capitalization or repeated spaces is rejected as a
   duplicate, even if its phone or email differs. For example, `Alex Yeoh`, `alex yeoh` and `Alex  Yeoh` conflict.
   Your entered capitalization and spacing are retained for display. This rule also applies when renaming with `edit`.
@@ -403,10 +406,13 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]... `
 * Existing values will be updated to the input values.
 * When editing tags, all of the student's existing tags are removed; adding tags is not cumulative.
 * To remove all of a student's tags, enter `t/` without a tag after it.
+* Quote the whole address if it contains prefix-like text, e.g. `edit 1 a/"Unit p/333"`. Unrecognised prefix-like
+  text outside quotes is rejected as a likely typo.
 
 Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st student to be `91234567` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd student to be `Betsy Crower` and clears all existing tags.
+*  `edit 1 a/"Unit p/333"` Sets the address of the 1st student to the literal value `Unit p/333` without changing the phone number.
 
 ### Tagging students: `tag`
 

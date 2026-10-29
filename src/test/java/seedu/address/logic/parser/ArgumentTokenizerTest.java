@@ -153,11 +153,22 @@ public class ArgumentTokenizerTest {
     public void tokenizeWithFreeTextFields_quotedPrefixes_preservedLiterally() throws Exception {
         Prefix notes = new Prefix("notes/");
         ArgumentMultimap arguments = ArgumentTokenizer.tokenizeWithFreeTextFields(
-                " p/first notes/\"Review p/third notes/extra\" p/second", Set.of(notes), Set.of(), pSlash, notes);
+                " p/first notes/\"Review p/third notes/extra modee/online\" p/second",
+                Set.of(notes), Set.of(), pSlash, notes);
 
         assertPreambleEmpty(arguments);
         assertArgumentPresent(arguments, pSlash, "first", "second");
-        assertArgumentPresent(arguments, notes, "Review p/third notes/extra");
+        assertArgumentPresent(arguments, notes, "Review p/third notes/extra modee/online");
+    }
+
+    @Test
+    public void tokenizeWithFreeTextFields_unknownPrefixLikeToken_rejected() {
+        Prefix notes = new Prefix("notes/");
+        ParseException exception = assertThrows(ParseException.class, () ->
+                ArgumentTokenizer.tokenizeWithFreeTextFields(
+                        " notes/Review modee/online", Set.of(notes), Set.of(), notes, pSlash));
+
+        assertEquals("Unrecognised parameter-like token: modee/", exception.getMessage());
     }
 
     @Test
