@@ -38,9 +38,11 @@ public class PersonTest {
                 Optional.of(new seedu.address.model.person.Lesson("Monday2358")));
         assertTrue(lastMinute.getLessons().isEmpty());
         assertTrue(lastMinute.hasUnmigratedLegacyLesson());
+        assertFalse(lastMinute.hasMigratableLegacyLessonDetails());
         assertEquals("Monday2358-2359", lastMigratableMinute.getLessons().iterator().next()
                 .getSchedule().toStorageString());
         assertFalse(lastMigratableMinute.hasUnmigratedLegacyLesson());
+        assertTrue(lastMigratableMinute.hasMigratableLegacyLessonDetails());
         assertFalse(lastMigratableMinute.withLessons(Set.of()).hasUnmigratedLegacyLesson());
         assertFalse(lastMinute.withLessons(lastMigratableMinute.getLessons()).hasUnmigratedLegacyLesson());
     }
@@ -52,6 +54,8 @@ public class PersonTest {
         Person missingStart = legacyStudent(Optional.of(new seedu.address.model.person.Cost("30")), Optional.empty());
         assertTrue(missingCost.hasUnmigratedLegacyLesson());
         assertTrue(missingStart.hasUnmigratedLegacyLesson());
+        assertFalse(missingCost.hasMigratableLegacyLessonDetails());
+        assertFalse(missingStart.hasMigratableLegacyLessonDetails());
         assertFalse(new PersonBuilder().build().hasUnmigratedLegacyLesson());
     }
 

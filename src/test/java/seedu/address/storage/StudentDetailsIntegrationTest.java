@@ -225,6 +225,32 @@ public class StudentDetailsIntegrationTest {
     }
 
     @Test
+    public void unenrolPreviouslySavedMigration_saveAndReload_doesNotRestoreEnrollment() throws Exception {
+        Model model = new ModelManager(loadPreviouslySavedMigration(), new UserPrefs());
+        new AddressBookParser().parseCommand("class unenrol 1 id/C001").execute(model);
+
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(tempDir.resolve("previously-migrated.json"));
+        storage.saveAddressBook(model.getAddressBook());
+        var restored = storage.readAddressBook().orElseThrow();
+
+        assertTrue(restored.getPersonList().getFirst().getEnrollments().isEmpty());
+        assertEquals(1, restored.getTuitionClassList().size());
+    }
+
+    @Test
+    public void deletePreviouslySavedMigratedClass_saveAndReload_doesNotRestoreClass() throws Exception {
+        Model model = new ModelManager(loadPreviouslySavedMigration(), new UserPrefs());
+        new AddressBookParser().parseCommand("class delete id/C001").execute(model);
+
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(tempDir.resolve("previously-deleted-class.json"));
+        storage.saveAddressBook(model.getAddressBook());
+        var restored = storage.readAddressBook().orElseThrow();
+
+        assertTrue(restored.getPersonList().getFirst().getEnrollments().isEmpty());
+        assertTrue(restored.getTuitionClassList().isEmpty());
+    }
+
+    @Test
     public void loadLegacyJson_unmigratableLateLesson_survivesSaveAndReload() throws Exception {
         JsonAdaptedPerson record = adapted(List.of("Math"), "30", "Monday2359");
         var original = new JsonSerializableAddressBook(List.of(record)).toModelType();
@@ -235,6 +261,18 @@ public class StudentDetailsIntegrationTest {
 
         assertEquals(original, restored);
         assertTrue(restored.getPersonList().getFirst().hasUnmigratedLegacyLesson());
+    }
+
+    @Test
+    public void previouslySavedMigrationWithUnmigratableLegacyDetails_preservesDetails() throws Exception {
+        AddressBook original = loadPreviouslySavedMigration("Monday2359");
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(tempDir.resolve("migrated-late-lesson.json"));
+
+        storage.saveAddressBook(original);
+        var restored = storage.readAddressBook().orElseThrow();
+
+        assertEquals(original, restored);
+        assertEquals(Optional.of(new Lesson("Monday2359")), restored.getPersonList().getFirst().getLesson());
     }
 
     @Test
@@ -327,6 +365,23 @@ public class StudentDetailsIntegrationTest {
                 {"persons":[{"name":"Alice","phone":"91234567","email":"alice@example.com",
                 "address":"One","tags":[],"subjects":["Math"],"cost":"30","lesson":"Monday1800"}]}
                 """;
+        return JsonUtil.fromJsonString(json, JsonSerializableAddressBook.class).toModelType();
+    }
+
+    private AddressBook loadPreviouslySavedMigration() throws Exception {
+        return loadPreviouslySavedMigration("Monday1800");
+    }
+
+    private AddressBook loadPreviouslySavedMigration(String legacyLesson) throws Exception {
+        String json = """
+                {"classes":[{"id":"C001","subject":"Math","cost":"30","timing":"Monday1800-1900"}],
+                "persons":[{"name":"Alice","phone":"91234567","email":"alice@example.com","address":"One",
+                "tags":[],"studentId":"S-00000000-0000-0000-0000-000000000001",
+                "lessons":[{"enrollmentId":"E-00000000-0000-0000-0000-000000000001",
+                "studentId":"S-00000000-0000-0000-0000-000000000001","classId":"C001",
+                "cost":"30","paymentStatus":"UNPAID"}],
+                "subjects":["Math"],"cost":"30","lesson":"%s"}],"nextClassSequence":2}
+                """.formatted(legacyLesson);
         return JsonUtil.fromJsonString(json, JsonSerializableAddressBook.class).toModelType();
     }
 }
