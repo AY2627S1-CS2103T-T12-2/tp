@@ -13,6 +13,7 @@ public class CostMaximumTest {
     public void isValidCost_maximumBoundary_returnsExpectedResult() {
         assertTrue(Cost.isValidCost("1000000"));
         assertTrue(Cost.isValidCost("1000000.00"));
+        assertTrue(Cost.isValidCost("00000000001"));
         assertFalse(Cost.isValidCost("1000000.01"));
         assertFalse(Cost.isValidCost("9999999"));
         assertFalse(Cost.isValidCost("9".repeat(5000)));
@@ -21,6 +22,7 @@ public class CostMaximumTest {
     @Test
     public void constructor_costAboveMaximum_throwsException() {
         assertEquals("1000000", new Cost("1000000.00").toString());
+        assertEquals("1", new Cost("00000000001").toString());
         assertThrows(IllegalArgumentException.class, () -> new Cost("1000000.01"));
         assertThrows(IllegalArgumentException.class, () -> new Cost("9".repeat(5000)));
     }

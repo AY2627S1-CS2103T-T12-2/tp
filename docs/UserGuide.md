@@ -62,8 +62,10 @@ Subject searches are described in the [subject search guide](SubjectSearch.md).
 * Items followed by `...` can appear zero or more times.<br>
   For example, `[t/TAG]... ` may be omitted, or written as `t/friend` or `t/friend t/family`.
 
-* Parameters can be in any order.<br>
-  For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
+* Prefixed parameters can generally be in any order unless a command section states otherwise.<br>
+  For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable. Positional
+  values such as student indexes must remain where the command format shows them, and a `find` search prefix must appear
+  immediately after `find`. See the notes and locations section for the order-sensitive legacy handling of unquoted text.
 
 * Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
   For example, `help 123` is interpreted as `help`.
@@ -74,7 +76,8 @@ Subject searches are described in the [subject search guide](SubjectSearch.md).
 ### Viewing help: `help`
 
 Opens a window containing the URL of this User Guide. You can also open it from the **Help** menu or by pressing `F1`.
-Use **Copy URL** in the Help window to copy the link.
+Use **Copy URL** in the Help window to copy the link. Data-management features remain usable offline, but opening this
+online User Guide requires a network connection.
 
 Format: `help`
 
@@ -114,6 +117,7 @@ and use only lowercase letters, numbers, and single hyphens between characters.
   is non-negative, with at most two decimal places, e.g. `30`, `35.50`, or `0`.
   Costs cannot exceed `1000000.00`. Subject names can contain at most 100 characters.
   Leading zeroes and an omitted zero before the decimal point are accepted and normalized (e.g. `030` and `.5`).
+  Runs of multiple spaces in a subject are normalized to one space.
   Supplying only some of these fields rejects the entire command; no student or class is added.
 * Times use the 24-hour range `0000`–`2359`, and the end time must be later than the start time.
 * A weekly schedule uses `DAYHHmm-HHmm`, for example `Monday1800-1930`.
@@ -267,13 +271,15 @@ provide all student indexes before the prefixes:
 
 Example: `class enrol 1 3 5 sub/Physics c/Wednesday1800-1930`
 
-The existing single-student format that supplies the class cost is also supported:
+The single-student format that supplies the class cost is also supported:
 
 `class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/SCHEDULE`
 
 The same class can be assigned to multiple students, and each enrolment keeps its own agreed rate. A student cannot be
 enrolled in the same class more than once. The single-student format records the supplied `cost/` as that student's
-agreed rate. For ID-based and subject-and-timing enrolment, TutEasy uses the class catalogue's current default rate.
+agreed rate. If no class has the supplied subject and schedule, this format creates a new class using the supplied cost
+as its default rate before enrolling the student. For ID-based and subject-and-timing enrolment, TutEasy uses the class
+catalogue's current default rate.
 This also supports classes that currently have no enrolled students.
 
 Batch enrolment validates every index and the target class before changing any student. Repeated or invalid indexes
@@ -299,6 +305,9 @@ Format: `class unenrol STUDENT_INDEX id/CLASS_ID`
 
 Example: `class unenrol 1 id/C001`
 
+For compatibility, the class may instead be identified by its subject and complete schedule:
+`class unenrol STUDENT_INDEX sub/SUBJECT c/SCHEDULE`.
+
 ### Updating an enrolment's payment status: `class payment`
 
 Marks one student's enrolment in a weekly or one-off class as paid or unpaid. The student is identified by the index
@@ -310,6 +319,9 @@ Examples:
 
 * `class payment 1 id/C001 status/paid`
 * `class payment 1 id/C001 status/unpaid`
+
+For compatibility, the class may instead be identified by its subject and complete schedule:
+`class payment STUDENT_INDEX sub/SUBJECT c/SCHEDULE status/paid|unpaid`.
 
 New and previously saved enrolments default to unpaid. A subdued status label appears immediately after the
 corresponding coloured class badge, without sharing the badge's background colour. Each class badge and status label
@@ -333,6 +345,9 @@ deleted. The command searches all student records even when the displayed studen
 Format: `class delete id/CLASS_ID`
 
 Example: `class delete id/C001`
+
+For compatibility, the class may instead be identified by its subject and complete schedule:
+`class delete sub/SUBJECT c/SCHEDULE`.
 
 ### Viewing the weekly timetable: `timetable`
 
@@ -478,11 +493,13 @@ Formats:
 
 * The search is case-insensitive; for example, `hans` matches `Hans`.
 * With no search prefix, the search considers only names. Choose one search category per command.
-* With `sub/`, any case-insensitive partial keyword may match an enrolled class subject. Multiple keywords are
+* With `sub/`, any case-insensitive partial keyword may match an enrolled class subject. Each keyword must start with a
+  letter or digit, contain at most 100 characters, and may then contain letters, digits, `+`, `-`, `&`, apostrophes,
+  periods, or parentheses. Multiple keywords are
   alternatives (OR): `find sub/physics chemistry` finds students taking either subject, once each. A multi-word query
   such as `find sub/Computer Science` also matches Environmental Science through `Science`. Subject results place
   pinned matches first and retain original address-book order within each pin group; they do not use relevance scoring.
-  Use one `sub/` prefix with non-empty alphanumeric keywords, without name text or `t/`/`c/` in the same command.
+  Use one `sub/` prefix with non-empty keywords, without name text or `t/`/`c/` in the same command.
   Invalid input keeps the previous results. See the [subject-search guide](SubjectSearch.md) for examples and details.
 * With `t/`, the search considers only tags. Stored tags use lowercase, but tag search keywords are case-insensitive
   for input convenience, e.g. `find t/PRI` matches `priority`.
@@ -525,6 +542,9 @@ Examples:
 * `list` followed by `delete 2` deletes the 2nd student in TutEasy.
 * `find Betsy` followed by `delete 1` deletes the 1st student in the results of the `find` command.
 
+Deleting a student removes that student's enrolments. It does not delete the corresponding classes from the central
+class catalogue, even if a class no longer has any enrolled students; use `class delete` to remove such a class.
+
 ### Clearing all entries: `clear`
 
 Deletes all student records, classes, and enrolments from TutEasy.
@@ -535,8 +555,8 @@ Format: `clear`
 
 Privacy mode replaces the phone, email, address, and any non-empty guardian contact details on every student card with
 a fixed seven-asterisk mask, such as `Address: *******`. While the mode is active, contact details in success feedback
-from the `add` and `edit` commands are masked too. Names, tags, classes, payment information, and pin status remain
-visible. The underlying contact details are not changed or deleted.
+from the `add`, `edit`, and `delete` commands are masked too. Names, tags, classes, payment information, and pin status
+remain visible. The underlying contact details are not changed or deleted.
 
 Formats:
 
@@ -608,9 +628,9 @@ Action     | Format, Examples
 **List classes** | `class list`
 **Edit class** | `class edit id/CLASS_ID [sub/SUBJECT] [cost/COST] [c/SCHEDULE]`<br> e.g., `class edit id/C001 cost/40`
 **Enrol in class** | `class enrol STUDENT_INDEX id/CLASS_ID`<br>or `class enrol STUDENT_INDEX [STUDENT_INDEX]... sub/SUBJECT c/SCHEDULE`<br>or `class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/SCHEDULE`<br> e.g., `class enrol 1 3 5 sub/Physics c/Wednesday1700-1830`, `class enrol 1 sub/Physics cost/35 c/Wednesday1700-1830`
-**Unenrol from class** | `class unenrol STUDENT_INDEX id/CLASS_ID`<br> e.g., `class unenrol 1 id/C001`
-**Update payment status** | `class payment STUDENT_INDEX id/CLASS_ID status/paid\|unpaid`<br> e.g., `class payment 1 id/C001 status/paid`
-**Delete class** | `class delete id/CLASS_ID`<br> e.g., `class delete id/C001`
+**Unenrol from class** | `class unenrol STUDENT_INDEX id/CLASS_ID` or `class unenrol STUDENT_INDEX sub/SUBJECT c/SCHEDULE`<br> e.g., `class unenrol 1 id/C001`
+**Update payment status** | `class payment STUDENT_INDEX id/CLASS_ID status/paid\|unpaid` or `class payment STUDENT_INDEX sub/SUBJECT c/SCHEDULE status/paid\|unpaid`<br> e.g., `class payment 1 id/C001 status/paid`
+**Delete class** | `class delete id/CLASS_ID` or `class delete sub/SUBJECT c/SCHEDULE`<br> e.g., `class delete id/C001`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`

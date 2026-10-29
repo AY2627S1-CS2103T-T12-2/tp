@@ -165,13 +165,15 @@ The `Model` component,
 * stores each student's optional `GuardianContact` separately from shared class details. Immutable person copies retain
   guardian fields, stable IDs, enrolments and pin state unless the operation explicitly changes them.
 * provides `Model#hasNameConflict` for new-student and rename validation. `Name#hasSameIdentityAs` ignores case and
-  repeated spaces, excluding the same `StudentId`. Display spelling and exact equality remain unchanged, so older
+  repeated spaces; `Model#hasNameConflict` excludes the record with the same `StudentId` during a rename. Display
+  spelling and exact equality remain unchanged, so older
   case/spacing variants can still load through the stored collection's exact-name uniqueness rule.
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
 * stores a `UserPrefs` object that represents the user’s GUI settings and privacy preference. This is exposed to the
   outside as a `ReadOnlyUserPrefs` object.
-* derives immutable, date-backed timetable day and class entries from every student's classes. The timetable is not
-  stored separately, and it uses all student records rather than the filtered student list.
+* derives immutable, date-backed timetable day and class entries from the central class catalogue and associates
+  enrolled students from the complete student list. The timetable is not stored separately and does not use the
+  filtered student list.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
 
@@ -281,6 +283,7 @@ Supported modes are mutually exclusive:
 
 * `find KEYWORD [MORE_KEYWORDS]` -> `NameContainsKeywordsPredicate`
 * `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]` -> `TagContainsKeywordsPredicate`
+* `find sub/SUBJECT_KEYWORD [MORE_SUBJECT_KEYWORDS]` -> `SubjectContainsKeywordsPredicate`
 * `find c/DAY [TIME_HHmm]`, `find c/TIME_HHmm`, or `find c/DATE [TIME_HHmm]`
   -> `LessonContainsKeywordsPredicate`
 
@@ -296,7 +299,8 @@ result ranking. Parse failures occur before command construction, so the active 
 
 `FindCommand` applies the predicate through `Model#updateFilteredPersonList`. Predicates that implement
 `ScoredPersonPredicate` also provide a relevance score, so `FindCommand` requests a sorted filtered list with stronger
-matches first within each pin group and preserves original address-book order for ties. Matching pinned students are
+matches first within each pin group and preserves the current displayed order for ties. Students not currently displayed
+fall back to original address-book order. Matching pinned students are
 placed before matching unpinned students.
 
 `CommandBox` provides light-grey input-bar hints for common `find` inputs and the command formats for `pin`, `unpin`,
@@ -322,7 +326,8 @@ neither command changes address-book data.
 `PrivacyCommandParser` accepts only the exact lowercase modes `on` and `off`. `LogicManager` permits the command in the
 student list and both read-only views. When privacy mode is active, `AddCommand` and `EditCommand` pass the current
 privacy state to `Messages#format`, which masks phone, email, address, and non-empty guardian details in their success
-feedback. Other non-contact values remain visible.
+feedback. `DeleteCommand` does the same before displaying the deleted student's details. Other non-contact values remain
+visible.
 
 ### Timetable view
 
@@ -497,8 +502,9 @@ checks diagnostic events and exclusion of private values at detailed log levels.
 
 `AddressBookParser` routes `find` to `SubjectFindCommandParser`. The parser handles the `sub/` mode and delegates
 name, tag, and class searches to `FindCommandParser`, preserving their existing parsing and error messages.
-Subject mode requires a single `sub/` prefix, non-empty alphanumeric keywords, and no other search category or
-name preamble. Whitespace between keywords is normalized before parsing. Invalid input throws `ParseException`
+Subject mode requires a single `sub/` prefix, non-empty subject-format keywords, and no other search category or
+name preamble. Each keyword starts with an alphanumeric character, may contain supported subject punctuation, and is
+limited to 100 characters. Whitespace between keywords is normalized before parsing. Invalid input throws `ParseException`
 before the model or storage is changed.
 
 `SubjectContainsKeywordsPredicate` matches any keyword as a case-insensitive substring of a current class subject.
@@ -847,13 +853,6 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 
       Use case ends.
 
-* 1a. Tutor submits the same deletion while the first delete request is still being processed.
-
-    * 1a1. TutEasy ignores the additional request.
-    * 1a2. TutEasy shows a message informing the tutor that the deletion is already being processed.
-
-      Use case resumes at step 2 for the original request.
-
 **Use case: Add tags to students**
 
 **MSS**
@@ -970,13 +969,14 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 
 **MSS**
 
-1. Tutor requests to find students by partial name keywords, tag keywords, or lesson timing keywords.
+1. Tutor requests to find students by partial name, tag, subject, or lesson timing keywords.
 
 2. TutEasy validates the chosen search mode and search input.
 
 3. TutEasy searches the student list.
 
-4. TutEasy ranks matching students by relevance.
+4. For name, tag, and lesson searches, TutEasy ranks matching students by relevance. Subject search retains original
+   address-book order within each pin group. All modes place pinned matches first.
 
 5. TutEasy displays the matching students and shows the light-grey input-bar hint for returning to the home page.
 
@@ -1016,7 +1016,8 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
 4.  With 1000 student records and 10,000 lesson records, each documented command should display either a success or an error message within 2 seconds on a computer with a 2 GHz dual-core processor and 8 GB of RAM.
 5.  With 1000 student records and 10,000 lesson records, the application should be ready to accept a command within 5 seconds of launch on a computer with a 2 GHz dual-core processor, 8 GB of RAM, and a solid-state drive.
-6.  All documented features should remain usable when the user's computer has no network connection.
+6.  All data-management features should remain usable when the user's computer has no network connection. Opening the
+    online User Guide URL shown by `help` requires a network connection.
 7.  The application should not transmit any tutor, student, or lesson data over a network.
 8.  After the application reports that a data-modifying command has succeeded, the resulting data should still be present after the application is terminated and restarted immediately.
 9.  If a data file cannot be read, TutEasy should start with an empty data set and leave the unreadable file unchanged
@@ -1033,26 +1034,20 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 * **Contact details**: Information used to contact a student or their parent or guardian, such as a phone number, email address or home address.
 * **Private contact detail**: A contact detail that the tutor considers sensitive and does not want others to see.
 * **Teaching mode**: Whether a lesson is conducted online or in person.
-* **Location**: The physical address or online meeting link used to attend a lesson.
+* **Location**: Optional text describing where a lesson takes place, such as a room or physical address.
+* **Meeting link**: An optional HTTP(S) URL used to join an online lesson.
 * **Subject**: The area of study taught in a class, such as Mathematics, Science or a specific university module.
-* **Academic level**: The educational stage of a student or the intended standard of a class, such as Primary 5, Secondary 4 or JC1.
-* **Class**: A teaching arrangement for one or more students, with an associated subject, academic level, schedule, teaching mode and location.
+* **Class**: A teaching arrangement for zero or more students, with an associated subject, default rate, schedule,
+  teaching mode and optional location, meeting link and notes.
 * **Lesson**: An individual session of a class, scheduled for a specific date and time.
 * **One-off class**: A class consisting of a single scheduled lesson.
-* **Recurring class**: A class whose lessons repeat according to a specified recurrence rule.
-* **Recurrence rule**: The pattern determining when lessons repeat, such as every Monday or every two weeks.
-* **Recurrence period**: The interval between repeating lessons, such as one week or two weeks.
-* **Lesson series**: The set of lessons associated with a recurring class.
+* **Recurring class**: A class whose lesson repeats weekly on a specified weekday and time.
 * **Timeslot**: A period identified by its start and end times on a specified day or date.
 * **Scheduling conflict**: An overlap in the scheduled times of two or more lessons.
-* **Scheduled**: A lesson status indicating that the lesson is planned and has not been marked as completed or cancelled.
-* **Completed**: A lesson status indicating that the lesson has taken place.
-* **Cancelled**: A lesson status indicating that a planned lesson has been called off.
 * **Enrolment**: The association between a student and a class they attend.
 * **Roster**: The list of students enrolled in a particular class.
 * **Tag**: A label attached to a student record to help organise or identify students. A tag does not itself represent enrolment in a class.
 * **Timetable**: A calendar view showing the tutor’s lessons and their scheduled dates and times.
-* **Archived record**: An inactive student or class record hidden from the active view but retained for reference rather than permanently deleted.
 * **MSS (Main Success Scenario)**: The sequence of steps through which a use case achieves its intended outcome without encountering exceptional situations.
 
 --------------------------------------------------------------------------------------------------------------------
@@ -1176,7 +1171,7 @@ index-based command.
 | Test input | Expected result |
 | --- | --- |
 | `privacy on` | Student phone, email, and address values plus non-empty guardian contact details are masked; the status bar reports privacy mode. |
-| Add or edit a student while privacy mode is active | Contact details are masked in the success feedback; non-contact details such as names and tags remain visible. |
+| Add, edit, or delete a student while privacy mode is active | Contact details are masked in the success feedback; non-contact details such as names and tags remain visible. |
 | Navigate to `timetable` and `class list` | The privacy-mode status remains visible. |
 | `list`, then `privacy off` | The original contact details reappear unchanged. |
 | Enable privacy mode, exit, and relaunch | Privacy mode remains enabled. |
