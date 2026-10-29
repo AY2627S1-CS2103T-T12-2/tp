@@ -730,7 +730,7 @@ public class ClassCommandsIntegrationTest {
                 new LessonTiming("Tuesday1800-1930"), PaymentStatus.UNPAID);
         assertCommandFailure(new ClassEditCommand(new ClassId("C001"), java.util.Optional.empty(),
                 java.util.Optional.empty(), java.util.Optional.of(overlap.getSchedule())), model,
-                Messages.getClassOverlapMessage(overlap, List.of(physics)));
+                Messages.getClassEditOverlapMessage(overlap, List.of(physics)));
     }
 
     @Test

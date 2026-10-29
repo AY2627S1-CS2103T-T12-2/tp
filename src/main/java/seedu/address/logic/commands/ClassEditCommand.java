@@ -73,7 +73,7 @@ public class ClassEditCommand extends ClassCommand {
                         seedu.address.model.lesson.PaymentStatus.UNPAID))
                 .toList();
         if (!overlaps.isEmpty()) {
-            throw new CommandException(Messages.getClassOverlapMessage(candidate, overlaps));
+            throw new CommandException(Messages.getClassEditOverlapMessage(candidate, overlaps));
         }
         model.setTuitionClass(original, edited);
         return new CommandResult(String.format(MESSAGE_SUCCESS, classId, edited.getSubject(),
