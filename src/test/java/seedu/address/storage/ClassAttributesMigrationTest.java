@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -139,5 +140,44 @@ public class ClassAttributesMigrationTest {
         assertEquals(book, restored);
         assertEquals(details, restored.getTuitionClassList().getFirst().getDetails());
         assertEquals(4, restored.getNextClassSequence());
+    }
+
+    @Test
+    public void omittedLegacyDetails_inheritExplicitDetailsInEitherStudentOrder() throws Exception {
+        String alice = legacyStudent("Alice", "");
+        String bob = legacyStudent("Bob", ",\"mode\":\"ONLINE\",\"meetingLink\":\"https://example.com/math\","
+                + "\"notes\":\"Review\"");
+        for (String students : List.of(alice + "," + bob, bob + "," + alice)) {
+            AddressBook loaded = JsonUtil.fromJsonString("{\"persons\":[" + students + "]}",
+                    JsonSerializableAddressBook.class).toModelType();
+            assertEquals(1, loaded.getTuitionClassList().size());
+            ClassDetails expected = new ClassDetails(ClassMode.ONLINE, "https://example.com/math", "", "Review");
+            for (var person : loaded.getPersonList()) {
+                assertEquals(expected, person.getLessons().iterator().next().getDetails());
+                assertEquals(PaymentStatus.PAID, person.getLessons().iterator().next().getPaymentStatus());
+            }
+            JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("ordered.json"));
+            storage.saveAddressBook(loaded);
+            assertEquals(loaded, storage.readAddressBook().orElseThrow());
+        }
+    }
+
+    @Test
+    public void explicitlyConflictingLegacyDetails_rejectedInEitherStudentOrder() throws Exception {
+        String alice = legacyStudent("Alice", ",\"mode\":\"OFFLINE\"");
+        String bob = legacyStudent("Bob", ",\"mode\":\"ONLINE\",\"notes\":\"Review\"");
+        for (String students : List.of(alice + "," + bob, bob + "," + alice)) {
+            var data = JsonUtil.fromJsonString("{\"persons\":[" + students + "]}", JsonSerializableAddressBook.class);
+            assertEquals(JsonSerializableAddressBook.MESSAGE_CLASS_DETAILS_CONFLICT,
+                    assertThrows(IllegalValueException.class, data::toModelType).getMessage());
+        }
+    }
+
+    private String legacyStudent(String name, String details) {
+        return """
+                {"name":"%s","phone":"91234567","email":"student@example.com","address":"One",
+                "tags":[],"lessons":[{"subject":"Math","cost":"30","timing":"Monday1800-1930",
+                "paymentStatus":"PAID"%s}]}
+                """.formatted(name, details);
     }
 }

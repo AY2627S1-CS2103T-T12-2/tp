@@ -43,11 +43,12 @@ public class CommandBoxTest {
         assertEquals("", CommandBox.getCommandSuggestion(null));
         assertEquals("", CommandBox.getCommandSuggestion(""));
         assertEquals("find", CommandBox.getCommandSuggestion("fin"));
-        assertEquals("find KEYWORD | find t/TAG | find c/DAY, DATE, or TIME",
+        assertEquals("find KEYWORD | find t/TAG | find sub/SUBJECT | find c/DAY, DATE, or TIME",
                 CommandBox.getCommandSuggestion("find"));
-        assertEquals("find KEYWORD | find t/TAG | find c/DAY, DATE, or TIME",
+        assertEquals("find KEYWORD | find t/TAG | find sub/SUBJECT | find c/DAY, DATE, or TIME",
                 CommandBox.getCommandSuggestion("find "));
         assertEquals("find t/TAG (e.g. priority)", CommandBox.getCommandSuggestion("find t/"));
+        assertEquals("find sub/SUBJECT (e.g. Math Physics)", CommandBox.getCommandSuggestion("find sub/"));
         assertEquals("find c/DAY, DATE, or TIME (e.g. Monday 1800; 2026-10-20; time uses HHmm)",
                 CommandBox.getCommandSuggestion("find c/"));
         assertEquals("t/TAG (e.g. priority)", CommandBox.getCommandSuggestion("t/"));

@@ -2,8 +2,12 @@ package seedu.address.logic.parser;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+
+import seedu.address.logic.parser.exceptions.ParseException;
 
 /**
  * Tokenizes arguments string of the form: {@code preamble <prefix>value <prefix>value ...}<br>
@@ -14,6 +18,10 @@ import java.util.stream.Collectors;
  *    in the above example.<br>
  */
 public class ArgumentTokenizer {
+
+    public static final String MESSAGE_INVALID_QUOTED_VALUE =
+            "Use matching double quotes around the whole notes/ or location/ value. "
+                    + "Separate any following fields with spaces.";
 
     /**
      * Tokenizes an arguments string and returns an {@code ArgumentMultimap} object that maps prefixes to their
@@ -26,6 +34,83 @@ public class ArgumentTokenizer {
     public static ArgumentMultimap tokenize(String argsString, Prefix... prefixes) {
         List<PrefixPosition> positions = findAllPrefixPositions(argsString, prefixes);
         return extractArguments(argsString, positions);
+    }
+
+    /**
+     * Tokenizes free-text fields without hiding subsequent fields. Quoted free-text values preserve every prefix
+     * literally. In unquoted free text, an already supplied prefix from {@code literalRepeats} is treated as text.
+     * All other prefixes remain field boundaries, so fields can appear in any order.
+     */
+    public static ArgumentMultimap tokenizeWithFreeTextFields(String argsString, Set<Prefix> freeTextPrefixes,
+            Set<Prefix> literalRepeats, Prefix... prefixes) throws ParseException {
+        List<PrefixPosition> positions = findAllPrefixPositions(argsString, prefixes);
+        positions.sort((first, second) -> Integer.compare(first.getStartPosition(), second.getStartPosition()));
+        List<PrefixPosition> fields = new ArrayList<>();
+        Set<Prefix> seen = new HashSet<>();
+        boolean inFreeText = false;
+        int quotedEnd = -1;
+        for (PrefixPosition position : positions) {
+            if (position.getStartPosition() <= quotedEnd) {
+                continue;
+            }
+            Prefix prefix = position.getPrefix();
+            if (inFreeText && literalRepeats.contains(prefix) && seen.contains(prefix)) {
+                continue;
+            }
+            fields.add(position);
+            seen.add(prefix);
+            inFreeText = freeTextPrefixes.contains(prefix);
+            int valueStart = position.getStartPosition() + prefix.getPrefix().length();
+            while (valueStart < argsString.length() && Character.isWhitespace(argsString.charAt(valueStart))) {
+                valueStart++;
+            }
+            if (inFreeText && valueStart < argsString.length() && argsString.charAt(valueStart) == '"') {
+                quotedEnd = findClosingQuote(argsString, valueStart);
+                inFreeText = false;
+            }
+        }
+        ArgumentMultimap rawArguments = extractArguments(argsString, fields);
+        ArgumentMultimap arguments = new ArgumentMultimap();
+        arguments.put(new Prefix(""), rawArguments.getPreamble());
+        for (Prefix prefix : Arrays.stream(prefixes).distinct().toList()) {
+            for (String value : rawArguments.getAllValues(prefix)) {
+                arguments.put(prefix, freeTextPrefixes.contains(prefix) ? unquote(value) : value);
+            }
+        }
+        return arguments;
+    }
+
+    private static int findClosingQuote(String value, int openingQuote) throws ParseException {
+        for (int index = openingQuote + 1; index < value.length(); index++) {
+            char current = value.charAt(index);
+            if (current == '\\' && index + 1 < value.length()
+                    && (value.charAt(index + 1) == '\\' || value.charAt(index + 1) == '"')) {
+                index++;
+            } else if (current == '"') {
+                return index;
+            }
+        }
+        throw new ParseException(MESSAGE_INVALID_QUOTED_VALUE);
+    }
+
+    private static String unquote(String value) throws ParseException {
+        if (!value.startsWith("\"")) {
+            return value;
+        }
+        int closingQuote = findClosingQuote(value, 0);
+        if (closingQuote != value.length() - 1) {
+            throw new ParseException(MESSAGE_INVALID_QUOTED_VALUE);
+        }
+        StringBuilder result = new StringBuilder();
+        for (int index = 1; index < closingQuote; index++) {
+            char current = value.charAt(index);
+            if (current == '\\' && index + 1 < closingQuote
+                    && (value.charAt(index + 1) == '\\' || value.charAt(index + 1) == '"')) {
+                current = value.charAt(++index);
+            }
+            result.append(current);
+        }
+        return result.toString();
     }
 
     /**

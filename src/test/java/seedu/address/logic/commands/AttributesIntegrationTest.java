@@ -74,6 +74,78 @@ public class AttributesIntegrationTest {
     }
 
     @Test
+    public void add_notesContainingSubjectPrefix_preservesNotesAndStudentIsSearchable() throws Exception {
+        execute("add n/Prefix Notes p/95550107 e/prefix.notes@example.com a/Test"
+                + " sub/Reading cost/20 c/Sunday2100-2200 notes/Review sub/section 2 before class");
+
+        assertEquals("Reading", lesson(0).getSubject().toString());
+        assertEquals("Review sub/section 2 before class", lesson(0).getDetails().notes());
+        assertEquals(lesson(0).getDetails(), model.getTuitionClassList().getFirst().getDetails());
+        execute("find Prefix Notes");
+        assertEquals(List.of(student(0)), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void add_notesContainingOtherPrefixes_preservesEntireText() throws Exception {
+        String notes = "Review n/Alice p/123 e/example a/Test t/review sub/section cost/20 c/Monday"
+                + " gn/Mary gp/999 ge/mail mode/offline link/example location/Room notes/extra";
+        execute(ALICE + MATH + " mode/online notes/\"" + notes + "\"");
+
+        assertEquals(notes, lesson(0).getDetails().notes());
+        assertEquals("Math", lesson(0).getSubject().toString());
+        assertEquals(ClassMode.ONLINE, lesson(0).getDetails().mode());
+        assertEquals(GuardianContact.EMPTY, student(0).getGuardianContact());
+    }
+
+    @Test
+    public void add_duplicateSubjectBeforeNotes_rejected() {
+        assertThrows(ParseException.class, () -> parser.parseCommand(
+                ALICE + MATH + " sub/Physics notes/Review sub/section 2"));
+        assertTrue(model.getAddressBook().getPersonList().isEmpty());
+    }
+
+    @Test
+    public void add_fieldsAfterNotes_areParsedInsteadOfSwallowed() throws Exception {
+        execute(ALICE + MATH + " notes/Review gn/Mary gp/99999999 mode/online location/Room 2");
+        assertEquals(new GuardianContact("Mary", "99999999", ""), student(0).getGuardianContact());
+        assertEquals(new ClassDetails(ClassMode.ONLINE, "", "Room 2", "Review"), lesson(0).getDetails());
+    }
+
+    @Test
+    public void add_notesBeforeClassFields_supportsReorderedFields() throws Exception {
+        execute("add notes/Review location/Room 2 gn/Mary" + MATH
+                + " n/Alice p/91234567 e/alice@example.com a/One");
+        assertEquals("Review", lesson(0).getDetails().notes());
+        assertEquals("Room 2", lesson(0).getDetails().location());
+        assertEquals("Mary", student(0).getGuardianContact().name());
+    }
+
+    @Test
+    public void add_locationContainingSubjectPrefix_preservesLiteralText() throws Exception {
+        execute(ALICE + MATH + " location/Room sub/section 2 notes/Review");
+        assertEquals("Room sub/section 2", lesson(0).getDetails().location());
+        assertEquals("Math", lesson(0).getSubject().toString());
+    }
+
+    @Test
+    public void add_quotedTextBeforeOtherFields_preservesPrefixesAndGuardian() throws Exception {
+        execute("add notes/\"Review gn/Mary sub/section 2\" location/\"Room sub/section 2\""
+                + " gp/99999999 n/Alice p/91234567 e/alice@example.com a/One" + MATH);
+        assertEquals("Review gn/Mary sub/section 2", lesson(0).getDetails().notes());
+        assertEquals("Room sub/section 2", lesson(0).getDetails().location());
+        assertEquals(new GuardianContact("", "99999999", ""), student(0).getGuardianContact());
+    }
+
+    @Test
+    public void add_duplicateAndMalformedFieldsAfterNotes_rejectedBeforeChanges() {
+        for (String fields : List.of(" notes/Review gp/123 gp/456", " notes/Review notes/Again",
+                " notes/\"Review", " location/\"Room\" extra", " notes/Review mode/hybrid")) {
+            assertThrows(ParseException.class, () -> parser.parseCommand(ALICE + MATH + fields));
+            assertTrue(model.getAddressBook().getPersonList().isEmpty());
+        }
+    }
+
+    @Test
     public void add_sameClass_inheritsDetailsWithoutChangingExistingContact() throws Exception {
         execute(ALICE + MATH + " mode/online link/" + LINK + " gn/Mary gp/99999999");
         execute("class payment 1 sub/Math c/Monday1800-1930 status/paid");

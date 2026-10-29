@@ -145,14 +145,24 @@ guardian phone. Guardian name punctuation is supported independently of the stud
 #### Class mode, link, location and notes
 
 These fields accompany a complete scheduled class (`sub/`, `cost/` and `c/`) in the same `add` command.
-Each prefix in this command format can appear once, except `t/`, which may repeat.
+Each field prefix in this command format can appear once, except `t/`, which may repeat.
 
 | Field | Rule |
 | --- | --- |
 | `mode/` | `online` or `offline`, ignoring case. A new class defaults to offline if omitted. |
 | `link/` | Optional for online classes; must be an absolute HTTP(S) URL with a host. No spaces or embedded username/password; an explicit port must be between 1 and 65535. Offline classes reject a non-empty link. |
-| `location/` | Optional single-line text, up to 500 characters, without control characters. Available for either mode. |
-| `notes/` | Optional single-line text, up to 500 characters, without control characters. Available for either mode. |
+| `location/` | Optional single-line text, up to 500 characters, without control characters. Available for either mode. Use double quotes when the text contains command prefixes, e.g. `location/"Room sub/section 2"`. |
+| `notes/` | Optional single-line text, up to 500 characters, without control characters. Available for either mode. Use double quotes when the text contains command prefixes, e.g. `notes/"Review sub/section 2"`. |
+
+Notes and locations can appear before other fields. For example, `notes/Review gp/99999999` saves the note `Review`
+and the guardian phone separately. To include prefix-like text literally, quote the entire value:
+`notes/"Review gn/Mary sub/section 2" gp/99999999`. Inside quoted values, use `\"` for a literal double quote and
+`\\` for a literal backslash. Unclosed quotes or extra text after a closing quote are rejected.
+
+For compatibility, unquoted notes and locations retain `sub/`, `cost/` and `c/` as literal text when that class
+field has already been supplied earlier in the command. For example, `sub/Reading cost/20 c/Sunday2100-2200
+notes/Review sub/section 2 before class` keeps the complete note. Use quotes to make the same text independent of
+field order; other unquoted prefixes always start separate fields.
 
 For a **new** class, a link requires explicit `mode/online`. Supplying a link alone does not change the default mode.
 An online class may have no link. Examples below assume these student names and lesson times are unused:
