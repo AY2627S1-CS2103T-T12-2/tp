@@ -27,8 +27,10 @@ import seedu.address.logic.parser.AddCommandParser;
 import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.ParserUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
+import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Cost;
 import seedu.address.model.person.Lesson;
 import seedu.address.model.person.Person;
@@ -197,6 +199,45 @@ public class StudentDetailsIntegrationTest {
     }
 
     @Test
+    public void unenrolMigratedLegacyStudent_saveAndReload_doesNotRestoreEnrollment() throws Exception {
+        Model model = new ModelManager(loadCompleteLegacyStudent(), new UserPrefs());
+        new AddressBookParser().parseCommand("class unenrol 1 id/C001").execute(model);
+
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(tempDir.resolve("unenrolled.json"));
+        storage.saveAddressBook(model.getAddressBook());
+        var restored = storage.readAddressBook().orElseThrow();
+
+        assertTrue(restored.getPersonList().getFirst().getEnrollments().isEmpty());
+        assertEquals(1, restored.getTuitionClassList().size());
+    }
+
+    @Test
+    public void deleteMigratedLegacyClass_saveAndReload_doesNotRestoreClass() throws Exception {
+        Model model = new ModelManager(loadCompleteLegacyStudent(), new UserPrefs());
+        new AddressBookParser().parseCommand("class delete id/C001").execute(model);
+
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(tempDir.resolve("deleted-class.json"));
+        storage.saveAddressBook(model.getAddressBook());
+        var restored = storage.readAddressBook().orElseThrow();
+
+        assertTrue(restored.getPersonList().getFirst().getEnrollments().isEmpty());
+        assertTrue(restored.getTuitionClassList().isEmpty());
+    }
+
+    @Test
+    public void loadLegacyJson_unmigratableLateLesson_survivesSaveAndReload() throws Exception {
+        JsonAdaptedPerson record = adapted(List.of("Math"), "30", "Monday2359");
+        var original = new JsonSerializableAddressBook(List.of(record)).toModelType();
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(tempDir.resolve("late-lesson.json"));
+
+        storage.saveAddressBook(original);
+        var restored = storage.readAddressBook().orElseThrow();
+
+        assertEquals(original, restored);
+        assertTrue(restored.getPersonList().getFirst().hasUnmigratedLegacyLesson());
+    }
+
+    @Test
     public void loadLegacyJson_withoutStudentDetails_accepted() throws Exception {
         String json = "{\"name\":\"John Davis\",\"phone\":\"91234567\","
                 + "\"email\":\"johndavis@gmail.com\",\"address\":\"Clementi\",\"tags\":[]}";
@@ -279,5 +320,13 @@ public class StudentDetailsIntegrationTest {
     private JsonAdaptedPerson adapted(List<String> subjects, String cost, String lesson) {
         return new JsonAdaptedPerson("John Davis", "91234567", "johndavis@gmail.com", "Clementi",
                 List.of(), subjects, cost, lesson);
+    }
+
+    private AddressBook loadCompleteLegacyStudent() throws Exception {
+        String json = """
+                {"persons":[{"name":"Alice","phone":"91234567","email":"alice@example.com",
+                "address":"One","tags":[],"subjects":["Math"],"cost":"30","lesson":"Monday1800"}]}
+                """;
+        return JsonUtil.fromJsonString(json, JsonSerializableAddressBook.class).toModelType();
     }
 }

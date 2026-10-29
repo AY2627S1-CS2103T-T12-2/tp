@@ -275,6 +275,17 @@ public class Person {
         return copy(tags, Set.of(), updatedEnrollments, guardianContact, pinned);
     }
 
+    /**
+     * Returns a copy after replacing legacy lessons with canonical enrolments.
+     * Obsolete student-detail fields are discarded so they cannot be migrated again after an
+     * enrolment is subsequently removed.
+     */
+    public Person withMigratedEnrollments(Set<Enrollment> updatedEnrollments) {
+        requireAllNonNull(updatedEnrollments);
+        return new Person(studentId, name, phone, email, address, tags, Set.of(), updatedEnrollments,
+                Set.of(), Optional.empty(), Optional.empty(), guardianContact, pinned);
+    }
+
     /** Returns whether this person is pinned. */
     public boolean isPinned() {
         return pinned;
