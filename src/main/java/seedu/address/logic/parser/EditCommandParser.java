@@ -3,12 +3,21 @@ package seedu.address.logic.parser;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS_ID;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_COST;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_GUARDIAN_EMAIL;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_GUARDIAN_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_GUARDIAN_PHONE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_LINK;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_LOCATION;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_MODE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTES;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_STATUS;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
 import java.util.Collection;
@@ -30,6 +39,8 @@ public class EditCommandParser implements Parser<EditCommand> {
 
     public static final String MESSAGE_UNSUPPORTED_GUARDIAN_EDIT =
             "Guardian fields (gn/, gp/, ge/) cannot be changed with edit. Remove them and use a supported edit field.";
+    public static final String MESSAGE_UNSUPPORTED_CLASS_EDIT =
+            "Class fields cannot be changed with edit. Remove them and use a supported edit field.";
 
     /**
      * Parses the given {@code String} of arguments in the context of the EditCommand
@@ -40,7 +51,9 @@ public class EditCommandParser implements Parser<EditCommand> {
         requireNonNull(args);
         ArgumentMultimap argMultimap =
                 ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS, PREFIX_TAG,
-                        PREFIX_GUARDIAN_NAME, PREFIX_GUARDIAN_PHONE, PREFIX_GUARDIAN_EMAIL);
+                        PREFIX_GUARDIAN_NAME, PREFIX_GUARDIAN_PHONE, PREFIX_GUARDIAN_EMAIL,
+                        PREFIX_SUBJECT, PREFIX_COST, PREFIX_CLASS, PREFIX_MODE, PREFIX_LINK, PREFIX_LOCATION,
+                        PREFIX_NOTES, PREFIX_CLASS_ID, PREFIX_STATUS);
 
         Index index;
 
@@ -53,6 +66,13 @@ public class EditCommandParser implements Parser<EditCommand> {
         for (Prefix guardianPrefix : List.of(PREFIX_GUARDIAN_NAME, PREFIX_GUARDIAN_PHONE, PREFIX_GUARDIAN_EMAIL)) {
             if (argMultimap.getValue(guardianPrefix).isPresent()) {
                 throw new ParseException(MESSAGE_UNSUPPORTED_GUARDIAN_EDIT);
+            }
+        }
+
+        for (Prefix classPrefix : List.of(PREFIX_SUBJECT, PREFIX_COST, PREFIX_CLASS, PREFIX_MODE, PREFIX_LINK,
+                PREFIX_LOCATION, PREFIX_NOTES, PREFIX_CLASS_ID, PREFIX_STATUS)) {
+            if (argMultimap.getValue(classPrefix).isPresent()) {
+                throw new ParseException(MESSAGE_UNSUPPORTED_CLASS_EDIT);
             }
         }
 

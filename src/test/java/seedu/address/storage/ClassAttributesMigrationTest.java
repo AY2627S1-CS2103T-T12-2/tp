@@ -180,4 +180,54 @@ public class ClassAttributesMigrationTest {
                 "paymentStatus":"PAID"%s}]}
                 """.formatted(name, details);
     }
+
+    @Test
+    public void partiallySpecifiedLegacyDetails_inheritOtherCatalogueFields() throws Exception {
+        String json = """
+                {"classes":[{"id":"C001","subject":"Math","cost":"30","timing":"Monday1800-1930",
+                "mode":"ONLINE","meetingLink":"https://example.com/math","location":"Room 2","notes":"Review"}],
+                "persons":[%s]}
+                """.formatted(legacyStudent("Alice", ",\"mode\":\"ONLINE\""));
+        AddressBook loaded = JsonUtil.fromJsonString(json, JsonSerializableAddressBook.class).toModelType();
+        assertEquals(loaded.getTuitionClassList().getFirst().getDetails(),
+                loaded.getPersonList().getFirst().getLessons().iterator().next().getDetails());
+        assertEquals("Review", loaded.getTuitionClassList().getFirst().getDetails().notes());
+    }
+
+    @Test
+    public void complementaryLegacyDetails_mergeInEitherStudentOrder() throws Exception {
+        String alice = legacyStudent("Alice", ",\"notes\":\"Review\"");
+        String bob = legacyStudent("Bob", ",\"meetingLink\":\"https://example.com/math\"");
+        for (String students : List.of(alice + "," + bob, bob + "," + alice)) {
+            AddressBook loaded = JsonUtil.fromJsonString("{\"persons\":[" + students + "]}",
+                    JsonSerializableAddressBook.class).toModelType();
+            ClassDetails expected = new ClassDetails(ClassMode.ONLINE, "https://example.com/math", "", "Review");
+            assertEquals(expected, loaded.getTuitionClassList().getFirst().getDetails());
+            for (var person : loaded.getPersonList()) {
+                assertEquals(expected, person.getLessons().iterator().next().getDetails());
+                assertEquals(PaymentStatus.PAID, person.getLessons().iterator().next().getPaymentStatus());
+            }
+            JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("partial.json"));
+            storage.saveAddressBook(loaded);
+            assertEquals(loaded, storage.readAddressBook().orElseThrow());
+        }
+    }
+
+    @Test
+    public void conflictingExplicitTextFields_rejectedInEitherStudentOrder() throws Exception {
+        for (List<String> fields : List.of(
+                List.of(",\"location\":\"Room 1\"", ",\"location\":\"Room 2\""),
+                List.of(",\"notes\":\"\"", ",\"notes\":\"Review\""),
+                List.of(",\"meetingLink\":\"https://example.com/1\"",
+                        ",\"meetingLink\":\"https://example.com/2\""))) {
+            String alice = legacyStudent("Alice", fields.get(0));
+            String bob = legacyStudent("Bob", fields.get(1));
+            for (String students : List.of(alice + "," + bob, bob + "," + alice)) {
+                var data = JsonUtil.fromJsonString("{\"persons\":[" + students + "]}",
+                        JsonSerializableAddressBook.class);
+                assertEquals(JsonSerializableAddressBook.MESSAGE_CLASS_DETAILS_CONFLICT,
+                        assertThrows(IllegalValueException.class, data::toModelType).getMessage());
+            }
+        }
+    }
 }

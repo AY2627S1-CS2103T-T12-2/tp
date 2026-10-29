@@ -41,6 +41,7 @@ public record ClassDetails(ClassMode mode, String meetingLink, String location, 
             URI uri = new URI(value);
             return ("http".equalsIgnoreCase(uri.getScheme()) || "https".equalsIgnoreCase(uri.getScheme()))
                     && uri.getHost() != null && uri.getUserInfo() == null
+                    && !uri.getRawAuthority().endsWith(":")
                     && (uri.getPort() == -1 || uri.getPort() > 0 && uri.getPort() <= 65535);
         } catch (URISyntaxException e) {
             return false;

@@ -1,5 +1,7 @@
 package seedu.address.storage;
 
+import java.util.Optional;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -152,6 +154,47 @@ class JsonAdaptedLesson {
     /** Returns whether this record explicitly stores additional class fields. */
     boolean hasExplicitDetails() {
         return mode != null || meetingLink != null || location != null || notes != null;
+    }
+
+    /** Retains which individual fields were supplied, including explicitly empty values. */
+    ExplicitDetails getExplicitDetails() {
+        Optional<ClassMode> suppliedMode = Optional.ofNullable(mode).map(ClassMode::fromString);
+        if (suppliedMode.isEmpty() && meetingLink != null && !meetingLink.isEmpty()) {
+            suppliedMode = Optional.of(ClassMode.ONLINE);
+        }
+        return new ExplicitDetails(suppliedMode, Optional.ofNullable(meetingLink), Optional.ofNullable(location),
+                Optional.ofNullable(notes));
+    }
+
+    /** Field provenance used while reconciling partially populated legacy class records. */
+    record ExplicitDetails(Optional<ClassMode> mode, Optional<String> meetingLink,
+            Optional<String> location, Optional<String> notes) {
+        static final ExplicitDetails NONE = new ExplicitDetails(
+                Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+
+        static ExplicitDetails complete(ClassDetails details) {
+            return new ExplicitDetails(Optional.of(details.mode()), Optional.of(details.meetingLink()),
+                    Optional.of(details.location()), Optional.of(details.notes()));
+        }
+
+        boolean conflictsWith(ExplicitDetails other) {
+            return conflicts(mode, other.mode) || conflicts(meetingLink, other.meetingLink)
+                    || conflicts(location, other.location) || conflicts(notes, other.notes);
+        }
+
+        private static boolean conflicts(Optional<?> first, Optional<?> second) {
+            return first.isPresent() && second.isPresent() && !first.equals(second);
+        }
+
+        ExplicitDetails withProvided(ExplicitDetails provided) {
+            return new ExplicitDetails(provided.mode.or(() -> mode), provided.meetingLink.or(() -> meetingLink),
+                    provided.location.or(() -> location), provided.notes.or(() -> notes));
+        }
+
+        ClassDetails applyTo(ClassDetails base) {
+            return new ClassDetails(mode.orElse(base.mode()), meetingLink.orElse(base.meetingLink()),
+                    location.orElse(base.location()), notes.orElse(base.notes()));
+        }
     }
 
     public Lesson toModelType() throws IllegalValueException {

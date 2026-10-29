@@ -10,8 +10,10 @@ import static seedu.address.testutil.TypicalPersons.IDA;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -46,6 +48,21 @@ public class JsonAddressBookStorageTest {
     @Test
     public void read_missingFile_emptyResult() throws Exception {
         assertFalse(readAddressBook("NonExistentFile.json").isPresent());
+    }
+
+    @Test
+    public void read_nullRootOrCollectionEntries_throwsDataLoadingExceptionWithoutChangingFile() throws Exception {
+        Path file = testFolder.resolve("null-values.json");
+        String student = """
+                {"name":"Alice","phone":"91234567","email":"alice@example.com","address":"One",%s}
+                """;
+        for (String json : List.of("null", "{\"persons\":[null]}", "{\"classes\":[null]}",
+                "{\"persons\":[" + student.formatted("\"tags\":[null]") + "]}",
+                "{\"persons\":[" + student.formatted("\"lessons\":[null]") + "]}")) {
+            Files.writeString(file, json);
+            assertThrows(DataLoadingException.class, () -> new JsonAddressBookStorage(file).readAddressBook());
+            assertEquals(json, Files.readString(file));
+        }
     }
 
     @Test
