@@ -1,8 +1,8 @@
 package seedu.address;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.logging.Logger;
 
@@ -10,6 +10,7 @@ import javafx.application.Application;
 import javafx.stage.Stage;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.exceptions.DataLoadingException;
+import seedu.address.commons.util.ApplicationPaths;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.Logic;
 import seedu.address.logic.LogicManager;
@@ -35,8 +36,6 @@ public class MainApp extends Application {
     public static final String VERSION = "V1.5";
 
     private static final Logger logger = LogsCenter.getLogger(MainApp.class);
-    private static final Path USER_PREFS_FILE_PATH = Paths.get("preferences.json");
-    private static final Path ADDRESS_BOOK_FILE_PATH = Paths.get("data", "addressbook.json");
 
     protected Ui ui;
     protected Logic logic;
@@ -48,9 +47,14 @@ public class MainApp extends Application {
         logger.info("===============================[ Initializing TutEasy ]=============================");
         super.init();
 
-        JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(USER_PREFS_FILE_PATH);
+        Path applicationHome = ApplicationPaths.resolveHome(
+                getCodeLocation(), getWorkingDirectory());
+        ApplicationPaths.migrateLegacyFiles(applicationHome, getWorkingDirectory());
+        JsonUserPrefsStorage userPrefsStorage =
+                new JsonUserPrefsStorage(applicationHome.resolve("preferences.json"));
         UserPrefs userPrefs = initPrefs(userPrefsStorage);
-        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(ADDRESS_BOOK_FILE_PATH);
+        JsonAddressBookStorage addressBookStorage =
+                new JsonAddressBookStorage(applicationHome.resolve("data/addressbook.json"));
         storage = new StorageManager(addressBookStorage, userPrefsStorage);
 
         model = initModelManager(storage, userPrefs);
@@ -58,6 +62,16 @@ public class MainApp extends Application {
         logic = new LogicManager(model, storage);
 
         ui = new UiManager(logic, storage.getAddressBookFilePath());
+    }
+
+    /** Returns the code source used to locate packaged application data. */
+    Path getCodeLocation() throws URISyntaxException {
+        return Path.of(MainApp.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+    }
+
+    /** Returns the launch directory used for development and legacy file migration. */
+    Path getWorkingDirectory() {
+        return Path.of("");
     }
 
     /**

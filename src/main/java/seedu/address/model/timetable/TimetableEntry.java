@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
+import seedu.address.commons.util.NaturalOrderComparator;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.person.Person;
 
@@ -22,7 +23,7 @@ public class TimetableEntry {
         this.students = students.stream()
                 .distinct()
                 .sorted(Comparator.comparing(person -> person.getName().fullName,
-                        String.CASE_INSENSITIVE_ORDER))
+                        NaturalOrderComparator.INSTANCE))
                 .toList();
     }
 

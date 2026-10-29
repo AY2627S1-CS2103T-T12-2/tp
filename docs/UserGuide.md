@@ -360,7 +360,8 @@ date, return to its week, and reload the timetable. Today remains available even
 The fixed header shows the selected range, for example `18–24 Oct 2026` or `27 Dec 2026 – 2 Jan 2027`.
 
 Each class entry shows its start and end time, subject, and all attending students. Classes are ordered by start time,
-then subject, then end time. Student names within a class are ordered alphabetically.
+then subject, then end time. Student names within a class are ordered alphabetically, ignoring case and comparing numbers naturally
+(for example, Student 2 precedes Student 10).
 
 Weekly classes appear on their matching weekday. One-off classes appear only when their exact date falls within the
 selected week. Navigating between weeks does not change or save address-book data.
@@ -584,7 +585,11 @@ TutEasy automatically saves data after every command. You do not need to save ma
 
 ### Editing the data file
 
-TutEasy data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
+TutEasy data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. The path is independent of the terminal launch directory; the status bar shows its absolute location.
+Preferences are also stored beside the JAR. When upgrading, missing files are copied from the launch
+directory without deleting the originals or overwriting existing files beside the JAR. If your old data
+is elsewhere, copy it beside the JAR before launching. Advanced users are welcome to update data directly
+by editing that data file.
 
 <box type="warning" seamless>
 

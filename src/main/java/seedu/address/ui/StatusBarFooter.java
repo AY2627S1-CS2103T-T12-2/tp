@@ -1,7 +1,6 @@
 package seedu.address.ui;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -34,7 +33,7 @@ public class StatusBarFooter extends UiPart<Region> {
      */
     public StatusBarFooter(Path saveLocation, boolean privacyModeEnabled) {
         super(FXML);
-        saveLocationStatus.setText(Paths.get(".").resolve(saveLocation).toString());
+        saveLocationStatus.setText(saveLocation.toAbsolutePath().normalize().toString());
         privacyStatus.setText(PRIVACY_STATUS_TEXT);
         setPrivacyModeEnabled(privacyModeEnabled);
     }
