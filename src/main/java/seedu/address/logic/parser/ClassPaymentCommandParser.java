@@ -6,6 +6,8 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS_ID;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_STATUS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 
+import java.util.List;
+
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.ClassPaymentCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -13,6 +15,9 @@ import seedu.address.model.lesson.PaymentStatus;
 
 /** Parses arguments for the {@code class payment} command. */
 public class ClassPaymentCommandParser implements Parser<ClassPaymentCommand> {
+
+    public static final String MESSAGE_REQUIRES_ONE_STUDENT =
+            "Payment status can be updated for one student at a time. Provide exactly one student index.";
 
     @Override
     public ClassPaymentCommand parse(String args) throws ParseException {
@@ -30,7 +35,11 @@ public class ClassPaymentCommandParser implements Parser<ClassPaymentCommand> {
         }
         arguments.verifyNoDuplicatePrefixesFor(PREFIX_CLASS_ID, PREFIX_SUBJECT, PREFIX_CLASS, PREFIX_STATUS);
 
-        Index index = ParserUtil.parseIndex(arguments.getPreamble());
+        List<Index> indexes = ParserUtil.parseIndexes(arguments.getPreamble());
+        if (indexes.size() != 1) {
+            throw new ParseException(MESSAGE_REQUIRES_ONE_STUDENT);
+        }
+        Index index = indexes.get(0);
         PaymentStatus status = ParserUtil.parsePaymentStatus(arguments.getValue(PREFIX_STATUS).get());
         if (usesOnlyId) {
             return new ClassPaymentCommand(index,

@@ -148,6 +148,14 @@ public class ClassCommandParserTest {
     }
 
     @Test
+    public void parse_paymentMultipleIndexes_reportsSingleStudentLimit() {
+        assertParseFailure(parser, " payment 1 2 id/C001 status/unpaid",
+                ClassPaymentCommandParser.MESSAGE_REQUIRES_ONE_STUDENT);
+        assertParseFailure(parser, " payment 1 2 sub/Math c/Monday1800-1930 status/paid",
+                ClassPaymentCommandParser.MESSAGE_REQUIRES_ONE_STUDENT);
+    }
+
+    @Test
     public void parse_paymentMissingField_failure() {
         String expected = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ClassPaymentCommand.MESSAGE_USAGE);
         assertParseFailure(parser, " payment 1 sub/Math c/Monday1800-1930", expected);

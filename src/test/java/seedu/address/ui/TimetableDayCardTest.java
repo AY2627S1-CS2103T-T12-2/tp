@@ -17,6 +17,11 @@ import org.junit.jupiter.api.Test;
 import javafx.application.Platform;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
+import seedu.address.logic.commands.Command;
+import seedu.address.logic.parser.AddressBookParser;
+import seedu.address.model.AddressBook;
+import seedu.address.model.ModelManager;
+import seedu.address.model.UserPrefs;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
@@ -89,6 +94,37 @@ public class TimetableDayCardTest {
 
             assertTrue(todayCard.getRoot().getStyleClass().contains("timetable-today"));
             assertFalse(otherDayCard.getRoot().getStyleClass().contains("timetable-today"));
+        });
+    }
+
+    @Test
+    public void constructor_emptyOneOffCatalogueClass_displaysWithoutStudents() throws Exception {
+        ModelManager model = new ModelManager(new AddressBook(), new UserPrefs());
+        Command addClass = new AddressBookParser().parseCommand(
+                "class add sub/Unenrolled Timetable Check cost/25 c/2026-10-29T2100-2200");
+        addClass.execute(model);
+
+        assertTrue(model.getAddressBook().getPersonList().isEmpty());
+        assertEquals(1, model.getTuitionClassList().size());
+        TimetableDay thursday = model.getTimetable(LocalDate.of(2026, 10, 28)).get(4);
+        assertEquals(LocalDate.of(2026, 10, 29), thursday.getDate());
+        assertEquals(1, thursday.getEntries().size());
+        assertTrue(thursday.getEntries().getFirst().getStudents().isEmpty());
+
+        runOnFxThread(() -> {
+            TimetableDayCard card = new TimetableDayCard(thursday, false);
+            VBox entriesContainer = (VBox) card.getRoot().lookup("#entriesContainer");
+            Label emptyMessage = (Label) card.getRoot().lookup("#emptyMessage");
+
+            assertEquals(1, entriesContainer.getChildren().size());
+            assertEquals("21:00-22:00", ((Label) entriesContainer.getChildren().getFirst()
+                    .lookup("#time")).getText());
+            assertEquals("Unenrolled Timetable Check", ((Label) entriesContainer.getChildren().getFirst()
+                    .lookup("#subject")).getText());
+            assertEquals("", ((Label) entriesContainer.getChildren().getFirst()
+                    .lookup("#students")).getText());
+            assertFalse(emptyMessage.isVisible());
+            assertFalse(emptyMessage.isManaged());
         });
     }
 
