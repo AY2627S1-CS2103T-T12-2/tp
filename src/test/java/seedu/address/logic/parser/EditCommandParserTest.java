@@ -50,6 +50,7 @@ import seedu.address.testutil.EditPersonDescriptorBuilder;
 public class EditCommandParserTest {
 
     private static final String TAG_EMPTY = " " + PREFIX_TAG;
+    private static final String MESSAGE_UNKNOWN_PREFIX = "Unrecognised parameter-like token: modee/";
 
     private static final String MESSAGE_INVALID_FORMAT =
             String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditCommand.MESSAGE_USAGE);
@@ -80,7 +81,7 @@ public class EditCommandParserTest {
         assertParseFailure(parser, "1 some random string", MESSAGE_INVALID_FORMAT);
 
         // invalid prefix being parsed as preamble
-        assertParseFailure(parser, "1 i/ string", MESSAGE_INVALID_FORMAT);
+        assertParseFailure(parser, "1 i/ string", "Unrecognised parameter-like token: i/");
     }
 
     @Test
@@ -196,6 +197,18 @@ public class EditCommandParserTest {
         descriptor = new EditPersonDescriptorBuilder().withTags(VALID_TAG_FRIEND).build();
         expectedCommand = new EditCommand(targetIndex, descriptor);
         assertParseSuccess(parser, userInput, expectedCommand);
+    }
+
+    @Test
+    public void parse_unknownPrefixLikeTokenInAddress_failure() {
+        assertParseFailure(parser, "1 a/Home modee/online", MESSAGE_UNKNOWN_PREFIX);
+    }
+
+    @Test
+    public void parse_quotedAddressWithRecognisedPrefix_success() {
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withAddress("Unit p/333").build();
+
+        assertParseSuccess(parser, "1 a/\"Unit p/333\"", new EditCommand(INDEX_FIRST_PERSON, descriptor));
     }
 
     @Test
