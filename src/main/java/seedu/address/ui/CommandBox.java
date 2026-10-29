@@ -17,8 +17,9 @@ public class CommandBox extends UiPart<Region> {
     public static final String ERROR_STYLE_CLASS = "error";
     private static final String FXML = "CommandBox.fxml";
     private static final String FIND_FORMAT_HINT =
-            "find KEYWORD | find t/TAG | find c/DAY, DATE, or TIME";
+            "find KEYWORD | find t/TAG | find sub/SUBJECT | find c/DAY, DATE, or TIME";
     private static final String FIND_TAG_HINT = "find t/TAG (e.g. priority)";
+    private static final String FIND_SUBJECT_HINT = "find sub/SUBJECT (e.g. Math Physics)";
     private static final String FIND_LESSON_HINT =
             "find c/DAY, DATE, or TIME (e.g. Monday 1800; 2026-10-20; time uses HHmm)";
     private static final String FIND_HOME_HINT = "Type 'list' to return to the home page.";
@@ -120,6 +121,10 @@ public class CommandBox extends UiPart<Region> {
 
         if (commandText.equals("find t/")) {
             return FIND_TAG_HINT;
+        }
+
+        if (commandText.equals("find sub/")) {
+            return FIND_SUBJECT_HINT;
         }
 
         if (commandText.equals("find c/")) {

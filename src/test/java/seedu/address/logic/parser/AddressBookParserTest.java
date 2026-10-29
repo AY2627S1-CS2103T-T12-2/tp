@@ -136,6 +136,15 @@ public class AddressBookParserTest {
     }
 
     @Test
+    public void parseCommand_emptyFind_listsAllSearchModes() {
+        String expectedMessage = "Find requires a search value. Use: find KEYWORD, find t/TAG, "
+                + "find sub/SUBJECT, or find c/LESSON.";
+        assertThrows(ParseException.class, expectedMessage, () -> parser.parseCommand("find"));
+        assertThrows(ParseException.class, expectedMessage, () -> parser.parseCommand("find   \t"));
+        assertTrue(FindCommand.MESSAGE_USAGE.contains("find sub/SUBJECT_KEYWORD [MORE_SUBJECT_KEYWORDS]..."));
+    }
+
+    @Test
     public void parseCommand_help() throws Exception {
         assertTrue(parser.parseCommand(HelpCommand.COMMAND_WORD) instanceof HelpCommand);
         assertTrue(parser.parseCommand(HelpCommand.COMMAND_WORD + " 3") instanceof HelpCommand);
