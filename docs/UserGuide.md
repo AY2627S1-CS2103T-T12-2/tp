@@ -561,7 +561,7 @@ Action     | Format, Examples
 **Add class** | `class add sub/SUBJECT cost/COST c/SCHEDULE`<br> e.g., `class add sub/Physics cost/35 c/Wednesday1700-1830`
 **List classes** | `class list`
 **Edit class** | `class edit id/CLASS_ID [sub/SUBJECT] [cost/COST] [c/SCHEDULE]`<br> e.g., `class edit id/C001 cost/40`
-**Enrol in class** | `class enrol STUDENT_INDEX id/CLASS_ID`<br>or `class enrol STUDENT_INDEX [STUDENT_INDEX]... sub/SUBJECT c/SCHEDULE`<br>or `class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/SCHEDULE`<br> e.g., `class enrol 1 3 5 sub/Physics c/Wednesday1700-1830`
+**Enrol in class** | `class enrol STUDENT_INDEX id/CLASS_ID`<br>or `class enrol STUDENT_INDEX [STUDENT_INDEX]... sub/SUBJECT c/SCHEDULE`<br>or `class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/SCHEDULE`<br> e.g., `class enrol 1 3 5 sub/Physics c/Wednesday1700-1830`, `class enrol 1 sub/Physics cost/35 c/Wednesday1700-1830`
 **Unenrol from class** | `class unenrol STUDENT_INDEX id/CLASS_ID`<br> e.g., `class unenrol 1 id/C001`
 **Update payment status** | `class payment STUDENT_INDEX id/CLASS_ID status/paid\|unpaid`<br> e.g., `class payment 1 id/C001 status/paid`
 **Delete class** | `class delete id/CLASS_ID`<br> e.g., `class delete id/C001`
