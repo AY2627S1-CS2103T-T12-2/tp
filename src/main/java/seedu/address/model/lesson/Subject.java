@@ -7,8 +7,9 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 public class Subject {
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Subjects should contain letters, numbers and spaces, and should not be blank.";
-    public static final String VALIDATION_REGEX = "[\\p{Alnum}][\\p{Alnum} ]*";
+            "Subjects should start with a letter or number and contain only letters, numbers, spaces, "
+                    + "and common subject punctuation (+, -, &, apostrophe, period, or parentheses).";
+    public static final String VALIDATION_REGEX = "[\\p{Alnum}][\\p{Alnum} +&'().\\-]*";
 
     public final String value;
 
