@@ -72,6 +72,23 @@ public class EditCommandTest {
     }
 
     @Test
+    public void execute_privacyEnabled_masksContactDetailsInFeedback() throws Exception {
+        Person person = new PersonBuilder()
+                .withGuardianContact("Mary Bee", "81234567", "mary@example.com")
+                .build();
+        UserPrefs userPrefs = new UserPrefs();
+        userPrefs.setPrivacyModeEnabled(true);
+        model = new ModelManager(new AddressBookBuilder().withPerson(person).build(), userPrefs);
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withTags(VALID_TAG_HUSBAND).build();
+        Person editedPerson = new PersonBuilder(person).withTags(VALID_TAG_HUSBAND).build();
+
+        CommandResult commandResult = new EditCommand(INDEX_FIRST_PERSON, descriptor).execute(model);
+
+        assertEquals(String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson, true)),
+                commandResult.getFeedbackToUser());
+    }
+
+    @Test
     public void execute_pinnedPerson_preservesPinnedState() {
         Person pinnedPerson = new PersonBuilder().withPinned(true).build();
         model = new ModelManager(new AddressBookBuilder().withPerson(pinnedPerson).build(), new UserPrefs());

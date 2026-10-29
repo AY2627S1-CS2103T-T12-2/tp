@@ -16,6 +16,7 @@ import seedu.address.model.person.Person;
  */
 public class Messages {
 
+    public static final String PRIVACY_MASK = "*******";
     public static final String MESSAGE_UNKNOWN_COMMAND = "Unknown command.";
     public static final String MESSAGE_INVALID_COMMAND_FORMAT = "Invalid command format!\n%1$s";
     public static final String MESSAGE_INVALID_PERSON_DISPLAYED_INDEX = "The person index provided is invalid.";
@@ -39,18 +40,27 @@ public class Messages {
      * Formats the {@code person} for display to the user.
      */
     public static String format(Person person) {
+        return format(person, false);
+    }
+
+    /**
+     * Formats the {@code person} for display, masking contact details when requested.
+     */
+    public static String format(Person person, boolean shouldMaskContactDetails) {
+        requireNonNull(person);
         final StringBuilder builder = new StringBuilder();
         builder.append(person.getName())
                 .append("; Phone: ")
-                .append(person.getPhone())
+                .append(shouldMaskContactDetails ? PRIVACY_MASK : person.getPhone())
                 .append("; Email: ")
-                .append(person.getEmail())
+                .append(shouldMaskContactDetails ? PRIVACY_MASK : person.getEmail())
                 .append("; Address: ")
-                .append(person.getAddress())
+                .append(shouldMaskContactDetails ? PRIVACY_MASK : person.getAddress())
                 .append("; Tags: ");
         person.getTags().forEach(builder::append);
         if (!person.getGuardianContact().isEmpty()) {
-            builder.append("; Guardian: ").append(person.getGuardianContact());
+            builder.append("; Guardian: ").append(shouldMaskContactDetails
+                    ? PRIVACY_MASK : person.getGuardianContact());
         }
         return builder.toString();
     }

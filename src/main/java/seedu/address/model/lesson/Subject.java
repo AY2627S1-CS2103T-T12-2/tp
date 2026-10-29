@@ -7,16 +7,18 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 public class Subject {
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Subjects should contain letters, numbers and spaces, and should not be blank.";
-    public static final String VALIDATION_REGEX = "[\\p{Alnum}][\\p{Alnum} ]*";
+            "Subjects should start with a letter or number and contain only letters, numbers, spaces, "
+                    + "and common subject punctuation (+, -, &, apostrophe, period, or parentheses).";
+    public static final String VALIDATION_REGEX = "[\\p{Alnum}][\\p{Alnum} +&'().\\-]*";
 
     public final String value;
 
     /** Creates a subject. */
     public Subject(String value) {
         requireNonNull(value);
-        checkArgument(isValidSubject(value), MESSAGE_CONSTRAINTS);
-        this.value = value;
+        String normalizedValue = value.replaceAll(" {2,}", " ");
+        checkArgument(isValidSubject(normalizedValue), MESSAGE_CONSTRAINTS);
+        this.value = normalizedValue;
     }
 
     public static boolean isValidSubject(String test) {

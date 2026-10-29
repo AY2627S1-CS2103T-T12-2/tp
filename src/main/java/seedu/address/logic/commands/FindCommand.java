@@ -2,10 +2,13 @@ package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.model.Model;
@@ -53,6 +56,7 @@ public class FindCommand extends Command {
             "Lesson search should use a weekday (e.g. Mon), ISO date (e.g. 2026-10-20), "
                     + "time 0000-2359, or a supported combination.";
 
+    private static final Logger logger = LogsCenter.getLogger(FindCommand.class);
     private final Predicate<Person> predicate;
 
     public FindCommand(NameContainsKeywordsPredicate predicate) {
@@ -77,14 +81,20 @@ public class FindCommand extends Command {
         } else {
             model.updateFilteredPersonList(predicate);
         }
+        logger.fine("Search completed with " + model.getFilteredPersonList().size() + " matching student(s).");
         return new CommandResult(
                 String.format(Messages.MESSAGE_PERSONS_LISTED_OVERVIEW, model.getFilteredPersonList().size()));
     }
 
     private Comparator<Person> getScoreComparator(Model model, ScoredPersonPredicate scoredPredicate) {
-        List<Person> originalOrder = model.getAddressBook().getPersonList();
+        List<Person> currentOrder = new ArrayList<>(model.getFilteredPersonList());
+        for (Person person : model.getAddressBook().getPersonList()) {
+            if (!currentOrder.contains(person)) {
+                currentOrder.add(person);
+            }
+        }
         return Comparator.<Person>comparingInt(scoredPredicate::score).reversed()
-                .thenComparingInt(originalOrder::indexOf);
+                .thenComparingInt(currentOrder::indexOf);
     }
 
     @Override

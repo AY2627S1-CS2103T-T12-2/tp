@@ -73,6 +73,16 @@ public class CommandBoxTest {
     }
 
     @Test
+    public void getCommandSuggestion_tagInputs_returnsExpectedSuggestion() {
+        assertEquals("tag", CommandBox.getCommandSuggestion("ta"));
+        assertEquals("tag INDEX TAG... | tag INDEX... t/TAG", CommandBox.getCommandSuggestion("tag"));
+        assertEquals("tag INDEX TAG... | tag INDEX... t/TAG", CommandBox.getCommandSuggestion("tag "));
+        assertEquals("untag", CommandBox.getCommandSuggestion("unt"));
+        assertEquals("untag INDEX TAG... | untag INDEX -all", CommandBox.getCommandSuggestion("untag"));
+        assertEquals("untag INDEX TAG... | untag INDEX -all", CommandBox.getCommandSuggestion("untag "));
+    }
+
+    @Test
     public void isFindCommand() {
         assertTrue(CommandBox.isFindCommand("find"));
         assertTrue(CommandBox.isFindCommand(" find Alex "));
@@ -100,6 +110,9 @@ public class CommandBoxTest {
 
             commandTextField.setText("pin ");
             assertEquals("pin INDEX", commandSuggestionTextField.getText());
+
+            commandTextField.setText("tag ");
+            assertEquals("tag INDEX TAG... | tag INDEX... t/TAG", commandSuggestionTextField.getText());
         });
     }
 

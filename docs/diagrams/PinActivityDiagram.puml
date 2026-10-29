@@ -1,0 +1,36 @@
+@startuml
+!include style.puml
+
+skinparam ActivityFontSize 14
+skinparam ArrowFontSize 12
+
+start
+:Parse `pin INDEX` or `unpin INDEX`;
+:Read the displayed student list;
+
+if (Is INDEX valid?) then (no)
+    :Show invalid-index error;
+    stop
+else (yes)
+endif
+
+:Select the student at INDEX;
+
+if (Is the requested pin state new?) then (no)
+    :Show already-pinned or
+    already-unpinned error;
+    stop
+else (yes)
+endif
+
+:Create an immutable `Person` copy
+with the requested pin state;
+:Replace the old `Person` in the model;
+:Sort pinned students before unpinned students;
+:Preserve the active filter and the order
+within each pin group;
+:Refresh cards and displayed indexes;
+:Save address-book data;
+:Show success feedback;
+stop
+@enduml
