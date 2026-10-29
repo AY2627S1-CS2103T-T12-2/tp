@@ -28,6 +28,13 @@ public interface Model {
     /** {@code Predicate} that always evaluates to true */
     Predicate<Person> PREDICATE_SHOW_ALL_PERSONS = unused -> true;
 
+    /** The filter and comparator that determine the current person-list view. */
+    record FilteredPersonListState(Predicate<? super Person> predicate, Comparator<? super Person> comparator) {
+        public FilteredPersonListState {
+            requireNonNull(comparator);
+        }
+    }
+
     /**
      * Returns the user prefs.
      */
@@ -61,6 +68,18 @@ public interface Model {
      * Returns true if a person with the same identity as {@code person} exists in the address book.
      */
     boolean hasPerson(Person person);
+
+    /**
+     * Checks new or renamed students against names ignoring case and repeated spaces.
+     * The same stable student ID is excluded so a student can edit their own display spelling.
+     * Storage keeps its existing exact-name checks so previously saved variants remain loadable.
+     */
+    default boolean hasNameConflict(Person candidate) {
+        requireNonNull(candidate);
+        return getAddressBook().getPersonList().stream()
+                .anyMatch(existing -> !existing.getStudentId().equals(candidate.getStudentId())
+                        && existing.getName().hasSameIdentityAs(candidate.getName()));
+    }
 
     /**
      * Deletes the given person.
@@ -137,6 +156,12 @@ public interface Model {
 
     /** Returns an unmodifiable view of the filtered person list */
     ObservableList<Person> getFilteredPersonList();
+
+    /** Returns the current filter and comparator of the person-list view. */
+    FilteredPersonListState getFilteredPersonListState();
+
+    /** Restores the person-list view to the given filter and comparator. */
+    void restoreFilteredPersonListState(FilteredPersonListState state);
 
     /**
      * Updates the filter of the filtered person list to filter by the given {@code predicate}.

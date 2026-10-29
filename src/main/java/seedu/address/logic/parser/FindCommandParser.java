@@ -16,6 +16,7 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.LessonContainsKeywordsPredicate;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.TagContainsKeywordsPredicate;
+import seedu.address.model.tag.Tag;
 
 /**
  * Parses input arguments and creates a new FindCommand object
@@ -86,11 +87,9 @@ public class FindCommandParser implements Parser<FindCommand> {
                 .map(keyword -> keyword.toLowerCase(Locale.ROOT))
                 .toList();
         for (int index = 0; index < tagKeywords.size(); index++) {
-            try {
-                ParserUtil.parseTag(tagKeywords.get(index));
-            } catch (ParseException parseException) {
+            if (!Tag.isValidTagSearchKeyword(tagKeywords.get(index))) {
                 throw new ParseException("Invalid tag keyword '" + rawTagKeywords.get(index) + "'. "
-                        + parseException.getMessage());
+                        + Tag.MESSAGE_SEARCH_KEYWORD_CONSTRAINTS);
             }
         }
         return new FindCommand(new TagContainsKeywordsPredicate(tagKeywords));

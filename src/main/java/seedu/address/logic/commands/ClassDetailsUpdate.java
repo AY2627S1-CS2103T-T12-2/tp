@@ -3,7 +3,9 @@ package seedu.address.logic.commands;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.Optional;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
 import seedu.address.model.lesson.ClassDetails;
@@ -19,6 +21,8 @@ public record ClassDetailsUpdate(Optional<ClassMode> mode, Optional<String> meet
             Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
     public static final String MESSAGE_CONFLICT = "This class already has different details. "
             + "Omit the class detail fields to inherit the existing class values.";
+
+    private static final Logger logger = LogsCenter.getLogger(ClassDetailsUpdate.class);
 
     /** Validates explicitly supplied fields before any model changes. */
     public ClassDetailsUpdate {
@@ -52,8 +56,11 @@ public record ClassDetailsUpdate(Optional<ClassMode> mode, Optional<String> meet
                     .flatMap(person -> person.getLessons().stream()).anyMatch(item -> item.isSameClass(lesson));
             boolean canFillEmptyClass = !hasStudents && base.equals(ClassDetails.EMPTY);
             if (existing.isPresent() && !updated.equals(base) && !canFillEmptyClass) {
+                logger.info("Student enrolment rejected: conflicting shared class details.");
                 throw new CommandException(MESSAGE_CONFLICT);
             }
+            logger.fine(existing.isPresent() ? "Resolved details against an existing class."
+                    : "Validated details for a new class.");
             return existing.isPresent() ? lesson.withTuitionClass(existing.get().withDetails(updated))
                     : lesson.withDetails(updated);
         } catch (IllegalArgumentException e) {

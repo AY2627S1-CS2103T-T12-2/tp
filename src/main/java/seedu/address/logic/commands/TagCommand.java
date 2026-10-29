@@ -38,6 +38,8 @@ public class TagCommand extends Command {
     public static final String MESSAGE_TAG_PERSON_SUCCESS = "Added tag(s) to %1$s: %2$s";
     public static final String MESSAGE_DUPLICATE_TAG = "One or more tags already exist for this student.";
     public static final String MESSAGE_DUPLICATE_INDEXES = "Student indexes must not be repeated.";
+    public static final String MESSAGE_BATCH_MULTIPLE_TAGS =
+            "Batch mode accepts exactly one tag. Use: tag STUDENT_INDEX [MORE_INDEXES] t/TAG.";
     public static final String MESSAGE_BATCH_SUCCESS =
             "Added tag '%1$s' to: %2$s. Already tagged: %3$s. At tag limit: %4$s.";
     public static final String MESSAGE_BATCH_NO_CHANGE =

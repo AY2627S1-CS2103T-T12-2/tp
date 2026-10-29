@@ -13,7 +13,9 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -46,6 +48,7 @@ public class AddCommand extends Command {
 
     public static final String MESSAGE_SUCCESS = "Student Added: %1$s";
     public static final String MESSAGE_DUPLICATE_PERSON = "This person already exists in the address book.";
+    private static final Logger logger = LogsCenter.getLogger(AddCommand.class);
     private final Person toAdd;
     private final ClassDetailsUpdate detailsUpdate;
 
@@ -67,12 +70,14 @@ public class AddCommand extends Command {
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
 
-        if (model.hasPerson(toAdd)) {
+        if (model.hasPerson(toAdd) || model.hasNameConflict(toAdd)) {
+            logger.info("Student creation rejected: duplicate name.");
             throw new CommandException(MESSAGE_DUPLICATE_PERSON);
         }
         for (Lesson lesson : toAdd.getLessons()) {
             List<Lesson> overlappingClasses = model.findOverlappingClasses(lesson);
             if (!overlappingClasses.isEmpty()) {
+                logger.info("Student creation rejected: overlapping class schedule.");
                 throw new CommandException(Messages.getClassOverlapMessage(lesson, overlappingClasses));
             }
         }
@@ -83,7 +88,10 @@ public class AddCommand extends Command {
         }
         Person student = toAdd.withLessons(lessons);
         model.addPerson(student);
-        return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.format(student)));
+        logger.info("Student created with " + student.getLessons().size() + " class enrolment(s); guardian present: "
+                + !student.getGuardianContact().isEmpty() + ".");
+        return new CommandResult(String.format(MESSAGE_SUCCESS,
+                Messages.format(student, model.isPrivacyModeEnabled())));
     }
 
     @Override

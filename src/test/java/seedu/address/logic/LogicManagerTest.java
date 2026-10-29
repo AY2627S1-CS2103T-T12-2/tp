@@ -20,6 +20,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.Comparator;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -43,8 +44,10 @@ import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.lesson.Cost;
+import seedu.address.model.lesson.Enrollment;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.lesson.Subject;
 import seedu.address.model.person.Person;
 import seedu.address.model.timetable.TimetableDay;
@@ -89,6 +92,22 @@ public class LogicManagerTest {
     public void execute_validCommand_success() throws Exception {
         String listCommand = ListCommand.COMMAND_WORD;
         assertCommandSuccess(listCommand, ListCommand.MESSAGE_SUCCESS, model);
+    }
+
+    @Test
+    public void execute_batchEnrolmentSubjectWithRepeatedSpaces_findsExistingClass() throws Exception {
+        logic.execute("add n/Amy p/91234567 e/amy@example.com a/Somewhere");
+        logic.execute("add n/Bob p/81234567 e/bob@example.com a/Elsewhere");
+        logic.execute("class add sub/Computer Science cost/30 c/Friday1400-1500");
+
+        CommandResult result = logic.execute(
+                "class enrol 1 2 sub/Computer  Science c/Friday1400-1500");
+
+        assertEquals("Enrolled Amy, Bob in class: Computer Science, Friday 14:00-15:00.",
+                result.getFeedbackToUser());
+        assertTrue(model.getAddressBook().getPersonList().stream()
+                .allMatch(person -> person.getLessons().stream()
+                        .anyMatch(lesson -> lesson.getSubject().equals(new Subject("Computer Science")))));
     }
 
     @Test
@@ -144,6 +163,90 @@ public class LogicManagerTest {
     public void execute_storageThrowsAdException_throwsCommandException() {
         assertCommandFailureForExceptionFromStorage(DUMMY_AD_EXCEPTION, String.format(
                 LogicManager.FILE_OPS_PERMISSION_ERROR_FORMAT, DUMMY_AD_EXCEPTION.getMessage()));
+    }
+
+    @Test
+    public void execute_paymentSaveFails_rollsBackInMemoryAndKeepsPersistedPaymentState() throws Exception {
+        logic.execute("add n/Alex p/91234567 e/alex@example.com a/One "
+                + "sub/Mathematics cost/45 c/Monday1800-1930 mode/online link/https://example.com/math");
+        logic.execute("class payment 1 id/C001 status/paid");
+
+        ReadOnlyAddressBook persistedBeforeFailure = storage.readAddressBook().orElseThrow();
+        assertPaymentState(persistedBeforeFailure.getPersonList().get(0), PaymentStatus.PAID, "0");
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs(model.getUserPrefs()));
+
+        String permissionFailure = "payment save denied";
+        JsonAddressBookStorage failingAddressBookStorage =
+                new JsonAddressBookStorage(storage.getAddressBookFilePath()) {
+                    @Override
+                    public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
+                        throw new AccessDeniedException(permissionFailure);
+                    }
+                };
+        logic = new LogicManager(model, new StorageManager(failingAddressBookStorage,
+                new JsonUserPrefsStorage(storage.getUserPrefsFilePath())));
+
+        String expectedMessage = String.format(LogicManager.FILE_OPS_PERMISSION_ERROR_FORMAT, permissionFailure);
+        assertThrows(CommandException.class, expectedMessage, () ->
+                logic.execute("class payment 1 id/C001 status/unpaid"));
+
+        assertEquals(expectedModel, model);
+        assertPaymentState(model.getFilteredPersonList().get(0), PaymentStatus.PAID, "0");
+        assertEquals(persistedBeforeFailure, storage.readAddressBook().orElseThrow());
+        assertPaymentState(storage.readAddressBook().orElseThrow().getPersonList().get(0), PaymentStatus.PAID, "0");
+    }
+
+    @Test
+    public void execute_privacyPrefsSaveFails_restoresInMemoryAndPersistedPrivacyMode() throws Exception {
+        storage.saveUserPrefs(new UserPrefs());
+        String saveFailure = "preference save denied";
+        JsonUserPrefsStorage failingUserPrefsStorage =
+                new JsonUserPrefsStorage(storage.getUserPrefsFilePath()) {
+                    @Override
+                    public void saveUserPrefs(ReadOnlyUserPrefs userPrefs) throws IOException {
+                        throw new IOException(saveFailure);
+                    }
+                };
+        storage = new StorageManager(new JsonAddressBookStorage(storage.getAddressBookFilePath()),
+                failingUserPrefsStorage);
+        logic = new LogicManager(model, storage);
+
+        String expectedMessage = String.format(LogicManager.FILE_OPS_ERROR_FORMAT, saveFailure);
+        assertThrows(CommandException.class, expectedMessage, () -> logic.execute("privacy on"));
+
+        assertFalse(model.isPrivacyModeEnabled());
+        assertFalse(logic.isPrivacyModeEnabled());
+        assertFalse(storage.readUserPrefs().orElseThrow().isPrivacyModeEnabled());
+    }
+
+    @Test
+    public void execute_saveFails_restoresFilteredPersonListPredicateAndComparator() {
+        Person amy = new PersonBuilder().withName("Amy").withPhone("91234567")
+                .withEmail("amy@example.com").build();
+        Person bob = new PersonBuilder().withName("Bob").withPhone("92345678")
+                .withEmail("bob@example.com").build();
+        Person carol = new PersonBuilder().withName("Carol").withPhone("93456789")
+                .withEmail("carol@example.com").build();
+        model.addPerson(amy);
+        model.addPerson(bob);
+        model.addPerson(carol);
+        model.updateFilteredPersonList(person -> !person.getName().fullName.equals("Carol"),
+                Comparator.comparing((Person person) -> person.getName().fullName).reversed());
+
+        JsonAddressBookStorage failingAddressBookStorage =
+                new JsonAddressBookStorage(storage.getAddressBookFilePath()) {
+                    @Override
+                    public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
+                        throw DUMMY_IO_EXCEPTION;
+                    }
+                };
+        logic = new LogicManager(model, new StorageManager(failingAddressBookStorage,
+                new JsonUserPrefsStorage(storage.getUserPrefsFilePath())));
+
+        String expectedMessage = String.format(LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage());
+        assertThrows(CommandException.class, expectedMessage, () -> logic.execute("find Carol"));
+
+        assertEquals(List.of(bob, amy), model.getFilteredPersonList());
     }
 
     @Test
@@ -322,9 +425,13 @@ public class LogicManagerTest {
         // Triggers the saveAddressBook method by executing an add command
         String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
                 + EMAIL_DESC_AMY + ADDRESS_DESC_AMY;
-        Person expectedPerson = new PersonBuilder(AMY).withTags().build();
-        ModelManager expectedModel = new ModelManager();
-        expectedModel.addPerson(expectedPerson);
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs(model.getUserPrefs()));
         assertCommandFailure(addCommand, CommandException.class, expectedMessage, expectedModel);
+    }
+
+    private void assertPaymentState(Person person, PaymentStatus expectedStatus, String expectedBalance) {
+        Enrollment enrollment = person.getEnrollments().stream().findFirst().orElseThrow();
+        assertEquals(expectedStatus, enrollment.getPaymentStatus());
+        assertEquals(expectedBalance, person.getOutstandingBalance().toPlainString());
     }
 }

@@ -17,13 +17,14 @@ also matches a student taking Environmental Science. Use a more distinctive keyw
 the results. Repeating a keyword does not create duplicate results.
 
 Matching uses partial keywords and returns each student once, even if several classes match.
-Subject results keep address-book order. Search covers all students, including those outside an existing search.
+Subject results put pinned matches first. Within each pin group, results keep original address-book order and do not
+use keyword relevance scoring. Search covers all students, including those outside an existing search.
 Use `list` to return to the full student list. A search with no matches displays an empty list and a zero-result message.
 
 Provide one `sub/` prefix with at least one keyword. Keywords contain letters and numbers.
 Do not combine subject search with name, tag (`t/`), or class (`c/`) search in the same command.
 For example, `find sub/Math t/priority` and `find Alice sub/Math` are rejected.
-In the read-only timetable view, first use `list` to return to the student view.
+In the read-only timetable or class-list view, first use `list` to return to the student view.
 
 An invalid subject search leaves the previous results and student data unchanged. After a successful search,
 commands such as `edit 1` and `delete 1` refer to the first student in the displayed results.

@@ -2,12 +2,14 @@ package seedu.address.storage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ReadOnlyAddressBook;
@@ -30,6 +32,8 @@ class JsonSerializableAddressBook {
     public static final String MESSAGE_DUPLICATE_ENROLMENT =
             "A student has duplicate enrolments for the same class.";
     public static final String MESSAGE_CLASS_DETAILS_CONFLICT = "Students in the same class have different details.";
+
+    private static final Logger logger = LogsCenter.getLogger(JsonSerializableAddressBook.class);
 
     private final List<JsonAdaptedPerson> persons = new ArrayList<>();
     private final List<JsonAdaptedTuitionClass> classes = new ArrayList<>();
@@ -75,6 +79,8 @@ class JsonSerializableAddressBook {
      */
     public AddressBook toModelType() throws IllegalValueException {
         AddressBook addressBook = new AddressBook();
+        int migratedEnrollments = 0;
+        boolean hasLegacyNameVariants = false;
         for (JsonAdaptedTuitionClass adaptedClass : classes) {
             TuitionClass tuitionClass = adaptedClass.toModelType();
             if (addressBook.hasTuitionClass(tuitionClass.getClassId())
@@ -93,6 +99,8 @@ class JsonSerializableAddressBook {
             if (addressBook.hasPerson(person)) {
                 throw new IllegalValueException(MESSAGE_DUPLICATE_PERSON);
             }
+            hasLegacyNameVariants |= addressBook.getPersonList().stream()
+                    .anyMatch(existing -> existing.getName().hasSameIdentityAs(person.getName()));
             java.util.Set<Lesson> explicitlyDetailedLessons = new java.util.HashSet<>();
             for (Lesson lesson : person.getLegacyLessons()) {
                 if (jsonAdaptedPerson.hasExplicitClassDetails(lesson)) {
@@ -145,6 +153,7 @@ class JsonSerializableAddressBook {
                 }
                 Enrollment migrated = new Enrollment(person.getStudentId(), tuitionClass,
                         lesson.getCost(), lesson.getPaymentStatus());
+                migratedEnrollments++;
                 enrollmentIds.add(migrated.getEnrollmentId());
                 linkedEnrollments.add(migrated);
             }
@@ -158,6 +167,12 @@ class JsonSerializableAddressBook {
                 .mapToInt(item -> item.getClassId().getSequence()).max().orElse(0) + 1;
         addressBook.setNextClassSequence(Math.max(minimumNext,
                 nextClassSequence == null ? 1 : nextClassSequence));
+        if (hasLegacyNameVariants) {
+            logger.warning("Retained existing records with names differing only in case or spacing.");
+        }
+        logger.fine("Loaded " + addressBook.getPersonList().size() + " student(s), "
+                + addressBook.getTuitionClassList().size() + " class(es); migrated "
+                + migratedEnrollments + " legacy enrolment(s).");
         return addressBook;
     }
 

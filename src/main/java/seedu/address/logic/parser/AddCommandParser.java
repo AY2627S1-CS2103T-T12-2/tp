@@ -17,7 +17,6 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -37,6 +36,10 @@ import seedu.address.model.tag.Tag;
  */
 public class AddCommandParser implements Parser<AddCommand> {
 
+    public static final String MESSAGE_INCOMPLETE_CLASS = "Class fields require sub/SUBJECT, cost/COST, "
+            + "and a complete c/SCHEDULE together. Use DAYHHmm-HHmm (e.g. Monday1800-1930) "
+            + "or yyyy-MM-ddTHHmm-HHmm (e.g. 2026-10-20T1800-1930).";
+
     /**
      * Parses the given {@code String} of arguments in the context of the AddCommand
      * and returns an AddCommand object for execution.
@@ -55,42 +58,34 @@ public class AddCommandParser implements Parser<AddCommand> {
         }
 
         argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS,
-                PREFIX_COST, PREFIX_CLASS, PREFIX_GUARDIAN_NAME, PREFIX_GUARDIAN_PHONE, PREFIX_GUARDIAN_EMAIL,
-                        PREFIX_MODE, PREFIX_LINK, PREFIX_LOCATION, PREFIX_NOTES);
+                PREFIX_SUBJECT, PREFIX_COST, PREFIX_CLASS,
+                PREFIX_GUARDIAN_NAME, PREFIX_GUARDIAN_PHONE, PREFIX_GUARDIAN_EMAIL,
+                PREFIX_MODE, PREFIX_LINK, PREFIX_LOCATION, PREFIX_NOTES);
         boolean hasSubject = argMultimap.getValue(PREFIX_SUBJECT).isPresent();
         boolean hasCost = argMultimap.getValue(PREFIX_COST).isPresent();
         boolean hasClass = argMultimap.getValue(PREFIX_CLASS).isPresent();
-        boolean usesLessonModel = hasClass && argMultimap.getValue(PREFIX_CLASS).get().contains("-");
+        boolean hasAnyClassField = hasSubject || hasCost || hasClass;
+        if (hasAnyClassField && !(hasSubject && hasCost && hasClass)) {
+            throw new ParseException(MESSAGE_INCOMPLETE_CLASS);
+        }
         Name name = ParserUtil.parseName(argMultimap.getValue(PREFIX_NAME).get());
         Phone phone = ParserUtil.parsePhone(argMultimap.getValue(PREFIX_PHONE).get());
         Email email = ParserUtil.parseEmail(argMultimap.getValue(PREFIX_EMAIL).get());
         Address address = ParserUtil.parseAddress(argMultimap.getValue(PREFIX_ADDRESS).get());
         Set<Tag> tagList = ParserUtil.parseTags(argMultimap.getAllValues(PREFIX_TAG));
         ClassDetailsUpdate detailsUpdate = ParserUtil.parseClassDetailsUpdate(argMultimap);
-        if (!detailsUpdate.isEmpty() && !usesLessonModel) {
-            throw new ParseException("Class fields require sub/, cost/, and a complete c/DAYHHmm-HHmm.");
+        if (!detailsUpdate.isEmpty() && !hasAnyClassField) {
+            throw new ParseException(MESSAGE_INCOMPLETE_CLASS);
         }
         Person person;
-        if (usesLessonModel) {
-            if (!(hasSubject && hasCost)) {
-                throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddCommand.MESSAGE_USAGE));
-            }
-            argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_SUBJECT);
+        if (hasAnyClassField) {
             Set<Lesson> lessons = new java.util.LinkedHashSet<>();
             lessons.add(new Lesson(ParserUtil.parseLessonSubject(argMultimap.getValue(PREFIX_SUBJECT).get()),
                     ParserUtil.parseLessonCost(argMultimap.getValue(PREFIX_COST).get()),
                     ParserUtil.parseLessonSchedule(argMultimap.getValue(PREFIX_CLASS).get())));
             person = new Person(name, phone, email, address, tagList, lessons);
         } else {
-            Set<seedu.address.model.person.Subject> subjects =
-                    ParserUtil.parseSubjects(argMultimap.getAllValues(PREFIX_SUBJECT));
-            Optional<seedu.address.model.person.Cost> cost = hasCost
-                    ? Optional.of(ParserUtil.parseCost(argMultimap.getValue(PREFIX_COST).get()))
-                    : Optional.empty();
-            Optional<seedu.address.model.person.Lesson> lesson = hasClass
-                    ? Optional.of(ParserUtil.parseLesson(argMultimap.getValue(PREFIX_CLASS).get()))
-                    : Optional.empty();
-            person = new Person(name, phone, email, address, tagList, subjects, cost, lesson);
+            person = new Person(name, phone, email, address, tagList);
         }
 
         person = person.withGuardianContact(ParserUtil.parseGuardianContact(
