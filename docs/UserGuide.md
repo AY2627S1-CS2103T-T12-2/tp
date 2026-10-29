@@ -81,7 +81,7 @@ Format: `help`
 
 ### Adding a student: `add`
 
-Adds a student to TutEasy, with optional guardian and class information.
+Adds a student to TutEasy, optionally with guardian contacts and one scheduled class.
 
 Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [gn/GUARDIAN_NAME] [gp/GUARDIAN_PHONE] [ge/GUARDIAN_EMAIL] [sub/SUBJECT cost/COST c/SCHEDULE [mode/online|offline] [link/URL] [location/LOCATION] [notes/NOTES]]`
 
@@ -91,7 +91,22 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [gn/GUARDIAN_NAM
 and use only lowercase letters, numbers, and single hyphens between characters.
 </box>
 
-* `sub/SUBJECT`, `cost/COST`, and `c/SCHEDULE` must be supplied together when adding a class.
+| Fields | Required? | What to enter |
+| --- | --- | --- |
+| `n/`, `p/`, `e/`, `a/` | Yes | Student name, phone, email and address. None may be blank. |
+| `t/` | No | Repeat this prefix for multiple tags, up to the tag limit above. |
+| `gn/`, `gp/`, `ge/` | No | Any combination of guardian name, phone and email. |
+| `sub/`, `cost/`, `c/` | Together, to enrol in a scheduled class | Subject, agreed rate and complete schedule. |
+| `mode/`, `link/`, `location/`, `notes/` | No | Extra details for the scheduled class supplied in the same command. |
+
+* Student names contain letters, digits and spaces and start with a letter or digit. Phone numbers contain only
+  digits and have at least three digits; email addresses must follow the [email rules below](#guardian-field-rules).
+* A name differing from an existing student's name only in capitalization or repeated spaces is rejected as a
+  duplicate, even if its phone or email differs. For example, `Alex Yeoh`, `alex yeoh` and `Alex  Yeoh` conflict.
+  Your entered capitalization and spacing are retained for display. This rule also applies when renaming with `edit`.
+* To include a scheduled class, supply `sub/SUBJECT`, `cost/COST`, and `c/SCHEDULE` together. Subjects contain letters,
+  digits and spaces. The agreed rate is non-negative, with at most two decimal places, e.g. `30`, `35.50`, or `0`.
+  Supplying only some of these fields rejects the entire command; no student or class is added.
 * Times use the 24-hour range `0000`–`2359`, and the end time must be later than the start time.
 * A weekly schedule uses `DAYHHmm-HHmm`, for example `Monday1800-1930`.
 * A one-off schedule uses `yyyy-MM-ddTHHmm-HHmm`, for example `2026-10-20T1800-1930`.
@@ -100,49 +115,85 @@ and use only lowercase letters, numbers, and single hyphens between characters.
 Examples:
 * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
 * `add n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
-* `add n/John Davis p/91234567 e/johndavis@gmail.com a/Clementi t/exam-prep sub/Math cost/30 c/Monday1800-1930`
+* `add n/John Davis p/91234567 e/johndavis@gmail.com a/Clementi t/exam-prep sub/Math cost/30 c/Thursday1400-1530`
 * `add n/Jane Tan p/92345678 e/jane@example.com a/Bishan sub/Math cost/30 c/2026-10-20T1800-1930`
 
 ### Adding guardian and class details to a student
 
-The `add` command accepts optional guardian name (`gn/`), phone (`gp/`), and email (`ge/`) fields.
-These are independent: for example, supply just `gp/` when only a parent's phone is known.
-Non-empty guardian values follow the same validation rules as student contact fields.
-The details appear on the student card and are saved across restarts. Privacy mode masks guardian details
-alongside the student's phone, email, and address.
+Guardian name (`gn/`), phone (`gp/`) and email (`ge/`) are independent optional fields. You can supply only a phone,
+only an email, or any combination; none requires the others. Omitted or empty guardian values mean not provided.
+Leading and trailing spaces around field values are trimmed. Guardian details appear on the student card and persist
+across restarts. Privacy mode masks them on student cards alongside the student's phone, email and address.
 
-When adding a student with a class (`sub/`, `cost/`, and complete `c/SCHEDULE`), you may also supply
-`mode/online` or `mode/offline`. An online class may optionally have an HTTP(S) meeting URL in `link/`.
-Offline classes cannot store a non-empty link. New classes default to offline when the mode is omitted.
-Mode values are case-insensitive. Optional `location/` and `notes/` each accept up to 500 characters
-of single-line text. Class fields require a complete class in the same `add` command.
+#### Guardian field rules
 
-Examples:
+| Field | Rule for a non-empty value | Example |
+| --- | --- | --- |
+| `gn/` | Starts with a letter or digit; contains only letters, digits, spaces, hyphens and apostrophes (`'` or `’`). | `gn/Mary-Anne O'Connor` |
+| `gp/` | At least three digits; no spaces, `+`, brackets or hyphens. | `gp/98765432` |
+| `ge/` | Uses the email rules below. | `ge/mary.oconnor@example.com` |
 
-* `add n/Alice Tan p/91234567 e/alice@example.com a/Clementi gn/Mary Tan gp/98765432 ge/mary@example.com sub/Math cost/30 c/Saturday1800-1930 mode/online link/https://meet.example.com/math`
-* `add n/Bob Tan p/81234567 e/bob@example.com a/Jurong gp/89999999`
-* `add n/Cara Tan p/71234567 e/cara@example.com a/Tampines sub/Physics cost/40 c/Saturday1600-1730 mode/offline location/Room 2 notes/Bring calculator`
+Email rules, for both students and guardians:
 
-Each prefix may be supplied once. Links must contain a valid host and cannot contain spaces or
-embedded credentials. A link is allowed only when the class is online.
+* Use `local-part@domain`. The local part contains letters/digits and may use `+`, `_`, `.` or `-` between
+  alphanumeric groups; it cannot begin or end with punctuation or contain adjacent punctuation characters.
+* Domain labels are separated by dots. Each starts and ends with a letter/digit, with hyphens allowed between
+  alphanumeric groups. The final label is at least two characters long. Spaces are not allowed.
 
-Class IDs identify independently stored shared classes. When adding a student to an existing class,
-omitted fields inherit the class catalogue's values even when the class has no enrolled students.
-If the catalogue class has no students and no extra details, the first student may fill its mode,
-link, location, and notes. For classes already in use, explicit values must agree with the shared values.
-Existing classmates, guardian details, and payment statuses are not changed by adding a student.
-Mode and details appear on student cards and timetable entries and are saved once in the shared class catalogue.
-Each student's enrolment stores only its class reference, agreed rate, and payment status.
-Older saved classes without a mode default to offline, or online if they already contain a link.
+For example, `add n/Bob Tan p/81234567 e/bob@example.com a/Jurong gp/89999999` creates a student with only a
+guardian phone. Guardian name punctuation is supported independently of the student-name rule.
 
-Guardian, mode, link, location, and notes can be supplied only through `add`. The `edit` and `class enrol` commands
-retain their documented syntax. Ordinary student edits and enrolments preserve the stored attributes. The
-`class edit` command changes the subject, cost, or schedule while retaining mode, link, location, notes, and each
-enrolment's payment status.
+#### Class mode, link, location and notes
 
-Class details remain in the class catalogue after its last student unenrols. `class delete id/CLASS_ID`
-removes the class and all of its enrolments. Class listing and timetable entries display the shared details,
-including classes with no students. Use `list` to return from either read-only view before changing data.
+These fields accompany a complete scheduled class (`sub/`, `cost/` and `c/`) in the same `add` command.
+Each prefix in this command format can appear once, except `t/`, which may repeat.
+
+| Field | Rule |
+| --- | --- |
+| `mode/` | `online` or `offline`, ignoring case. A new class defaults to offline if omitted. |
+| `link/` | Optional for online classes; must be an absolute HTTP(S) URL with a host. No spaces or embedded username/password; an explicit port must be between 1 and 65535. Offline classes reject a non-empty link. |
+| `location/` | Optional single-line text, up to 500 characters, without control characters. Available for either mode. |
+| `notes/` | Optional single-line text, up to 500 characters, without control characters. Available for either mode. |
+
+For a **new** class, a link requires explicit `mode/online`. Supplying a link alone does not change the default mode.
+An online class may have no link. Examples below assume these student names and lesson times are unused:
+
+```text
+add n/Alice Tan p/91234567 e/alice@example.com a/Clementi gn/Mary-Anne O'Connor gp/98765432 ge/mary.oconnor@example.com sub/Algebra cost/30 c/Thursday1000-1130 mode/online link/https://meet.example.com/algebra location/Virtual room notes/Bring worksheet
+```
+
+```text
+add n/Dana Tan p/71234567 e/dana@example.com a/Tampines sub/Biology cost/40 c/Saturday1600-1730 mode/offline location/Room 2 notes/Bring calculator
+```
+
+#### Joining an existing class and inheriting details
+
+TutEasy matches an existing class by its subject (case-insensitive) and complete schedule, including the exact date for
+a one-off class. Use the existing subject: `Math` and `Mathematics` are different subjects. A different class at an
+overlapping time is rejected.
+
+When a match exists, omitted mode, link, location and notes inherit the class's recorded values, including when the
+class has no students. Explicit values must agree with those shared values. The exception is an empty class with no
+recorded extra details: its first student may fill them in. A conflicting command is rejected before the student is
+added or the shared class is changed.
+
+After the Alice example above, this enrols a second student in the same online Algebra class, inheriting its link,
+location and notes, at an individual agreed rate of 35:
+
+```text
+add n/Ben Tan p/82345678 e/ben@example.com a/Bishan sub/Algebra cost/35 c/Thursday1000-1130
+```
+
+Supplying `mode/offline` for that same Algebra class would be rejected because its shared mode is online. Omitting
+`mode/` inherits online; supplying `link/` with an empty value would conflict with its existing non-empty link.
+The new student's guardian details and agreed rate are individual. Existing classmates' contacts, rates and payment
+statuses are unchanged; the new enrolment starts unpaid.
+
+Mode and extra class details appear on student cards, class listings and timetable entries. They remain after the last
+student unenrols. `class delete id/CLASS_ID` removes the class and all its enrolments. `edit` does not accept guardian
+or class-detail fields; `class enrol` inherits existing class details. `class edit` changes subject, default cost or
+schedule while preserving mode, link, location, notes and individual payment statuses. Use `list` to leave either
+read-only view before modifying data.
 
 ### Adding a class: `class add`
 
@@ -151,7 +202,7 @@ when a class is edited and are not reused after deletion.
 
 Format: `class add sub/SUBJECT cost/COST c/SCHEDULE`
 
-Example: `class add sub/Physics cost/35 c/Wednesday1700-1830`
+Example: `class add sub/Physics cost/35 c/Wednesday1800-1930`
 
 Classes cannot share the same subject and timing, and overlapping class times are rejected.
 
@@ -195,7 +246,7 @@ provide all student indexes before the prefixes:
 
 `class enrol STUDENT_INDEX [STUDENT_INDEX]... sub/SUBJECT c/SCHEDULE`
 
-Example: `class enrol 1 3 5 sub/Physics c/Wednesday1700-1830`
+Example: `class enrol 1 3 5 sub/Physics c/Wednesday1800-1930`
 
 The existing single-student format that supplies the class cost is also supported:
 
@@ -212,9 +263,11 @@ are skipped while the remaining students are enrolled. The feedback identifies b
 are already enrolled, no changes are made and an informative message is shown. `cost/` cannot be supplied when multiple
 indexes are used.
 
-Enrolled classes appear as coloured badges below each student's email. Each badge includes the subject and lesson
-timing, and students enrolled in the same class receive a badge with the same colour. When a student has multiple
-classes, each badge group appears on its own row.
+Enrolled classes appear below each student's email. Every class group contains a coloured badge with the subject and
+complete lesson timing, followed by separate `Online` or `Offline` and `Paid` or `Unpaid` labels. Non-empty meeting
+links, locations, and notes appear on a wrapped details line below that group. Students enrolled in the same logical
+class receive the same badge colour, even when their agreed rates or payment statuses differ. When a student has
+multiple classes, each group appears on its own row and the groups are ordered by schedule, then subject.
 
 A subdued balance badge beside each student's name shows the total agreed rates of that student's unpaid enrolments.
 Paid enrolments are excluded. The badge remains visible as `Balance: 0` when the student has no unpaid enrolments.
@@ -301,6 +354,8 @@ Format: `pin INDEX`
 * The student must not already be pinned.
 * During a search, only matching students are shown; matching pinned students appear before matching unpinned students.
 * Search relevance and the existing list order are preserved within the pinned and unpinned groups.
+* After a successful command, the displayed list is reordered immediately and its index numbers are refreshed. Use
+  the newly displayed index for the next index-based command.
 
 Example: `pin 3`
 
@@ -314,8 +369,12 @@ Format: `unpin INDEX`
 
 * `INDEX` refers to the index number shown in the displayed student list.
 * The student must already be pinned.
+* After a successful command, the student moves into the unpinned group immediately. Their relative order within that
+  group follows the existing list order, or the active search ranking when the list is filtered.
 
 Example: `unpin 1`
+
+The command box suggests the required index after you type `pin` or `unpin`.
 
 ### Editing a student: `edit`
 
@@ -349,7 +408,9 @@ Formats:
 * Spaces separate tags. For example, `exam prep` adds the two tags `exam` and `prep`, while `exam-prep` adds
   one tag. Use hyphens when a single tag contains multiple words.
 * A student can have at most 10 tags.
-* The first format preserves the existing behavior of adding one or more tags to one student.
+* The first format adds one or more tags to one student. All supplied tags are validated before the student is
+  updated. If any supplied tag already belongs to that student, or if adding all supplied tags would exceed the
+  10-tag limit, the command is rejected and no tag is added.
 * The batch format uses `t/` to separate one tag from one or more unique student indexes. This also allows numeric
   tags such as `t/2026` without confusing them with student indexes.
 * The batch command validates every index and the tag before updating any student. An invalid or repeated index, or
@@ -364,19 +425,28 @@ Examples:
 * `tag 3 exam-prep needs-follow-up`
 * `tag 1 3 5 t/math-2026`
 
+The command box suggests both tag formats after you type `tag`.
+
 ### Removing tags from a student: `untag`
 
 Removes one or more existing tags from a student, or removes all their tags.
 
 Format: `untag INDEX TAG [MORE_TAGS]` or `untag INDEX -all`
 
+* `INDEX` refers to the index number shown in the displayed student list.
+* Every supplied tag must already belong to the selected student. If any tag is missing, the command is rejected and
+  none of the supplied tags is removed.
+* Use `-all` by itself after the index to remove every tag. It cannot be combined with tag names or `--all`.
+
 Examples:
 * `untag 2 parent-follow-up`
 * `untag 5 -all`
 
+The command box suggests both removal formats after you type `untag`.
+
 ### Locating students by name, tag, subject, or schedule: `find`
 
-Finds students whose names, tags, or lesson timings partially match the given search input.
+Finds students whose names, tags, subjects, or lesson timings partially match the given search input.
 
 Formats:
 * `find KEYWORD [MORE_KEYWORDS]`
@@ -385,11 +455,15 @@ Formats:
 * `find c/DAY [TIME_HHmm]`, `find c/TIME_HHmm`, or `find c/DATE [TIME_HHmm]`
 
 * The search is case-insensitive; for example, `hans` matches `Hans`.
-* Without `t/`, the search considers only names.
+* With no search prefix, the search considers only names. Choose one search category per command.
+* With `sub/`, any case-insensitive partial keyword may match an enrolled class subject. Multiple keywords are
+  alternatives (OR): `find sub/physics chemistry` finds students taking either subject, once each. A multi-word query
+  such as `find sub/Computer Science` also matches Environmental Science through `Science`. Subject results place
+  pinned matches first and retain original address-book order within each pin group; they do not use relevance scoring.
+  Use one `sub/` prefix with non-empty alphanumeric keywords, without name text or `t/`/`c/` in the same command.
+  Invalid input keeps the previous results. See the [subject-search guide](SubjectSearch.md) for examples and details.
 * With `t/`, the search considers only tags. Stored tags use lowercase, but tag search keywords are case-insensitive
   for input convenience, e.g. `find t/PRI` matches `priority`.
-* With `sub/`, the search considers class subjects only. It is case-insensitive and matches a student when at least
-  one subject keyword matches, e.g. `find sub/math physics`.
 * Name and tag searches use partial matching, e.g. `ali` matches `Alice`, and `pri` matches `priority`.
 * With `c/`, search by lesson day, exact date, time, or a supported combination. Days accept full names or prefixes,
   e.g. `Monday` or `Mon`. Exact dates use `yyyy-MM-dd`. Times use HHmm style from `0000` to `2359`, e.g. `1800`;
@@ -404,7 +478,7 @@ Formats:
 Examples:
 * `find Joh` returns `John` and `John Doe`
 * `find t/fri` returns students tagged `friends`
-* `find sub/math physics` returns students enrolled in Mathematics or Physics classes
+* `find sub/mAtH` returns students taking subjects such as Mathematics; `find sub/phys chemistry` matches either subject.
 * `find c/Monday` returns students with Monday lessons
 * `find c/1800` returns students with lessons containing `1800`
 * `find c/Mon 1800` returns students with Monday lessons containing `1800`
@@ -437,13 +511,18 @@ Format: `clear`
 
 ### Hiding contact details: `privacy`
 
-Privacy mode replaces the phone, email, and address values on every student card with a fixed seven-asterisk mask,
-such as `Address: *******`. The underlying contact details are not changed or deleted.
+Privacy mode replaces the phone, email, address, and any non-empty guardian contact details on every student card with
+a fixed seven-asterisk mask, such as `Address: *******`. While the mode is active, contact details in success feedback
+from the `add` and `edit` commands are masked too. Names, tags, classes, payment information, and pin status remain
+visible. The underlying contact details are not changed or deleted.
 
 Formats:
 
 * `privacy on` masks all displayed contact details immediately.
 * `privacy off` restores the original contact details immediately.
+
+The mode must be exactly lowercase `on` or `off`, with no additional arguments. The `privacy` command is available
+from the student list, timetable, and class-list views.
 
 While privacy mode is active, the status bar displays `Privacy mode enabled`. The selected mode is saved and restored
 when TutEasy restarts. Privacy mode is disabled by default for existing preference files that do not contain this
@@ -502,11 +581,11 @@ containing that date.
 
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [gn/GUARDIAN_NAME] [gp/GUARDIAN_PHONE] [ge/GUARDIAN_EMAIL] [sub/SUBJECT cost/COST c/SCHEDULE [mode/online\|offline] [link/URL] [location/LOCATION] [notes/NOTES]]` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/Clementi t/friend sub/Math cost/30 c/Monday1800-1930`
+**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [gn/GUARDIAN_NAME] [gp/GUARDIAN_PHONE] [ge/GUARDIAN_EMAIL] [sub/SUBJECT cost/COST c/SCHEDULE [mode/online\|offline] [link/URL] [location/LOCATION] [notes/NOTES]]` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/Clementi sub/Math cost/30 c/Thursday1400-1530`
 **Add class** | `class add sub/SUBJECT cost/COST c/SCHEDULE`<br> e.g., `class add sub/Physics cost/35 c/Wednesday1700-1830`
 **List classes** | `class list`
 **Edit class** | `class edit id/CLASS_ID [sub/SUBJECT] [cost/COST] [c/SCHEDULE]`<br> e.g., `class edit id/C001 cost/40`
-**Enrol in class** | `class enrol STUDENT_INDEX id/CLASS_ID`<br>or `class enrol STUDENT_INDEX [STUDENT_INDEX]... sub/SUBJECT c/SCHEDULE`<br>or `class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/SCHEDULE`<br> e.g., `class enrol 1 3 5 sub/Physics c/Wednesday1700-1830`
+**Enrol in class** | `class enrol STUDENT_INDEX id/CLASS_ID`<br>or `class enrol STUDENT_INDEX [STUDENT_INDEX]... sub/SUBJECT c/SCHEDULE`<br>or `class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/SCHEDULE`<br> e.g., `class enrol 1 3 5 sub/Physics c/Wednesday1700-1830`, `class enrol 1 sub/Physics cost/35 c/Wednesday1700-1830`
 **Unenrol from class** | `class unenrol STUDENT_INDEX id/CLASS_ID`<br> e.g., `class unenrol 1 id/C001`
 **Update payment status** | `class payment STUDENT_INDEX id/CLASS_ID status/paid\|unpaid`<br> e.g., `class payment 1 id/C001 status/paid`
 **Delete class** | `class delete id/CLASS_ID`<br> e.g., `class delete id/C001`

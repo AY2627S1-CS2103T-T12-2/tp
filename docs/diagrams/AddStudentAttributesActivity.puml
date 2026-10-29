@@ -1,0 +1,33 @@
+@startuml
+title Validation and class inheritance when adding a student
+
+start
+:Parse required student fields and optional guardian / class fields;
+if (Field validation succeeds?) then (yes)
+else (no)
+  :Reject input with validation feedback;
+  stop
+endif
+:Check duplicate name ignoring case and repeated spaces;
+if (Name conflicts with another student?) then (yes)
+  :Reject duplicate;
+  stop
+endif
+if (Scheduled class supplied?) then (yes)
+  :Match subject and complete schedule against class catalogue;
+  if (A different class overlaps?) then (yes)
+    :Reject schedule conflict;
+    stop
+  endif
+  :Inherit omitted details or validate explicit shared details;
+  if (Shared details conflict?) then (yes)
+    :Reject detail conflict;
+    stop
+  endif
+  :Link to existing class or create class;
+  :Create unpaid enrolment with individual agreed rate;
+endif
+:Add student and preserve existing students' records;
+:Return success to LogicManager for persistence;
+stop
+@enduml

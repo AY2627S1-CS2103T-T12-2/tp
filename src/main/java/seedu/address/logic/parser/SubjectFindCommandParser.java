@@ -5,7 +5,9 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
 import java.util.List;
+import java.util.logging.Logger;
 
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.SubjectContainsKeywordsPredicate;
@@ -20,6 +22,8 @@ public class SubjectFindCommandParser implements Parser<FindCommand> {
     public static final String MESSAGE_MIXED_MODES = "Find can search only one category at a time. "
             + "Put sub/ immediately after find and use subject keywords only.\n" + MESSAGE_USAGE;
 
+    private static final Logger logger = LogsCenter.getLogger(SubjectFindCommandParser.class);
+
     @Override
     public FindCommand parse(String args) throws ParseException {
         String normalizedArgs = " " + args.trim().replaceAll("\\s+", " ");
@@ -31,17 +35,20 @@ public class SubjectFindCommandParser implements Parser<FindCommand> {
 
         if (!arguments.getPreamble().isEmpty() || arguments.getValue(PREFIX_TAG).isPresent()
                 || arguments.getValue(PREFIX_CLASS).isPresent()) {
+            logger.fine("Subject search rejected: mixed search modes.");
             throw new ParseException(MESSAGE_MIXED_MODES);
         }
         arguments.verifyNoDuplicatePrefixesFor(PREFIX_SUBJECT);
         String subjectQuery = arguments.getValue(PREFIX_SUBJECT).get();
         if (subjectQuery.isEmpty()) {
+            logger.fine("Subject search rejected: no keywords.");
             throw new ParseException(MESSAGE_EMPTY_SUBJECT);
         }
         List<String> keywords = List.of(subjectQuery.split("\\s+"));
         for (String keyword : keywords) {
             ParserUtil.parseLessonSubject(keyword);
         }
+        logger.fine("Parsed subject search with " + keywords.size() + " keyword(s).");
         return new FindCommand(new SubjectContainsKeywordsPredicate(keywords));
     }
 }

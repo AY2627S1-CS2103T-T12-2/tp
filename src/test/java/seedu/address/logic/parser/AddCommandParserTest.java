@@ -163,9 +163,20 @@ public class AddCommandParserTest {
 
     @Test
     public void parse_incompleteClass_failure() {
-        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddCommand.MESSAGE_USAGE);
-        assertParseFailure(parser, NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY + ADDRESS_DESC_AMY
-                + " sub/Math c/Monday1800-1930", expectedMessage);
+        String base = NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY + ADDRESS_DESC_AMY;
+        for (String fields : java.util.List.of(" sub/Math", " cost/20", " c/Monday1800-1930",
+                " sub/Math cost/20", " sub/Math c/Monday1800-1930", " cost/20 c/Monday1800-1930")) {
+            assertParseFailure(parser, base + fields, AddCommandParser.MESSAGE_INCOMPLETE_CLASS);
+        }
+    }
+
+    @Test
+    public void parse_emptyClassFieldOrStartOnlySchedule_failure() {
+        String base = NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY + ADDRESS_DESC_AMY;
+        assertParseFailure(parser, base + " sub/ cost/20 c/Monday1800-1930", Subject.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, base + " sub/Math cost/ c/Monday1800-1930", Cost.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, base + " sub/Math cost/20 c/", LessonTiming.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, base + " sub/Math cost/20 c/Monday1800", LessonTiming.MESSAGE_CONSTRAINTS);
     }
 
     @Test

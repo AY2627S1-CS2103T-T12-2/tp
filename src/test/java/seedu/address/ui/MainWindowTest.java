@@ -7,13 +7,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -21,17 +27,29 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.Logic;
+import seedu.address.logic.LogicManager;
+import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.ModelManager;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.Phone;
 import seedu.address.model.timetable.TimetableDay;
+import seedu.address.storage.JsonAddressBookStorage;
+import seedu.address.storage.JsonUserPrefsStorage;
+import seedu.address.storage.StorageManager;
 import seedu.address.testutil.PersonBuilder;
 
 public class MainWindowTest {
+
+    @TempDir
+    public Path temporaryFolder;
 
     @BeforeAll
     public static void startJavaFx() throws InterruptedException {
@@ -91,6 +109,72 @@ public class MainWindowTest {
             assertEquals("123 Privacy Street", address.getText());
 
             stage.close();
+        });
+    }
+
+    @Test
+    public void rejectedCommands_displayFeedbackAndRetainInputWithoutLoggingPrivateValues() throws Exception {
+        runOnFxThread(() -> {
+            Person person = new PersonBuilder().withName("Private Student").build();
+            ModelManager model = new ModelManager();
+            model.addPerson(person);
+            Path dataFile = temporaryFolder.resolve("students.json");
+            Logic logic = new LogicManager(model, new StorageManager(new JsonAddressBookStorage(dataFile),
+                    new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json"))));
+            Stage stage = new Stage();
+            MainWindow mainWindow = new MainWindow(stage, logic, dataFile);
+            Logger logger = LogsCenter.getLogger(MainWindow.class);
+            Level originalLevel = logger.getLevel();
+            List<String> messages = new ArrayList<>();
+            Handler capture = new Handler() {
+                @Override
+                public void publish(LogRecord record) {
+                    messages.add(record.getMessage());
+                }
+
+                @Override
+                public void flush() {
+                }
+
+                @Override
+                public void close() {
+                }
+            };
+            logger.addHandler(capture);
+            logger.setLevel(Level.ALL);
+            try {
+                mainWindow.fillInnerParts();
+                TextField input = (TextField) stage.getScene().lookup("#commandTextField");
+                TextArea feedback = (TextArea) stage.getScene().lookup("#resultDisplay");
+                String duplicate = "add n/Private Student p/98887777 e/private@example.com a/Secret Street";
+                String invalidGuardian = duplicate + " gp/private-guardian-phone";
+
+                execute(input, invalidGuardian);
+                assertEquals("Guardian phone: " + Phone.MESSAGE_CONSTRAINTS, feedback.getText());
+                assertEquals(invalidGuardian, input.getText());
+                assertTrue(input.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+
+                execute(input, duplicate);
+                assertEquals(AddCommand.MESSAGE_DUPLICATE_PERSON, feedback.getText());
+                assertEquals(duplicate, input.getText());
+                assertTrue(input.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+                assertEquals(List.of(person), model.getAddressBook().getPersonList());
+                assertEquals(List.of("Command rejected; displaying error feedback.",
+                        "Command rejected; displaying error feedback."), messages);
+
+                execute(input, "list");
+                assertEquals("", input.getText());
+                assertFalse(input.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+                assertEquals("Listed all persons.", feedback.getText());
+                for (String secret : List.of("Private Student", "98887777", "private@example.com", "Secret Street",
+                        "private-guardian-phone")) {
+                    assertFalse(String.join("\n", messages).contains(secret));
+                }
+            } finally {
+                logger.removeHandler(capture);
+                logger.setLevel(originalLevel);
+                stage.close();
+            }
         });
     }
 
