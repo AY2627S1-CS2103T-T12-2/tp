@@ -202,7 +202,7 @@ when a class is edited and are not reused after deletion.
 
 Format: `class add sub/SUBJECT cost/COST c/SCHEDULE`
 
-Example: `class add sub/Physics cost/35 c/Wednesday1700-1830`
+Example: `class add sub/Physics cost/35 c/Wednesday1800-1930`
 
 Classes cannot share the same subject and timing, and overlapping class times are rejected.
 
@@ -246,7 +246,7 @@ provide all student indexes before the prefixes:
 
 `class enrol STUDENT_INDEX [STUDENT_INDEX]... sub/SUBJECT c/SCHEDULE`
 
-Example: `class enrol 1 3 5 sub/Physics c/Wednesday1700-1830`
+Example: `class enrol 1 3 5 sub/Physics c/Wednesday1800-1930`
 
 The existing single-student format that supplies the class cost is also supported:
 
