@@ -4,12 +4,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.model.lesson.Cost;
+import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.OneOffLessonSchedule;
+import seedu.address.model.lesson.Subject;
 import seedu.address.testutil.PersonBuilder;
 
 public class LessonContainsKeywordsPredicateTest {
@@ -47,6 +52,14 @@ public class LessonContainsKeywordsPredicateTest {
         LessonContainsKeywordsPredicate sameDayDifferentTimePredicateCopy =
                 new LessonContainsKeywordsPredicate(Optional.of("first"), Optional.of("1900"));
         assertFalse(sameDayDifferentTimePredicate.equals(sameDayDifferentTimePredicateCopy));
+
+        LessonContainsKeywordsPredicate sameDayAndTimeDifferentDatePredicate =
+                new LessonContainsKeywordsPredicate(Optional.of("tue"), Optional.of("1800"),
+                        Optional.of(LocalDate.parse("2026-10-20")));
+        LessonContainsKeywordsPredicate sameDayAndTimeDifferentDatePredicateCopy =
+                new LessonContainsKeywordsPredicate(Optional.of("tue"), Optional.of("1800"),
+                        Optional.of(LocalDate.parse("2026-10-27")));
+        assertFalse(sameDayAndTimeDifferentDatePredicate.equals(sameDayAndTimeDifferentDatePredicateCopy));
     }
 
     @Test
@@ -119,6 +132,40 @@ public class LessonContainsKeywordsPredicateTest {
 
         predicate = new LessonContainsKeywordsPredicate(List.of("2026-10-21"));
         assertFalse(predicate.test(personWithOneOffClass("2026-10-20T1800-1930")));
+    }
+
+    @Test
+    public void score_multipleMatchingClasses_countsEachSearchComponentOnce() {
+        Person person = new PersonBuilder().withLessons(
+                new seedu.address.model.lesson.Lesson(new Subject("Math"), new Cost("30"),
+                        new LessonTiming("Monday1800-1900")),
+                new seedu.address.model.lesson.Lesson(new Subject("Physics"), new Cost("40"),
+                        new LessonTiming("Monday1900-2000"))).build();
+
+        assertEquals(1, new LessonContainsKeywordsPredicate(List.of("Mon")).score(person));
+        assertEquals(2, new LessonContainsKeywordsPredicate(List.of("Mon", "1900")).score(person));
+    }
+
+    @Test
+    public void score_multipleOneOffClassesOnSameDate_countsDateOnce() {
+        Person person = new PersonBuilder().withLessons(
+                new seedu.address.model.lesson.Lesson(new Subject("Math"), new Cost("30"),
+                        new OneOffLessonSchedule("2026-10-20T1800-1900")),
+                new seedu.address.model.lesson.Lesson(new Subject("Physics"), new Cost("40"),
+                        new OneOffLessonSchedule("2026-10-20T1900-2000"))).build();
+
+        assertEquals(1, new LessonContainsKeywordsPredicate(List.of("2026-10-20")).score(person));
+    }
+
+    @Test
+    public void score_keywordsMatchingDifferentClasses_doesNotMatch() {
+        Person person = new PersonBuilder().withLessons(
+                new seedu.address.model.lesson.Lesson(new Subject("Math"), new Cost("30"),
+                        new LessonTiming("Monday1800-1830")),
+                new seedu.address.model.lesson.Lesson(new Subject("Physics"), new Cost("40"),
+                        new LessonTiming("Tuesday1900-1930"))).build();
+
+        assertEquals(0, new LessonContainsKeywordsPredicate(List.of("Mon", "1900")).score(person));
     }
 
     @Test
