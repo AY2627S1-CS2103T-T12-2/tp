@@ -184,6 +184,11 @@ public class Person {
                 && (legacyCost.isEmpty() || legacyLessonEnd(legacyLesson).isEmpty());
     }
 
+    /** Returns whether the retained legacy student fields can form at least one current lesson. */
+    public boolean hasMigratableLegacyLessonDetails() {
+        return !legacySubjects.isEmpty() && legacyCost.isPresent() && legacyLessonEnd(legacyLesson).isPresent();
+    }
+
     public GuardianContact getGuardianContact() {
         return guardianContact;
     }

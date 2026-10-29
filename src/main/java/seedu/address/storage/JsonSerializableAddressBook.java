@@ -98,7 +98,8 @@ class JsonSerializableAddressBook {
         reconcileLegacyClassDetails(addressBook, loadedStudents);
         for (LoadedStudent loadedStudent : loadedStudents) {
             Person person = loadedStudent.person();
-            boolean hasLegacyLessons = !person.getLegacyLessons().isEmpty();
+            boolean hasMigratedLegacyDetails = !person.getLegacyLessons().isEmpty()
+                    || (!person.getEnrollments().isEmpty() && person.hasMigratableLegacyLessonDetails());
             if (!studentIds.add(person.getStudentId())) {
                 throw new IllegalValueException(MESSAGE_DUPLICATE_STUDENT_ID);
             }
@@ -131,7 +132,7 @@ class JsonSerializableAddressBook {
             if (distinctClasses != linkedEnrollments.size()) {
                 throw new IllegalValueException(MESSAGE_DUPLICATE_ENROLMENT);
             }
-            Person restored = hasLegacyLessons
+            Person restored = hasMigratedLegacyDetails
                     ? person.withMigratedEnrollments(linkedEnrollments)
                     : person.withEnrollments(linkedEnrollments);
             addressBook.addPerson(restored);
