@@ -43,7 +43,7 @@ public class ClassEnrolCommand extends ClassCommand {
             + PREFIX_SUBJECT + "Math " + PREFIX_CLASS + "Monday1800-1930\n"
             + COMMAND_WORD + " " + SUBCOMMAND_WORD + " 1 "
             + PREFIX_SUBJECT + "Math " + PREFIX_COST + "30 " + PREFIX_CLASS + "Monday1800-1930";
-    public static final String MESSAGE_SUCCESS = "Enrolled %1$s in class: %2$s";
+    public static final String MESSAGE_SUCCESS = "Enrolled %1$s in class %2$s: %3$s, %4$s.";
     public static final String MESSAGE_BATCH_SUCCESS = "Enrolled %1$s in class: %2$s, %3$s.";
     public static final String MESSAGE_BATCH_PARTIAL_SUCCESS =
             "Enrolled %1$s in class: %2$s, %3$s. Already enrolled and skipped: %4$s.";
@@ -131,9 +131,8 @@ public class ClassEnrolCommand extends ClassCommand {
         }
 
         if (!isBatchExistingClassCommand()) {
-            String displayedClass = tuitionClass.getSubject() + ", " + tuitionClass.getSchedule();
-            return new CommandResult(String.format(MESSAGE_SUCCESS,
-                    selectedPersons.get(0).getName(), displayedClass));
+            return new CommandResult(String.format(MESSAGE_SUCCESS, selectedPersons.get(0).getName(),
+                    tuitionClass.getClassId(), tuitionClass.getSubject(), tuitionClass.getSchedule()));
         }
         String enrolledStudentNames = formatStudentNames(personsToEnrol);
         if (alreadyEnrolledPersons.isEmpty()) {

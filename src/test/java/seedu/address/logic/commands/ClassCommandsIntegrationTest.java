@@ -54,9 +54,11 @@ public class ClassCommandsIntegrationTest {
         CommandResult result = new ClassEnrolCommand(Index.fromOneBased(1), LESSON).execute(model);
         Person updatedPerson = model.getAddressBook().getPersonList().get(0);
 
-        assertEquals("Enrolled Alice Pauline in class: Math, Monday 18:00-19:30",
+        TuitionClass createdClass = model.getTuitionClassList().get(0);
+        assertEquals(String.format(ClassEnrolCommand.MESSAGE_SUCCESS, originalPerson.getName(),
+                        createdClass.getClassId(), createdClass.getSubject(), createdClass.getSchedule()),
                 result.getFeedbackToUser());
-        assertFalse(result.getFeedbackToUser().contains("seedu.address"));
+        assertFalse(result.getFeedbackToUser().contains("seedu.address.model"));
         assertTrue(updatedPerson.getLessons().contains(LESSON));
         assertEquals(originalPerson.getName(), updatedPerson.getName());
         assertEquals(originalPerson.getPhone(), updatedPerson.getPhone());
