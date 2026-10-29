@@ -23,6 +23,10 @@ public class LessonTimingTest {
         assertFalse(LessonTiming.isValidLessonTiming("Monday2500-2600"));
         assertFalse(LessonTiming.isValidLessonTiming("Monday2400-0100"));
         assertFalse(LessonTiming.isValidLessonTiming("Monday1800-2400"));
+        assertEquals("Invalid time '2460'. Times must use 24-hour HHmm from 0000 to 2359.",
+                LessonTiming.getValidationError("Monday2460-2500").orElseThrow());
+        assertEquals("Invalid time '2500'. Times must use 24-hour HHmm from 0000 to 2359.",
+                LessonTiming.getValidationError("Monday2300-2500").orElseThrow());
     }
 
     @Test

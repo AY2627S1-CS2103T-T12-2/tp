@@ -96,6 +96,21 @@ public class FindCommandTest {
     }
 
     @Test
+    public void execute_partialTagKeywordsAtHyphenBoundaries_findMatchingTag() throws Exception {
+        Person taggedPerson = new PersonBuilder().withName("Charlotte Oliveiro").withTags("exam-prep").build();
+        AddressBook addressBook = new AddressBook();
+        addressBook.addPerson(taggedPerson);
+        Model taggedModel = new ModelManager(addressBook, new UserPrefs());
+        AddressBookParser parser = new AddressBookParser();
+
+        parser.parseCommand("find t/exam-").execute(taggedModel);
+        assertEquals(List.of(taggedPerson), taggedModel.getFilteredPersonList());
+
+        parser.parseCommand("find t/-prep").execute(taggedModel);
+        assertEquals(List.of(taggedPerson), taggedModel.getFilteredPersonList());
+    }
+
+    @Test
     public void execute_lessonKeyword_matchingPersonsFound() {
         AddressBook addressBook = new AddressBook();
         Person mondayStudent = personWithLesson("Monday Student", "Monday1800");
@@ -165,6 +180,44 @@ public class FindCommandTest {
         new FindCommand(predicate).execute(rankedModel);
 
         assertEquals(List.of(pinnedOneMatch, unpinnedTwoMatches), rankedModel.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_equalScoreAfterPinning_preservesCurrentOrder() throws Exception {
+        AddressBook addressBook = new AddressBook();
+        Person bernice = new PersonBuilder().withName("Bernice Yu").build();
+        Person irfan = new PersonBuilder().withName("Irfan Ibrahim").build();
+        addressBook.addPerson(bernice);
+        addressBook.addPerson(irfan);
+        Model rankedModel = new ModelManager(addressBook, new UserPrefs());
+        AddressBookParser parser = new AddressBookParser();
+
+        parser.parseCommand("find Irfan Ibrahim Bernice").execute(rankedModel);
+        parser.parseCommand("pin 1").execute(rankedModel);
+        parser.parseCommand("pin 2").execute(rankedModel);
+        parser.parseCommand("find Irfan Bernice").execute(rankedModel);
+
+        assertEquals(List.of(irfan.withPinned(true), bernice.withPinned(true)),
+                rankedModel.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_equalScoreWithNewMatches_keepsCurrentMatchesBeforeStoredOrder() {
+        AddressBook addressBook = new AddressBook();
+        Person firstNewMatch = new PersonBuilder().withName("Alpha Student").build();
+        Person currentMatch = new PersonBuilder().withName("Current Student").build();
+        Person secondNewMatch = new PersonBuilder().withName("Beta Student").build();
+        addressBook.addPerson(firstNewMatch);
+        addressBook.addPerson(currentMatch);
+        addressBook.addPerson(secondNewMatch);
+        Model rankedModel = new ModelManager(addressBook, new UserPrefs());
+
+        new FindCommand(new NameContainsKeywordsPredicate(List.of("Current"))).execute(rankedModel);
+        new FindCommand(new NameContainsKeywordsPredicate(List.of("Alpha", "Current", "Beta")))
+                .execute(rankedModel);
+
+        assertEquals(List.of(currentMatch, firstNewMatch, secondNewMatch),
+                rankedModel.getFilteredPersonList());
     }
 
     @Test

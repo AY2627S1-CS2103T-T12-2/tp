@@ -50,7 +50,12 @@ public class TagCommandParser implements Parser<TagCommand> {
         }
 
         List<Index> indexes = ParserUtil.parseIndexes(preamble);
-        Tag tag = ParserUtil.parseTag(argumentMultimap.getValue(PREFIX_TAG).orElse(""));
+        String tagArguments = argumentMultimap.getValue(PREFIX_TAG).orElse("");
+        String[] tagNames = tagArguments.trim().split("\\s+");
+        if (tagNames.length > 1 && Arrays.stream(tagNames).allMatch(Tag::isValidTagName)) {
+            throw new ParseException(TagCommand.MESSAGE_BATCH_MULTIPLE_TAGS);
+        }
+        Tag tag = ParserUtil.parseTag(tagArguments);
         return new TagCommand(indexes, tag);
     }
 }

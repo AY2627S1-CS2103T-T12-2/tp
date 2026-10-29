@@ -1,0 +1,49 @@
+@startuml
+!include style.puml
+
+actor User
+participant ":MainWindow" as MainWindow UI_COLOR
+participant ":LogicManager" as LogicManager LOGIC_COLOR
+participant ":ModelManager" as ModelManager MODEL_COLOR
+participant "TimetableBuilder" as TimetableBuilder MODEL_COLOR
+participant ":TimetablePanel" as TimetablePanel UI_COLOR
+
+User -> MainWindow : enter "timetable"
+activate MainWindow
+MainWindow -> LogicManager : execute("timetable")
+activate LogicManager
+LogicManager --> MainWindow : CommandResult(TIMETABLE)
+deactivate LogicManager
+create TimetablePanel
+MainWindow -> TimetablePanel : new(getCurrentDate, getTimetable)
+activate TimetablePanel
+TimetablePanel -> LogicManager : getCurrentDate()
+LogicManager --> TimetablePanel : current date
+TimetablePanel -> LogicManager : getTimetable(week start)
+activate LogicManager
+LogicManager -> ModelManager : getTimetable(week start)
+activate ModelManager
+ModelManager -> TimetableBuilder : build(classes, students, week start)
+activate TimetableBuilder
+TimetableBuilder --> ModelManager : seven TimetableDay values
+deactivate TimetableBuilder
+ModelManager --> LogicManager : timetable days
+deactivate ModelManager
+LogicManager --> TimetablePanel : timetable days
+deactivate LogicManager
+TimetablePanel --> MainWindow : initialized current-week panel
+deactivate TimetablePanel
+MainWindow --> User : show read-only timetable
+deactivate MainWindow
+
+User -> TimetablePanel : Previous / Next / Today
+activate TimetablePanel
+TimetablePanel -> LogicManager : getTimetable(selected week)
+LogicManager -> ModelManager : getTimetable(selected week)
+ModelManager -> TimetableBuilder : build(classes, students, selected week)
+TimetableBuilder --> ModelManager : seven TimetableDay values
+ModelManager --> LogicManager : timetable days
+LogicManager --> TimetablePanel : timetable days
+TimetablePanel --> User : refresh range and entries
+deactivate TimetablePanel
+@enduml

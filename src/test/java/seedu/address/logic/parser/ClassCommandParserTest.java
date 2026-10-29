@@ -44,6 +44,11 @@ public class ClassCommandParserTest {
     public void parse_newClassCommands_success() {
         assertParseSuccess(parser, " add sub/Math cost/30 c/Monday1800-1930",
                 new ClassAddCommand(SUBJECT, new Cost("30"), TIMING));
+        assertParseSuccess(parser, " add sub/A-Math cost/30 c/Monday1800-1930",
+                new ClassAddCommand(new Subject("A-Math"), new Cost("30"), TIMING));
+        assertParseSuccess(parser, " add sub/C++ Programming cost/30 c/Tuesday1800-1930",
+                new ClassAddCommand(new Subject("C++ Programming"), new Cost("30"),
+                        new LessonTiming("Tuesday1800-1930")));
         assertParseSuccess(parser, " edit id/c001 cost/35",
                 new ClassEditCommand(new ClassId("C001"), Optional.empty(),
                         Optional.of(new Cost("35")), Optional.empty()));
@@ -205,6 +210,12 @@ public class ClassCommandParserTest {
     public void parse_enrolInvalidIndex_failure() {
         assertParseFailure(parser, " enrol 0 sub/Math cost/30 c/Monday1800-1930",
                 ParserUtil.MESSAGE_INVALID_INDEX);
+    }
+
+    @Test
+    public void parse_enrolMultipleIndexesWithClassId_reportsSupportedSyntax() {
+        assertParseFailure(parser, " enrol 1 2 id/C001",
+                ClassEnrolCommandParser.MESSAGE_ID_REQUIRES_ONE_STUDENT);
     }
 
     @Test

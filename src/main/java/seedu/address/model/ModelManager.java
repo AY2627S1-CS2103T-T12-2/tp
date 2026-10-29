@@ -45,7 +45,8 @@ public class ModelManager implements Model {
     public ModelManager(ReadOnlyAddressBook addressBook, ReadOnlyUserPrefs userPrefs) {
         requireAllNonNull(addressBook, userPrefs);
 
-        logger.fine("Initializing with address book: " + addressBook + " and user prefs " + userPrefs);
+        logger.fine("Initializing model with " + addressBook.getPersonList().size() + " student(s) and "
+                + addressBook.getTuitionClassList().size() + " class(es).");
 
         this.addressBook = new AddressBook(addressBook);
         this.userPrefs = new UserPrefs(userPrefs);
@@ -269,6 +270,18 @@ public class ModelManager implements Model {
     @Override
     public ObservableList<Person> getFilteredPersonList() {
         return sortedFilteredPersons;
+    }
+
+    @Override
+    public FilteredPersonListState getFilteredPersonListState() {
+        return new FilteredPersonListState(filteredPersons.getPredicate(), sortedFilteredPersons.getComparator());
+    }
+
+    @Override
+    public void restoreFilteredPersonListState(FilteredPersonListState state) {
+        requireNonNull(state);
+        filteredPersons.setPredicate(state.predicate());
+        sortedFilteredPersons.setComparator(state.comparator());
     }
 
     @Override
