@@ -56,7 +56,7 @@ public class ClassEditCommand extends ClassCommand {
         TuitionClass original = model.getTuitionClass(classId);
         TuitionClass edited = new TuitionClass(classId, subject.orElse(original.getSubject()),
                 cost.orElse(original.getCost()), schedule.orElse(original.getSchedule()), original.getDetails());
-        if (edited.equals(original)) {
+        if (edited.equals(original) && edited.getSubject().value.equals(original.getSubject().value)) {
             throw new CommandException(MESSAGE_NO_CHANGE);
         }
         boolean duplicate = model.getTuitionClassList().stream()
