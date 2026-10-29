@@ -36,6 +36,10 @@ public class SubjectTest {
 
         assertTrue(Subject.isValidSubject("Computer Science"));
         assertFalse(Subject.isValidSubject(""));
+        assertTrue(Subject.isValidSubject("A".repeat(Subject.MAX_LENGTH)));
+        assertFalse(Subject.isValidSubject("A".repeat(Subject.MAX_LENGTH + 1)));
+        assertThrows(IllegalArgumentException.class, () ->
+                new Subject("A".repeat(Subject.MAX_LENGTH + 1)));
         assertEquals(computerScience, computerScience);
         assertEquals(computerScience, new Subject("computer science"));
         assertNotEquals(computerScience, new Subject("Computer Studies"));
