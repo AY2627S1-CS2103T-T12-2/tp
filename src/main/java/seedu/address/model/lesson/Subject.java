@@ -6,9 +6,12 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 /** Represents the single subject taught in a lesson. */
 public class Subject {
 
+    public static final int MAX_LENGTH = 100;
+
     public static final String MESSAGE_CONSTRAINTS =
             "Subjects should start with a letter or number and contain only letters, numbers, spaces, "
-                    + "and common subject punctuation (+, -, &, apostrophe, period, or parentheses).";
+                    + "and common subject punctuation (+, -, &, apostrophe, period, or parentheses), "
+                    + "and should not exceed " + MAX_LENGTH + " characters.";
     public static final String VALIDATION_REGEX = "[\\p{Alnum}][\\p{Alnum} +&'().\\-]*";
 
     public final String value;
@@ -22,7 +25,7 @@ public class Subject {
     }
 
     public static boolean isValidSubject(String test) {
-        return test.matches(VALIDATION_REGEX);
+        return test.length() <= MAX_LENGTH && test.matches(VALIDATION_REGEX);
     }
 
     @Override

@@ -107,6 +107,7 @@ and use only lowercase letters, numbers, and single hyphens between characters.
 * To include a scheduled class, supply `sub/SUBJECT`, `cost/COST`, and `c/SCHEDULE` together. Subjects contain letters,
   digits and spaces. The agreed rate is non-negative, with at most two decimal places, e.g. `30`, `35.50`, or `0`.
   Costs cannot exceed `1000000.00`.
+  Subject names can contain at most 100 characters.
   Supplying only some of these fields rejects the entire command; no student or class is added.
 * Times use the 24-hour range `0000`–`2359`, and the end time must be later than the start time.
 * A weekly schedule uses `DAYHHmm-HHmm`, for example `Monday1800-1930`.
