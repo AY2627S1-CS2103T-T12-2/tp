@@ -1,6 +1,7 @@
 package seedu.address.model.person;
 
 import java.util.List;
+import java.util.Locale;
 
 import seedu.address.commons.util.StringUtil;
 import seedu.address.commons.util.ToStringBuilder;
@@ -17,6 +18,8 @@ public class NameContainsKeywordsPredicate implements ScoredPersonPredicate {
     public NameContainsKeywordsPredicate(List<String> keywords) {
         this.keywords = keywords.stream()
                 .filter(keyword -> !keyword.isBlank())
+                .map(keyword -> keyword.toLowerCase(Locale.ROOT))
+                .distinct()
                 .toList();
     }
 

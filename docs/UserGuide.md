@@ -486,7 +486,7 @@ Formats:
   displayed results remain unchanged.
 * Name and tag searches return students matching at least one keyword. Matching pinned students are shown before
   matching unpinned students. Within each group, students with more matching keywords are shown first; ties keep the
-  current list order.
+  current list order. Repeating a keyword, even with different letter case, does not increase its relevance score.
 * After a successful `find`, the command box shows this light-grey hint: `Type 'list' to return to the home page.`
 
 Examples:

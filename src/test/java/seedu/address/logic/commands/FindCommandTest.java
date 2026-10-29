@@ -189,6 +189,32 @@ public class FindCommandTest {
     }
 
     @Test
+    public void execute_repeatedNameAndTagKeywords_preservesTiedOrder() throws Exception {
+        AddressBook addressBook = new AddressBook();
+        Person bob = new PersonBuilder().withName("Bob").withTags("priority").build();
+        Person alice = new PersonBuilder().withName("Alice").withTags("urgent").build();
+        addressBook.addPerson(bob);
+        addressBook.addPerson(alice);
+        Model rankedModel = new ModelManager(addressBook, new UserPrefs());
+        AddressBookParser parser = new AddressBookParser();
+
+        parser.parseCommand("find alice bob").execute(rankedModel);
+        assertEquals(List.of(bob, alice), rankedModel.getFilteredPersonList());
+
+        parser.parseCommand("list").execute(rankedModel);
+        parser.parseCommand("find alice ALICE bob").execute(rankedModel);
+        assertEquals(List.of(bob, alice), rankedModel.getFilteredPersonList());
+
+        parser.parseCommand("list").execute(rankedModel);
+        parser.parseCommand("find t/urgent priority").execute(rankedModel);
+        assertEquals(List.of(bob, alice), rankedModel.getFilteredPersonList());
+
+        parser.parseCommand("list").execute(rankedModel);
+        parser.parseCommand("find t/urgent URGENT priority").execute(rankedModel);
+        assertEquals(List.of(bob, alice), rankedModel.getFilteredPersonList());
+    }
+
+    @Test
     public void execute_pinnedMatches_placesPinnedFirstAndExcludesNonMatches() {
         AddressBook addressBook = new AddressBook();
         Person unpinnedTwoMatches = new PersonBuilder().withName("Ann Marie").build();

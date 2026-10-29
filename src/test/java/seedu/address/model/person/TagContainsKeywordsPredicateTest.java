@@ -82,6 +82,15 @@ public class TagContainsKeywordsPredicateTest {
     }
 
     @Test
+    public void score_repeatedKeywordWithDifferentCase_countsOnce() {
+        TagContainsKeywordsPredicate predicate =
+                new TagContainsKeywordsPredicate(List.of("urgent", "URGENT", "priority"));
+        Person alice = new PersonBuilder().withTags("urgent").build();
+
+        assertEquals(1, predicate.score(alice));
+    }
+
+    @Test
     public void toStringMethod() {
         List<String> keywords = List.of("keyword1", "keyword2");
         TagContainsKeywordsPredicate predicate = new TagContainsKeywordsPredicate(keywords);
