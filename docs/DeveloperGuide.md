@@ -948,7 +948,8 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 
 * 4c. Tutor requests to view the default student list.
 
-    * 4c1. TutEasy switches the display back to the original alphabetically sorted student list.
+    * 4c1. TutEasy switches the display back to the student list, with pinned students first and the original order
+      preserved within the pinned and unpinned groups.
 
       Use case ends.
 
