@@ -3,6 +3,7 @@ package seedu.address.ui;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Region;
+import javafx.scene.text.Text;
 import seedu.address.model.lesson.TuitionClass;
 
 /** Card displaying one class and its stable ID. */
@@ -18,7 +19,7 @@ public class TuitionClassCard extends UiPart<Region> {
     @FXML
     private Label cost;
     @FXML
-    private Label details;
+    private Text details;
 
     /** Creates a card for the supplied class. */
     public TuitionClassCard(TuitionClass tuitionClass) {

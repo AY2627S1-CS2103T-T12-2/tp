@@ -132,6 +132,12 @@
     -fx-text-fill: #010504;
 }
 
+.cell-small-text {
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 13px;
+    -fx-fill: #010504;
+}
+
 .list-cell .balance-badge {
     -fx-background-color: #4b5054;
     -fx-background-radius: 4;

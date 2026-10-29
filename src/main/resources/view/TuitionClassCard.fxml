@@ -4,6 +4,8 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.TextFlow?>
 
 <HBox fx:id="cardPane" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
       spacing="12" styleClass="tuition-class-card">
@@ -12,7 +14,9 @@
   <VBox spacing="3" HBox.hgrow="ALWAYS">
     <Label fx:id="subject" styleClass="cell_big_label" />
     <Label fx:id="schedule" styleClass="cell_small_label" />
-    <Label fx:id="details" styleClass="cell_small_label" wrapText="true" />
+    <TextFlow fx:id="detailsFlow">
+      <Text fx:id="details" styleClass="cell-small-text" />
+    </TextFlow>
   </VBox>
   <Label fx:id="cost" styleClass="cell_small_label" />
 </HBox>
