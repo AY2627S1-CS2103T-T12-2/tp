@@ -165,7 +165,7 @@ public class MainWindowTest {
                 execute(input, "list");
                 assertEquals("", input.getText());
                 assertFalse(input.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
-                assertEquals("Listed all persons.", feedback.getText());
+                assertEquals("Listed all students.", feedback.getText());
                 for (String secret : List.of("Private Student", "98887777", "private@example.com", "Secret Street",
                         "private-guardian-phone")) {
                     assertFalse(String.join("\n", messages).contains(secret));
