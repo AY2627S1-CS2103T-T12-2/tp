@@ -213,8 +213,9 @@ The new student's guardian details and agreed rate are individual. Existing clas
 statuses are unchanged; the new enrolment starts unpaid.
 
 Mode and extra class details appear on student cards, class listings and timetable entries. They remain after the last
-student unenrols. `class delete id/CLASS_ID` removes the class and all its enrolments. `edit` does not accept guardian
-or class-detail fields; `class enrol` inherits existing class details. `class edit` changes subject, default cost or
+student unenrols. `class delete id/CLASS_ID` removes the class and all its enrolments. `edit` supports guardian fields
+but does not accept class-detail fields; `class enrol` inherits existing class details. `class edit` changes subject,
+default cost or
 schedule while preserving mode, link, location, notes and individual payment statuses. Use `list` to leave either
 read-only view before modifying data.
 
@@ -415,11 +416,14 @@ The command box suggests the required index after you type `pin` or `unpin`.
 
 Edits an existing student.
 
-Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]... `
+Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]... [gn/GUARDIAN_NAME] [gp/GUARDIAN_PHONE] [ge/GUARDIAN_EMAIL]`
 
 * Edits the student at the specified `INDEX`. The index refers to the index number shown in the displayed student list. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
+* Guardian fields can be edited independently using the same [validation rules](#guardian-field-rules) as `add`.
+  Omitted fields retain their existing values. Use an empty `gn/`, `gp/`, or `ge/` to clear that guardian field;
+  `edit 1 gn/ gp/ ge/` removes all guardian contact information. Repeating any guardian prefix is rejected.
 * When editing tags, all of the student's existing tags are removed; adding tags is not cumulative.
 * To remove all of a student's tags, enter `t/` without a tag after it.
 * Quote the whole address if it contains prefix-like text, e.g. `edit 1 a/"Unit p/333"`. Unrecognised prefix-like
@@ -429,6 +433,8 @@ Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st student to be `91234567` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd student to be `Betsy Crower` and clears all existing tags.
 *  `edit 1 a/"Unit p/333"` Sets the address of the 1st student to the literal value `Unit p/333` without changing the phone number.
+* `edit 1 gn/Mary-Anne O'Connor gp/98765432` updates the guardian name and phone, keeping their email.
+* `edit 1 ge/` removes only the guardian email.
 
 ### Tagging students: `tag`
 
@@ -638,7 +644,7 @@ Action     | Format, Examples
 **Delete class** | `class delete id/CLASS_ID` or `class delete sub/SUBJECT c/SCHEDULE`<br> e.g., `class delete id/C001`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
-**Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
+**Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... [gn/GUARDIAN_NAME] [gp/GUARDIAN_PHONE] [ge/GUARDIAN_EMAIL]`<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Tag**    | `tag INDEX TAG [MORE_TAGS]` or `tag STUDENT_INDEX [MORE_INDEXES] t/TAG`<br> e.g., `tag 3 exam-prep needs-follow-up`, `tag 1 3 5 t/math-2026`
 **Untag**  | `untag INDEX TAG [MORE_TAGS]` or `untag INDEX -all`<br> e.g., `untag 2 parent-follow-up`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`, `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]`, `find sub/SUBJECT_KEYWORD [MORE_SUBJECT_KEYWORDS]`, `find c/DAY [TIME_HHmm]`, `find c/TIME_HHmm`, or `find c/DATE [TIME_HHmm]`<br> e.g., `find Jam`, `find t/fri`, `find sub/Math Physics`, `find c/Mon 1800`, `find c/2026-10-20`

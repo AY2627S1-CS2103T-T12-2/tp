@@ -58,6 +58,20 @@ public class EditPersonDescriptorTest {
     }
 
     @Test
+    public void guardianFields_copyAndEquality() {
+        EditPersonDescriptor original = new EditPersonDescriptorBuilder().withGuardianName("Mary")
+                .withGuardianPhone("88888888").withGuardianEmail("mary@example.com").build();
+        assertEquals(original, new EditPersonDescriptor(original));
+        assertFalse(original.equals(new EditPersonDescriptorBuilder(original).withGuardianName("").build()));
+        assertFalse(original.equals(new EditPersonDescriptorBuilder(original).withGuardianPhone("").build()));
+        assertFalse(original.equals(new EditPersonDescriptorBuilder(original).withGuardianEmail("").build()));
+        EditPersonDescriptor clear = new EditPersonDescriptorBuilder().withGuardianName("").build();
+        assertTrue(clear.isAnyFieldEdited());
+        assertFalse(clear.equals(new EditPersonDescriptor()));
+        assertEquals(clear, new EditPersonDescriptor(clear));
+    }
+
+    @Test
     public void toStringMethod() {
         EditPersonDescriptor editPersonDescriptor = new EditPersonDescriptor();
         String expected = EditPersonDescriptor.class.getCanonicalName() + "{name="
@@ -65,7 +79,10 @@ public class EditPersonDescriptorTest {
                 + editPersonDescriptor.getPhone().orElse(null) + ", email="
                 + editPersonDescriptor.getEmail().orElse(null) + ", address="
                 + editPersonDescriptor.getAddress().orElse(null) + ", tags="
-                + editPersonDescriptor.getTags().orElse(null) + "}";
+                + editPersonDescriptor.getTags().orElse(null) + ", guardianName="
+                + editPersonDescriptor.getGuardianName().orElse(null) + ", guardianPhone="
+                + editPersonDescriptor.getGuardianPhone().orElse(null) + ", guardianEmail="
+                + editPersonDescriptor.getGuardianEmail().orElse(null) + "}";
         assertEquals(expected, editPersonDescriptor.toString());
     }
 }
