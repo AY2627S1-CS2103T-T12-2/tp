@@ -53,6 +53,14 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
+    public void toModelType_legacyGuardianName_preservesPreviouslyValidValue() throws Exception {
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS,
+                VALID_TAGS, null, null, null, null, "Mary - Anne", null, null);
+
+        assertEquals("Mary - Anne", person.toModelType().getGuardianContact().name());
+    }
+
+    @Test
     public void toModelType_missingPinnedState_defaultsToUnpinned() throws Exception {
         JsonAdaptedPerson person = new JsonAdaptedPerson(
                 VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS, VALID_TAGS);

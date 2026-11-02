@@ -18,6 +18,7 @@ import seedu.address.model.lesson.ClassId;
 import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.GuardianContact;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
 import seedu.address.model.tag.Tag;
@@ -124,6 +125,12 @@ public class ParserUtilTest {
     public void parsePhone_formattedValue_preservesInternalFormatting() throws Exception {
         String formattedPhone = "+65 9123-4567";
         assertEquals(formattedPhone, ParserUtil.parsePhone(WHITESPACE + formattedPhone + WHITESPACE).value);
+    }
+
+    @Test
+    public void parseGuardianContact_legacyOnlyName_throwsParseException() {
+        assertThrows(ParseException.class, GuardianContact.MESSAGE_NAME_CONSTRAINTS, () ->
+                ParserUtil.parseGuardianContact("Mary - Anne", "", ""));
     }
 
     @Test
