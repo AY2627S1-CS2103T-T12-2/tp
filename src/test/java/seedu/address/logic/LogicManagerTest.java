@@ -111,6 +111,13 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_clearWithArguments_throwsParseExceptionWithoutClearingData() throws Exception {
+        logic.execute("add n/Amy p/91234567 e/amy@example.com a/Somewhere");
+
+        assertParseException("clear 1", ClearCommand.MESSAGE_INVALID_ARGUMENTS);
+    }
+
+    @Test
     public void execute_commandExecutionError_throwsCommandException() {
         String deleteCommand = "delete 9";
         assertCommandException(deleteCommand, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);

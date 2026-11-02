@@ -5,17 +5,41 @@
 
 # TutEasy
 
-[![CI Status](https://github.com/se-edu/addressbook-level3/workflows/Java%20CI/badge.svg)](https://github.com/se-edu/addressbook-level3/actions)
-[![codecov](https://codecov.io/gh/se-edu/addressbook-level3/branch/master/graph/badge.svg)](https://codecov.io/gh/se-edu/addressbook-level3)
+[![CI Status](https://github.com/AY2627S1-CS2103T-T12-2/tp/workflows/Java%20CI/badge.svg)](https://github.com/AY2627S1-CS2103T-T12-2/tp/actions)
 
-![Ui](images/Ui.png)
+## Private tutoring, organised
 
-**TutEasy is a desktop application for managing your contact details.** While it has a GUI, most of the user interactions happen using a CLI (Command Line Interface).
+TutEasy brings your students, classes, lesson schedules, and payments together in one focused desktop app.
+Its keyboard-first command interface keeps everyday updates fast, while the visual dashboard makes every student's
+upcoming lessons and outstanding balance easy to review.
 
-* If you are interested in using TutEasy, head over to the [_Quick Start_ section of the **User Guide**](UserGuide.html#quick-start).
-* If you are interested in developing TutEasy, the [**Developer Guide**](DeveloperGuide.html) is a good place to start.
+[**Download TutEasy**](https://github.com/AY2627S1-CS2103T-T12-2/tp/releases/latest) ·
+[**Get started**](UserGuide.html#quick-start) ·
+[**Explore every feature**](UserGuide.html#features)
 
+![TutEasy student dashboard showing contact details, classes, payment status, lesson notes, and balances](images/Ui.png)
 
-**Acknowledgements**
+## Everything a private tutor needs at a glance
 
-* Libraries used: [JavaFX](https://openjfx.io/), [Jackson](https://github.com/FasterXML/jackson), [JUnit5](https://github.com/junit-team/junit5)
+* Keep student and guardian contact details in one place.
+* Organise weekly and one-off classes with online or offline lesson details.
+* Track individual payment status and outstanding balances.
+* Review a full weekly timetable and move between weeks instantly.
+* Find, pin, tag, and update students without leaving the keyboard.
+* Mask sensitive details on screen with privacy mode.
+
+## Built for a fast tutoring workflow
+
+Type concise commands to add students, schedule classes, record payments, or search your records. TutEasy validates
+each change, updates the dashboard immediately, and saves your data automatically, so you can spend less time on
+administration and more time teaching.
+
+TutEasy runs locally on your computer and requires Java 25 or later. Follow the
+[Quick Start guide](UserGuide.html#quick-start) to be up and running in minutes.
+
+---
+
+Want to contribute? See the [Developer Guide](DeveloperGuide.html) and
+[project repository](https://github.com/AY2627S1-CS2103T-T12-2/tp).
+
+TutEasy is built with [JavaFX](https://openjfx.io/) and [Jackson](https://github.com/FasterXML/jackson).
