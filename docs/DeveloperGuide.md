@@ -41,7 +41,8 @@ The following provides a quick overview of the main components and their interac
 **Main components of the architecture**
 
 **`Main`** (consisting of classes [`Main`](https://github.com/AY2627S1-CS2103T-T12-2/tp/tree/master/src/main/java/seedu/address/Main.java) and [`MainApp`](https://github.com/AY2627S1-CS2103T-T12-2/tp/tree/master/src/main/java/seedu/address/MainApp.java)) is in charge of the app launch and shut down.
-* At app launch, it initializes the other components in the correct sequence, and connects them up with each other.
+* At app launch, it resolves the application home, migrates eligible legacy files, initializes the other components in
+  the correct sequence, and connects them up with each other.
 * At shut down, it shuts down the other components and invokes cleanup methods where necessary.
 
 The bulk of the app's work is done by the following four components:
@@ -138,6 +139,16 @@ class-list views, it rejects modifying commands before execution while allowing 
 `exit`. `timetable`, `class list`, and `list` return view-change instructions that keep this state synchronized with
 `MainWindow`.
 
+After execution, `LogicManager#modifiesAddressBook` determines whether the address book must be persisted. Commands that
+can modify student, class, or enrolment data save the complete address book. `help`, `find`, `list`, `timetable`,
+`class list`, and `exit` do not write it, so navigation and shutdown remain available when the data location is
+temporarily unwritable. `privacy` saves only user preferences. New command types default to being treated as modifying,
+which avoids silently omitting persistence when a future modifying command is introduced.
+
+Before executing a command, `LogicManager` snapshots the address book, GUI settings, privacy state, and filtered-list
+state. A `CommandException`, denied file access, or other save `IOException` restores that snapshot before the error is
+reported. Consequently, a command is not left applied in memory when execution or persistence fails.
+
 `Logic#getCurrentDate()` reads `LocalDate.now(clock)`, keeping date-dependent UI behavior testable with a fixed clock.
 `Logic#getTimetable(LocalDate)` delegates a requested anchor date to `Model` without executing a command or saving data.
 
@@ -194,6 +205,12 @@ The `Model` component,
 The `Storage` component,
 * can save both TutEasy data and user preferences in JSON format, and read them back into corresponding objects.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
+* uses an application home resolved by `ApplicationPaths`. A packaged application uses the running JAR's parent
+  directory; development runs use the working directory. Student and class data is stored at
+  `data/addressbook.json`, while preferences are stored at `preferences.json` under that home.
+* copies an eligible legacy data or preference file from the launch directory only when the corresponding destination
+  beside the JAR does not exist. It preserves the source, never overwrites an existing destination, and aborts startup
+  if a required copy cannot be completed instead of silently opening an unrelated data set.
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 * reconstructs shared classes before resolving enrolment references. `JsonAdaptedPerson` owns guardian fields;
   `JsonAdaptedTuitionClass` owns mode, link, location and notes. Missing older fields use the defaults described under
@@ -210,6 +227,10 @@ event categories and counts rather than raw input or contact values. `ParserUtil
 it trims inputs and constructs domain values, translating validation failures to `ParseException`. The immutable
 values `GuardianContact`, `ClassDetails`, `ClassMode`, `StudentId`, `ClassId` and `Enrollment` belong to Model, even
 though parser, storage and presentation code use them.
+
+`ApplicationPaths` resolves the packaged or development application home and performs conservative legacy-file
+migration before Storage is initialized. `NaturalOrderComparator` supplies case-insensitive text ordering with numeric
+runs compared numerically, so names such as `Student 2` appear before `Student 10`.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -348,7 +369,8 @@ outside the supported `LocalDate` range. The builder uses `LessonSchedule#occurs
 on matching weekdays and one-off schedules only on their exact date. Independently created classes appear even without
 enrolled students, while enrolments attach students to the matching class. The builder returns seven immutable,
 date-backed `TimetableDay` values, including empty days, with entries ordered by start time, case-insensitive subject,
-and end time.
+and end time. `TimetableEntry` removes duplicate students and orders their names case-insensitively using
+`NaturalOrderComparator`; numeric runs are compared as numbers rather than lexicographically.
 
 `TimetablePanel` keeps its navigation header outside the scrolling `ListView`. Previous and Next select optional adjacent
 `WeekRange` values and reload through the callback. Today always requests a fresh application date and projection, even
@@ -516,8 +538,9 @@ their retained legacy metadata is not used to restore matches after a class is r
 The existing `FindCommand` applies this predicate to the complete address book. Each student appears at most once,
 and subject results put pinned matches first, retaining original address-book order within each pin group.
 Subject search does not implement relevance scoring. `list` clears
-the filter. `LogicManager` applies the read-only timetable and class-list restrictions and saves the complete address book after a
-successful command, so searching does not remove students or enrolments from storage. Filters are not persisted.
+the filter. `LogicManager` applies the read-only timetable and class-list restrictions without rewriting the address
+book. Searching changes only the in-memory filtered view, so it does not remove students or enrolments from storage.
+Filters are not persisted.
 
 The [subject search guide](SubjectSearch.md) documents examples and input constraints.
 The [testing guide](Testing.md#subject-search-tests) lists automated coverage and commands for this feature.
@@ -664,6 +687,7 @@ The storage adapters would treat a missing `archived` field as `false` to preser
 ## **Documentation, logging, testing, dev-ops**
 
 * [Documentation guide](Documentation.md)
+* [Configuration guide](Configuration.md)
 * [Testing guide](Testing.md)
 * [Logging guide](Logging.md)
 * [DevOps guide](DevOps.md)
@@ -992,7 +1016,7 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 
 * 3a. No student matches the search input.
 
-    * 3a1. TutEasy displays a message to show that there are no people matched.
+    * 3a1. TutEasy reports that zero students matched.
 
       Use case resumes at step 1.
 
@@ -1021,7 +1045,7 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 7.  The application should not transmit any tutor, student, or lesson data over a network.
 8.  After the application reports that a data-modifying command has succeeded, the resulting data should still be present after the application is terminated and restarted immediately.
 9.  If a data file cannot be read, TutEasy should start with an empty data set and leave the unreadable file unchanged
-    until the next successful command triggers a save.
+    until the next successful data-modifying command triggers a save.
 10. The application should be distributed as a single JAR file that requires no software other than Java `25` or above on a supported OS.
 11. In a usability test, at least four out of five first-time users who match the target user profile should be able to add a student, schedule a lesson, and find that lesson within 10 minutes after reading the Quick Start section of the User Guide, without assistance.
 12. At a display resolution of 1280 x 720 and 100% OS display scaling, no text or control required for a documented workflow should be clipped or overlap another UI element.
@@ -1327,13 +1351,13 @@ Use at least two students. Replace `C001` below with the class ID reported by Tu
 ### Timetable view
 
 Prepare a weekly class on the current weekday, a one-off class on today's date, classes on at least two other days,
-and a class with two students whose names are not already alphabetical.
+and a class containing students named `Student 1`, `Student 2`, and `Student 10`.
 
 | Test action | Expected result |
 | --- | --- |
 | Enter `timetable` | The complete Sunday-to-Saturday week containing today appears. Today is highlighted and scrolled into view where possible. |
 | Inspect the header | The displayed date range matches the selected week, including month or year boundaries where applicable. |
-| Inspect the entries | Classes are chronological; student names inside a class are alphabetical. Empty days still have dated headings. |
+| Inspect the entries | Classes are chronological; student names use case-insensitive natural order (`Student 1`, `Student 2`, `Student 10`). Empty days still have dated headings. |
 | Inspect today's entries | Both the matching weekly class and today's one-off class appear. |
 | Select **Next week** | The range advances exactly seven days. The weekly class recurs; today's one-off class is absent. |
 | Select **Previous week** | The range moves back exactly seven days. |
@@ -1411,7 +1435,9 @@ test also verifies that batch enrolment looks up the independent class rather th
 
 ### Saving data
 
-Use a disposable folder and keep backup copies outside TutEasy's `data` folder.
+Use a disposable application-home folder and keep backup copies outside TutEasy's `data` folder. For a packaged app,
+the application home is the folder containing the JAR; the terminal's working directory does not change it. Confirm the
+resolved absolute data-file path in the status bar before manipulating files.
 
 1. Automatic saving
 
@@ -1419,15 +1445,34 @@ Use a disposable folder and keep backup copies outside TutEasy's `data` folder.
    1. Relaunch the same JAR from the same folder.<br>
       Expected: All saved values are restored. The complete student list is shown on startup.
 
+1. Working-directory independence
+
+   1. Launch the same JAR by absolute path from one terminal directory, add a student, and exit.
+   1. Change to a different terminal directory and launch that same JAR by absolute path.<br>
+      Expected: The previously added student is present, and the status bar shows the same data-file path beside the JAR.
+
+1. Legacy-file migration
+
+   1. Ensure `data/addressbook.json` and `preferences.json` do not yet exist beside the JAR. In a different disposable
+      launch directory, prepare valid legacy files at those relative paths.
+   1. From that launch directory, run the JAR by absolute path.<br>
+      Expected: Both files are copied beside the JAR and loaded. The originals remain in the launch directory.
+   1. Replace the copied JAR-side files with different valid contents and relaunch from the legacy directory.<br>
+      Expected: Existing JAR-side files are retained and are not overwritten by the legacy copies.
+
+   The automated `ApplicationPathsTest` additionally verifies that a failed migration aborts rather than deleting the
+   legacy source or silently starting with an unrelated data set.
+
 1. Missing data file
 
-   1. Close TutEasy and move `data/addressbook.json` to a backup location.
+   1. Close TutEasy and move the JAR-side `data/addressbook.json` to a backup location. Ensure no legacy file exists in
+      the terminal launch directory.
    1. Relaunch TutEasy.<br>
       Expected: TutEasy starts with sample data and does not fail to launch.
 
 1. Corrupted data file
 
-   1. Close TutEasy, back up `data/addressbook.json`, and replace its contents with invalid JSON.
+   1. Close TutEasy, back up the JAR-side `data/addressbook.json`, and replace its contents with invalid JSON.
    1. Relaunch TutEasy without entering any command.<br>
       Expected: TutEasy starts with an empty data set. The corrupted file remains unchanged at this point.
    1. Enter a successful command such as `add` with valid student details.<br>
@@ -1435,6 +1480,12 @@ Use a disposable folder and keep backup copies outside TutEasy's `data` folder.
 
 1. Read-only data location
 
-   1. Run TutEasy from a folder where the current user cannot write, then execute a data-modifying command.<br>
-      Expected: TutEasy reports that it cannot save because of insufficient permissions instead of silently losing
-      the error.
+   1. Start TutEasy normally, then use operating-system permission controls to make the JAR-side data file or its
+      `data` folder unwritable.
+   1. Enter `help`, `find`, `list`, `timetable`, `class list`, and return with `list`.<br>
+      Expected: Each read-only command succeeds without trying to rewrite the address book.
+   1. Execute a data-modifying command.<br>
+      Expected: TutEasy reports that it cannot save, and the student/class data and displayed filter are restored to
+      their pre-command state.
+   1. Enter `exit`.<br>
+      Expected: TutEasy exits despite the unwritable address-book location.
