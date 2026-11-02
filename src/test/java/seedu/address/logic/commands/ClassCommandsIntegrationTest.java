@@ -25,6 +25,7 @@ import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.lesson.ClassDetails;
 import seedu.address.model.lesson.ClassId;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
@@ -721,6 +722,11 @@ public class ClassCommandsIntegrationTest {
     public void add_duplicateAndOverlappingClasses_failWithoutConsumingId() throws CommandException {
         ClassAddCommand addMath = new ClassAddCommand(new Subject("Math"), new Cost("30"),
                 new LessonTiming("Monday1800-1930"));
+        ClassDetailsUpdate linkOnly = new ClassDetailsUpdate(java.util.Optional.empty(),
+                java.util.Optional.of("https://meet.example.com/math"), java.util.Optional.empty(),
+                java.util.Optional.empty());
+        assertCommandFailure(new ClassAddCommand(new Subject("Math"), new Cost("30"),
+                new LessonTiming("Monday1800-1930"), linkOnly), model, ClassDetails.MESSAGE_OFFLINE_LINK);
         addMath.execute(model);
 
         assertCommandFailure(new ClassAddCommand(new Subject("math"), new Cost("99"),
@@ -748,6 +754,12 @@ public class ClassCommandsIntegrationTest {
         assertCommandFailure(new ClassEditCommand(new ClassId("C001"), java.util.Optional.empty(),
                 java.util.Optional.of(new Cost("30")), java.util.Optional.empty()), model,
                 ClassEditCommand.MESSAGE_NO_CHANGE);
+        ClassDetailsUpdate linkOnly = new ClassDetailsUpdate(java.util.Optional.empty(),
+                java.util.Optional.of("https://meet.example.com/math"), java.util.Optional.empty(),
+                java.util.Optional.empty());
+        assertCommandFailure(new ClassEditCommand(new ClassId("C001"), java.util.Optional.empty(),
+                java.util.Optional.empty(), java.util.Optional.empty(), linkOnly), model,
+                ClassDetails.MESSAGE_OFFLINE_LINK);
         assertCommandFailure(new ClassEditCommand(new ClassId("C001"),
                 java.util.Optional.of(new Subject("Physics")), java.util.Optional.empty(),
                 java.util.Optional.of(new LessonTiming("Tuesday1800-1930"))), model,
@@ -805,11 +817,14 @@ public class ClassCommandsIntegrationTest {
     @Test
     public void newClassCommands_equals_coverDifferentFieldsAndTypes() {
         ClassAddCommand add = new ClassAddCommand(new Subject("Math"), new Cost("30"), LESSON.getSchedule());
+        ClassDetailsUpdate notes = new ClassDetailsUpdate(java.util.Optional.empty(), java.util.Optional.empty(),
+                java.util.Optional.empty(), java.util.Optional.of("Bring notes"));
         assertEquals(add, add);
         assertEquals(add, new ClassAddCommand(new Subject("math"), new Cost("30.00"), LESSON.getSchedule()));
         assertNotEquals(add, new ClassAddCommand(new Subject("Physics"), new Cost("30"), LESSON.getSchedule()));
         assertNotEquals(add, new ClassAddCommand(new Subject("Math"), new Cost("31"), LESSON.getSchedule()));
         assertNotEquals(add, new ClassAddCommand(new Subject("Math"), new Cost("30"), OTHER_LESSON.getSchedule()));
+        assertNotEquals(add, new ClassAddCommand(new Subject("Math"), new Cost("30"), LESSON.getSchedule(), notes));
         assertNotEquals(add, null);
 
         ClassEditCommand edit = new ClassEditCommand(new ClassId("C001"), java.util.Optional.empty(),
@@ -827,6 +842,8 @@ public class ClassCommandsIntegrationTest {
         assertNotEquals(edit, new ClassEditCommand(new ClassId("C001"), java.util.Optional.empty(),
                 java.util.Optional.of(new Cost("31")),
                 java.util.Optional.of(new LessonTiming("Monday1800-1900"))));
+        assertNotEquals(edit, new ClassEditCommand(new ClassId("C001"), java.util.Optional.empty(),
+                java.util.Optional.of(new Cost("31")), java.util.Optional.empty(), notes));
         assertNotEquals(edit, null);
         assertEquals(new ClassListCommand(), new ClassListCommand());
         assertNotEquals(new ClassListCommand(), null);
