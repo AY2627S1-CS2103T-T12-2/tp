@@ -443,10 +443,11 @@ validation and inheritance; persistence remains `LogicManager`'s responsibility.
 
 <puml src="diagrams/AddStudentAttributesActivity.puml" width="550" />
 
-No guardian or extra class-detail input is added to `edit`, `class enrol`, or `class edit`.
-Ordinary contact edits preserve guardian data. ID enrolments inherit class attributes;
-class edits preserve those attributes and payments. Unenrolling the last student retains the class
-and its metadata until the class itself is deleted.
+No guardian or extra class-detail input is accepted by `edit` or `class enrol`. Ordinary contact edits preserve
+guardian data, while ID enrolments inherit existing class attributes. `class edit` accepts independent `mode/`,
+`link/`, `location/`, and `notes/` updates; omitted fields retain their existing values, and switching to offline
+clears the meeting link. Associated enrolment IDs, agreed rates, and payment statuses are preserved. Unenrolling the
+last student retains the class and its metadata until the class itself is deleted.
 
 #### Storage and legacy migration
 
