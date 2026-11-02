@@ -12,6 +12,8 @@ import java.util.stream.IntStream;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ObservableBooleanValue;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -33,6 +35,7 @@ public class TimetablePanel extends UiPart<Region> {
 
     private final Supplier<LocalDate> currentDateSupplier;
     private final Function<LocalDate, List<TimetableDay>> timetableLoader;
+    private final ObservableBooleanValue privacyModeEnabled;
 
     private LocalDate currentDate;
     private WeekRange selectedWeek;
@@ -51,9 +54,16 @@ public class TimetablePanel extends UiPart<Region> {
     /** Creates a scrollable timetable panel backed by the supplied date and timetable callbacks. */
     public TimetablePanel(Supplier<LocalDate> currentDateSupplier,
             Function<LocalDate, List<TimetableDay>> timetableLoader) {
+        this(currentDateSupplier, timetableLoader, new SimpleBooleanProperty(false));
+    }
+
+    /** Creates a timetable panel with the supplied privacy display state. */
+    public TimetablePanel(Supplier<LocalDate> currentDateSupplier,
+            Function<LocalDate, List<TimetableDay>> timetableLoader, ObservableBooleanValue privacyModeEnabled) {
         super(FXML);
         this.currentDateSupplier = requireNonNull(currentDateSupplier);
         this.timetableLoader = requireNonNull(timetableLoader);
+        this.privacyModeEnabled = requireNonNull(privacyModeEnabled);
         timetableDayListView.setCellFactory(listView -> new TimetableDayListViewCell());
         showCurrentWeek();
     }
@@ -130,7 +140,7 @@ public class TimetablePanel extends UiPart<Region> {
                 setText(null);
             } else {
                 Region dayCard = new TimetableDayCard(timetableDay,
-                        isToday(timetableDay, currentDate)).getRoot();
+                        isToday(timetableDay, currentDate), privacyModeEnabled).getRoot();
                 dayCard.prefWidthProperty().bind(Bindings.createDoubleBinding(() -> Math.max(0,
                         getWidth() - snappedLeftInset() - snappedRightInset()), widthProperty(), insetsProperty()));
                 setGraphic(dayCard);

@@ -20,6 +20,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import javafx.application.Platform;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -251,6 +252,33 @@ public class TimetablePanelTest {
             assertNotNull(details);
             assertTrue(details.getHeight() > details.getFont().getSize() * 2,
                     "A 500-character note should occupy multiple lines");
+        });
+    }
+
+    @Test
+    public void privacyChanges_maskClassLinksAndLocationsInTimetable() throws Exception {
+        LocalDate today = LocalDate.of(2026, 10, 19);
+        ClassDetails details = new ClassDetails("https://example.com/math", "Room 2", "Bring notes");
+        Lesson lesson = new Lesson(new Subject("Math"), new Cost("30"),
+                new LessonTiming("Monday1800-1930")).withDetails(details);
+        TimetableEntry entry = new TimetableEntry(lesson, List.of(new PersonBuilder().build()));
+
+        runOnFxThread(() -> {
+            SimpleBooleanProperty privacyModeEnabled = new SimpleBooleanProperty();
+            TimetablePanel panel = new TimetablePanel(() -> today,
+                    unused -> List.of(new TimetableDay(today, List.of(entry))), privacyModeEnabled);
+            new Scene(panel.getRoot(), 500, 600);
+            panel.getRoot().applyCss();
+            panel.getRoot().layout();
+            Label displayedDetails = (Label) panel.getRoot().lookup("#details");
+            assertNotNull(displayedDetails);
+            assertEquals(details.toString(), displayedDetails.getText());
+
+            privacyModeEnabled.set(true);
+            assertEquals("Mode: Online | Link: " + ClassDetailsFormatter.PRIVACY_MASK + " | Location: "
+                    + ClassDetailsFormatter.PRIVACY_MASK + " | Notes: Bring notes", displayedDetails.getText());
+            privacyModeEnabled.set(false);
+            assertEquals(details.toString(), displayedDetails.getText());
         });
     }
 

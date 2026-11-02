@@ -1,5 +1,8 @@
 package seedu.address.ui;
 
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ObservableBooleanValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Region;
@@ -23,6 +26,11 @@ public class TuitionClassCard extends UiPart<Region> {
 
     /** Creates a card for the supplied class. */
     public TuitionClassCard(TuitionClass tuitionClass) {
+        this(tuitionClass, new SimpleBooleanProperty(false));
+    }
+
+    /** Creates a card for the supplied class and privacy state. */
+    TuitionClassCard(TuitionClass tuitionClass, ObservableBooleanValue privacyModeEnabled) {
         super(FXML);
         classId.setText(tuitionClass.getClassId().toString());
         subject.setText(tuitionClass.getSubject().toString());
@@ -31,6 +39,8 @@ public class TuitionClassCard extends UiPart<Region> {
         schedule.setText(timeSeparator < 0 ? scheduleText
                 : scheduleText.substring(0, timeSeparator) + "–" + scheduleText.substring(timeSeparator + 1));
         cost.setText("Cost: " + tuitionClass.getCost());
-        details.setText(tuitionClass.getDetails().toString());
+        details.textProperty().bind(Bindings.createStringBinding(() ->
+                ClassDetailsFormatter.format(tuitionClass.getDetails(), privacyModeEnabled.get()),
+                privacyModeEnabled));
     }
 }

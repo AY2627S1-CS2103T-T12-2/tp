@@ -214,7 +214,8 @@ public class MainWindow extends UiPart<Stage> {
     }
 
     private void showTimetable() {
-        timetablePanel = new TimetablePanel(logic::getCurrentDate, logic::getTimetable);
+        timetablePanel = new TimetablePanel(logic::getCurrentDate, logic::getTimetable,
+                personListPanel.getPrivacyModeEnabledProperty());
         personListPanelPlaceholder.getChildren().setAll(timetablePanel.getRoot());
     }
 
@@ -229,7 +230,8 @@ public class MainWindow extends UiPart<Stage> {
     }
 
     private void showClassList() {
-        classListPanel = new ClassListPanel(logic.getTuitionClassList());
+        classListPanel = new ClassListPanel(logic.getTuitionClassList(),
+                personListPanel.getPrivacyModeEnabledProperty());
         personListPanelPlaceholder.getChildren().setAll(classListPanel.getRoot());
     }
 }

@@ -13,6 +13,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import javafx.application.Platform;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import seedu.address.model.lesson.ClassDetails;
@@ -94,6 +95,25 @@ public class TimetableEntryCardTest {
             assertTrue(emptyLabel.isVisible());
             assertEquals("Mode: Offline", emptyLabel.getText());
             assertTrue(emptyLabel.isManaged());
+        });
+    }
+
+    @Test
+    public void privacyChanges_maskClassLinksAndLocations_butKeepNotes() throws Exception {
+        runOnFxThread(() -> {
+            ClassDetails details = new ClassDetails("https://example.com/math", "Room 2", "Bring notes");
+            Lesson lesson = new Lesson(new Subject("Math"), new Cost("30"),
+                    new LessonTiming("Monday1800-1930")).withDetails(details);
+            TimetableEntry entry = new TimetableEntry(lesson, List.of(new PersonBuilder().build()));
+            SimpleBooleanProperty privacy = new SimpleBooleanProperty(false);
+            TimetableEntryCard card = new TimetableEntryCard(entry, privacy);
+
+            assertLabel(card, "details", details.toString());
+            privacy.set(true);
+            assertLabel(card, "details", "Mode: Online | Link: " + ClassDetailsFormatter.PRIVACY_MASK
+                    + " | Location: " + ClassDetailsFormatter.PRIVACY_MASK + " | Notes: Bring notes");
+            privacy.set(false);
+            assertLabel(card, "details", details.toString());
         });
     }
 

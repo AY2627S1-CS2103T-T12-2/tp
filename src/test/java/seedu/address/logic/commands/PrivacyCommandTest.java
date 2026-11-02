@@ -37,6 +37,26 @@ public class PrivacyCommandTest {
     }
 
     @Test
+    public void execute_enableAlreadyEnabled_reportsNoChange() {
+        model.setPrivacyModeEnabled(true);
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expectedModel.setPrivacyModeEnabled(true);
+
+        assertCommandSuccess(new PrivacyCommand(true), model,
+                PrivacyCommand.MESSAGE_PRIVACY_MODE_ALREADY_ENABLED, expectedModel);
+        assertTrue(model.isPrivacyModeEnabled());
+    }
+
+    @Test
+    public void execute_disableAlreadyDisabled_reportsNoChange() {
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+
+        assertCommandSuccess(new PrivacyCommand(false), model,
+                PrivacyCommand.MESSAGE_PRIVACY_MODE_ALREADY_DISABLED, expectedModel);
+        assertFalse(model.isPrivacyModeEnabled());
+    }
+
+    @Test
     public void equals() {
         PrivacyCommand enableCommand = new PrivacyCommand(true);
 

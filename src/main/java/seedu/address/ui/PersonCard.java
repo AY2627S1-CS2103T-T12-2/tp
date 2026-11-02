@@ -30,7 +30,7 @@ import seedu.address.model.person.Subject;
  */
 public class PersonCard extends UiPart<Region> {
 
-    public static final String PRIVACY_MASK = "*******";
+    public static final String PRIVACY_MASK = ClassDetailsFormatter.PRIVACY_MASK;
 
     private static final String FXML = "PersonListCard.fxml";
     private static final String ENROLLED_CLASS_GROUP_STYLE_CLASS = "enrolled-class-group";
@@ -125,7 +125,7 @@ public class PersonCard extends UiPart<Region> {
 
         person.getLessons().stream()
                 .sorted(LESSON_COMPARATOR)
-                .map(enrolledClass -> createClassItem(enrolledClass, classColorPalette))
+                .map(enrolledClass -> createClassItem(enrolledClass, classColorPalette, privacyModeEnabled))
                 .forEach(classes.getChildren()::add);
         boolean hasEnrolledClasses = !classes.getChildren().isEmpty();
         classes.setVisible(hasEnrolledClasses);
@@ -159,7 +159,8 @@ public class PersonCard extends UiPart<Region> {
         label.textProperty().bind(Bindings.when(privacyModeEnabled).then(maskedValue).otherwise(value));
     }
 
-    private static VBox createClassItem(Lesson enrolledClass, ClassColorPalette classColorPalette) {
+    private static VBox createClassItem(Lesson enrolledClass, ClassColorPalette classColorPalette,
+            ObservableBooleanValue privacyModeEnabled) {
         VBox classItem = new VBox(2);
         classItem.getStyleClass().add("enrolled-class-item");
         HBox classGroup = new HBox(5);
@@ -183,26 +184,18 @@ public class PersonCard extends UiPart<Region> {
         classGroup.getChildren().addAll(classBadge, classMode, paymentStatus);
         classItem.getChildren().add(classGroup);
 
-        String supplementaryDetails = formatSupplementaryDetails(enrolledClass);
+        String supplementaryDetails = ClassDetailsFormatter.formatSupplementary(
+                enrolledClass.getDetails(), privacyModeEnabled.get());
         if (!supplementaryDetails.isEmpty()) {
             Label details = new Label(supplementaryDetails);
+            details.textProperty().bind(Bindings.createStringBinding(() ->
+                    ClassDetailsFormatter.formatSupplementary(
+                            enrolledClass.getDetails(), privacyModeEnabled.get()), privacyModeEnabled));
             details.setWrapText(true);
             details.getStyleClass().addAll("cell_small_label", "enrolled-class-details");
             classItem.getChildren().add(details);
         }
         return classItem;
-    }
-
-    private static String formatSupplementaryDetails(Lesson enrolledClass) {
-        return java.util.stream.Stream.of(
-                        enrolledClass.getDetails().meetingLink().isEmpty()
-                                ? "" : "Link: " + enrolledClass.getDetails().meetingLink(),
-                        enrolledClass.getDetails().location().isEmpty()
-                                ? "" : "Location: " + enrolledClass.getDetails().location(),
-                        enrolledClass.getDetails().notes().isEmpty()
-                                ? "" : "Notes: " + enrolledClass.getDetails().notes())
-                .filter(value -> !value.isEmpty())
-                .collect(Collectors.joining(" | "));
     }
 
     static String formatClassBadge(Lesson enrolledClass) {

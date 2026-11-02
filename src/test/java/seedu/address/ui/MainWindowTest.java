@@ -29,6 +29,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
@@ -38,9 +39,17 @@ import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.ModelManager;
+import seedu.address.model.lesson.ClassDetails;
+import seedu.address.model.lesson.ClassId;
+import seedu.address.model.lesson.Cost;
+import seedu.address.model.lesson.Lesson;
+import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.Subject;
+import seedu.address.model.lesson.TuitionClass;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.timetable.TimetableDay;
+import seedu.address.model.timetable.TimetableEntry;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -107,6 +116,46 @@ public class MainWindowTest {
             assertEquals("91234567", phone.getText());
             assertEquals("student@example.com", email.getText());
             assertEquals("123 Privacy Street", address.getText());
+
+            stage.close();
+        });
+    }
+
+    @Test
+    public void privacyCommands_updateTimetableAndClassListDetails() throws Exception {
+        runOnFxThread(() -> {
+            ClassDetails classDetails = new ClassDetails("https://example.com/math", "Room 2", "Bring notes");
+            Lesson lesson = new Lesson(new Subject("Math"), new Cost("30"),
+                    new LessonTiming("Monday1800-1930")).withDetails(classDetails);
+            Person person = new PersonBuilder().withLessons(lesson).build();
+            TestLogic logic = new TestLogic(person);
+            Stage stage = new Stage();
+            MainWindow mainWindow = new MainWindow(stage, logic, Path.of("data", "addressbook.json"));
+            mainWindow.fillInnerParts();
+            stage.show();
+            stage.getScene().getRoot().applyCss();
+            stage.getScene().getRoot().layout();
+            TextField commandTextField = (TextField) stage.getScene().lookup("#commandTextField");
+
+            execute(commandTextField, "timetable");
+            stage.getScene().getRoot().applyCss();
+            stage.getScene().getRoot().layout();
+            Label timetableDetails = (Label) stage.getScene().lookup("#details");
+            assertNotNull(timetableDetails);
+            assertEquals(classDetails.toString(), timetableDetails.getText());
+            execute(commandTextField, "privacy on");
+            assertEquals("Mode: Online | Link: " + ClassDetailsFormatter.PRIVACY_MASK + " | Location: "
+                    + ClassDetailsFormatter.PRIVACY_MASK + " | Notes: Bring notes", timetableDetails.getText());
+
+            execute(commandTextField, "class list");
+            stage.getScene().getRoot().applyCss();
+            stage.getScene().getRoot().layout();
+            Text classListDetails = (Text) stage.getScene().lookup("#details");
+            assertNotNull(classListDetails);
+            assertEquals("Mode: Online | Link: " + ClassDetailsFormatter.PRIVACY_MASK + " | Location: "
+                    + ClassDetailsFormatter.PRIVACY_MASK + " | Notes: Bring notes", classListDetails.getText());
+            execute(commandTextField, "privacy off");
+            assertEquals(classDetails.toString(), classListDetails.getText());
 
             stage.close();
         });
@@ -207,21 +256,41 @@ public class MainWindowTest {
 
     private static class TestLogic implements Logic {
         private final ObservableList<Person> persons;
+        private final ObservableList<TuitionClass> tuitionClasses = FXCollections.observableArrayList();
         private boolean privacyModeEnabled;
         private GuiSettings guiSettings = new GuiSettings();
 
         TestLogic(Person person) {
             persons = FXCollections.observableArrayList(person);
+            int index = 1;
+            for (Lesson lesson : person.getLessons()) {
+                tuitionClasses.add(new TuitionClass(new ClassId(String.format("C%03d", index++)),
+                        lesson.getSubject(), lesson.getCost(), lesson.getSchedule(), lesson.getDetails()));
+            }
         }
 
         @Override
         public CommandResult execute(String commandText) throws ParseException {
             switch (commandText) {
-                case "privacy on" -> privacyModeEnabled = true;
-                case "privacy off" -> privacyModeEnabled = false;
+                case "privacy on" -> {
+                    privacyModeEnabled = true;
+                    return new CommandResult("Privacy mode updated.");
+                }
+                case "privacy off" -> {
+                    privacyModeEnabled = false;
+                    return new CommandResult("Privacy mode updated.");
+                }
+                case "timetable" -> {
+                    return new CommandResult("Timetable opened.", CommandResult.ViewChange.TIMETABLE);
+                }
+                case "class list" -> {
+                    return new CommandResult("Classes opened.", CommandResult.ViewChange.CLASS_LIST);
+                }
+                case "list" -> {
+                    return new CommandResult("Students opened.", CommandResult.ViewChange.PERSON_LIST);
+                }
                 default -> throw new ParseException("Unsupported test command");
             }
-            return new CommandResult("Privacy mode updated.");
         }
 
         @Override
@@ -236,7 +305,15 @@ public class MainWindowTest {
 
         @Override
         public List<TimetableDay> getTimetable(LocalDate anchorDate) {
-            return List.of();
+            List<TimetableEntry> entries = persons.getFirst().getLessons().stream()
+                    .map(lesson -> new TimetableEntry(lesson, List.of(persons.getFirst())))
+                    .toList();
+            return List.of(new TimetableDay(anchorDate, entries));
+        }
+
+        @Override
+        public ObservableList<TuitionClass> getTuitionClassList() {
+            return tuitionClasses;
         }
 
         @Override

@@ -566,17 +566,21 @@ Format: `clear`
 
 The `clear` command does not accept additional parameters. For example, `clear 1` is rejected and no data is deleted.
 
-### Hiding contact details: `privacy`
+### Hiding private details: `privacy`
 
 Privacy mode replaces the phone, email, address, and any non-empty guardian contact details on every student card with
-a fixed seven-asterisk mask, such as `Address: *******`. While the mode is active, contact details in success feedback
-from the `add`, `edit`, and `delete` commands are masked too. Names, tags, classes, payment information, and pin status
-remain visible. The underlying contact details are not changed or deleted.
+a fixed seven-asterisk mask, such as `Address: *******`. It also masks non-empty meeting links and locations in student
+cards, the class list, and timetable entries. Contact details in success feedback from the `add`, `edit`, and `delete`
+commands are masked too. Names, tags, class subjects and schedules, teaching mode, payment information, notes, and pin
+status remain visible. Privacy mode changes only what is displayed; it does not change or delete stored data.
 
 Formats:
 
-* `privacy on` masks all displayed contact details immediately.
-* `privacy off` restores the original contact details immediately.
+* `privacy on` masks displayed contact details, meeting links, and locations immediately.
+* `privacy off` restores the original contact details, links, and locations immediately.
+
+Repeating the current setting reports that privacy mode is already enabled or disabled and leaves the saved preference
+unchanged.
 
 The mode must be exactly lowercase `on` or `off`, with no additional arguments. The `privacy` command is available
 from the student list, timetable, and class-list views.

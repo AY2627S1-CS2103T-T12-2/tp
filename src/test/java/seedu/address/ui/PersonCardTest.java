@@ -278,6 +278,28 @@ public class PersonCardTest {
     }
 
     @Test
+    public void privacyChanges_maskClassLinksAndLocations_butKeepNotesAndStoredDetails() throws Exception {
+        runOnFxThread(() -> {
+            ClassDetails details = new ClassDetails("https://example.com/math", "Room 2", "Bring calculator");
+            Person person = new PersonBuilder()
+                    .withLessons(lesson("Math", "30", "Monday1800-1930").withDetails(details)).build();
+            SimpleBooleanProperty privacy = new SimpleBooleanProperty(false);
+            PersonCard card = new PersonCard(person, 1, new ClassColorPalette(List.of(person)), privacy);
+            Label displayedDetails = (Label) getClassItems(card).getFirst().getChildren().get(1);
+
+            assertEquals("Link: https://example.com/math | Location: Room 2 | Notes: Bring calculator",
+                    displayedDetails.getText());
+            privacy.set(true);
+            assertEquals("Link: " + ClassDetailsFormatter.PRIVACY_MASK + " | Location: "
+                    + ClassDetailsFormatter.PRIVACY_MASK + " | Notes: Bring calculator", displayedDetails.getText());
+            privacy.set(false);
+            assertEquals("Link: https://example.com/math | Location: Room 2 | Notes: Bring calculator",
+                    displayedDetails.getText());
+            assertEquals(details, person.getLessons().iterator().next().getDetails());
+        });
+    }
+
+    @Test
     public void privacyChanges_maskGuardianContactsWithoutChangingStoredValues() throws Exception {
         runOnFxThread(() -> {
             Person person = new PersonBuilder().withPinned(true)

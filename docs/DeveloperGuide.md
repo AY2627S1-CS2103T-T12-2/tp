@@ -101,12 +101,11 @@ The `UI` component,
 [enrolled-class display](#enrolled-class-display), [pin feature](#pin-feature), and
 [privacy mode](#privacy-mode) sections describe these behaviors in detail.
 
-`MainWindow` passes the privacy preference from `Logic` to `PersonListPanel` and `StatusBarFooter`. The panel owns an
-observable privacy state shared by its `PersonCard` instances. Each card binds its phone, email, address, and guardian
-labels to that state, so toggling privacy mode replaces each non-empty contact field with a fixed seven-asterisk mask
-without modifying the underlying `Person`. The panel also refreshes its `ListView` to ensure newly created and
-currently displayed cells use the same state. `StatusBarFooter` keeps a visible privacy indicator active across the
-student-list, timetable, and class-list views.
+`MainWindow` initializes `PersonListPanel` from the privacy preference in `Logic` and shares its observable state with
+`ClassListPanel` and `TimetablePanel`; `StatusBarFooter` receives the state separately. Student, class-list, and timetable
+cards bind their protected values to this shared state. `ClassDetailsFormatter` masks meeting links and locations while
+keeping notes visible. Toggling privacy mode updates the shared state without modifying the underlying student or class
+data. `StatusBarFooter` keeps a visible privacy indicator active across all views.
 
 ### Logic component
 
@@ -339,16 +338,19 @@ The sequence below shows how `privacy on` moves from command execution to prefer
 preferences using the existing user-preferences storage, so the selection survives an application restart. A missing
 JSON field maps to Java's default `false` value, keeping older preference files compatible.
 
-After any successful command, `MainWindow` reads the privacy state from `Logic` and updates both `PersonListPanel` and
-`StatusBarFooter`. Existing `PersonCard` contact-label bindings react immediately, while a list refresh ensures all
-cells are rendered consistently. Disabling privacy mode binds the labels back to the original values held by `Person`;
-neither command changes address-book data.
+After any successful command, `MainWindow` updates `PersonListPanel`'s observable privacy state and the status-bar
+indicator. `ClassListPanel` and `TimetablePanel` share that state, so bindings in `PersonCard`, `TuitionClassCard`, and
+`TimetableEntryCard` immediately update the student list, class list, and timetable. `ClassDetailsFormatter` masks
+non-empty links and locations but leaves class notes visible. Repeating the active setting returns an “already
+enabled/disabled” result without changing the saved preference. Disabling privacy mode restores the original values;
+neither command changes student or class data.
 
 `PrivacyCommandParser` accepts only the exact lowercase modes `on` and `off`. `LogicManager` permits the command in the
 student list and both read-only views. When privacy mode is active, `AddCommand` and `EditCommand` pass the current
 privacy state to `Messages#format`, which masks phone, email, address, and non-empty guardian details in their success
-feedback. `DeleteCommand` does the same before displaying the deleted student's details. Other non-contact values remain
-visible.
+feedback. `DeleteCommand` does the same before displaying the deleted student's details. Names, tags, class notes,
+subjects, schedules, modes, payment information, and pin status remain visible; meeting links and locations are masked
+in the student, class-list, and timetable displays.
 
 ### Timetable view
 
@@ -777,7 +779,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *`    | tutor                                       | record homework or follow-up tasks for each student                | track their work                                                           |
 | `* *`    | tutor preparing for upcoming classes        | view upcoming classes together with student notes                  | prepare before teaching                                                    |
 | `* *`    | tutor                                       | record student attendance                                          | keep an accurate lesson history                                            |
-| `* *`    | privacy-conscious tutor                     | hide private contact details on screen and in edit feedback        | reduce the chance of someone else seeing them accidentally                 |
+| `* *`    | privacy-conscious tutor                     | hide private contact and class-meeting details on screen           | reduce the chance of someone else seeing them accidentally                 |
 | `*`      | tutor                                       | record my hourly rate for each student or class                    | know how much to charge                                                     |
 | `*`      | tutor                                       | record whether a lesson has been paid for                          | track outstanding payments                                                 |
 | `*`      | tutor                                       | view the amount earned from lessons over a period                  | monitor my tutoring income                                                 |
@@ -1198,9 +1200,10 @@ index-based command.
 
 | Test input | Expected result |
 | --- | --- |
-| `privacy on` | Student phone, email, and address values plus non-empty guardian contact details are masked; the status bar reports privacy mode. |
-| Add, edit, or delete a student while privacy mode is active | Contact details are masked in the success feedback; non-contact details such as names and tags remain visible. |
+| `privacy on` | Student contact details and non-empty class meeting links and locations are masked in student, class-list, and timetable views; the status bar reports privacy mode. |
+| Add, edit, or delete a student while privacy mode is active | Contact details are masked in the success feedback; other student details such as names and tags remain visible. |
 | Navigate to `timetable` and `class list` | The privacy-mode status remains visible. |
+| Repeat `privacy on` or `privacy off` while that setting is already active | Feedback says the selected state is already active; stored details remain unchanged. |
 | `list`, then `privacy off` | The original contact details reappear unchanged. |
 | Enable privacy mode, exit, and relaunch | Privacy mode remains enabled. |
 | `privacy ON` or `privacy on now` | Invalid-command-format error; the existing privacy state is unchanged. |

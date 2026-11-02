@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import javafx.application.Platform;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Region;
@@ -76,6 +77,27 @@ public class TuitionClassCardTest {
         runOnFxThread(() -> {
             TuitionClassCard card = new TuitionClassCard(tuitionClass);
             assertText(card, "details", details.toString());
+        });
+    }
+
+    @Test
+    public void privacyChanges_maskClassLinksAndLocations_butKeepNotes() throws Exception {
+        ClassDetails details = new ClassDetails(ClassMode.ONLINE,
+                "https://example.com/math", "Room 2", "Bring notes");
+        TuitionClass tuitionClass = new TuitionClass(new ClassId("C001"), new Subject("Math"),
+                new Cost("30"), new LessonTiming("Monday1800-1930"), details);
+
+        runOnFxThread(() -> {
+            SimpleBooleanProperty privacy = new SimpleBooleanProperty(false);
+            TuitionClassCard card = new TuitionClassCard(tuitionClass, privacy);
+            Text displayedDetails = (Text) card.getRoot().lookup("#details");
+
+            assertEquals(details.toString(), displayedDetails.getText());
+            privacy.set(true);
+            assertEquals("Mode: Online | Link: " + ClassDetailsFormatter.PRIVACY_MASK + " | Location: "
+                    + ClassDetailsFormatter.PRIVACY_MASK + " | Notes: Bring notes", displayedDetails.getText());
+            privacy.set(false);
+            assertEquals(details.toString(), displayedDetails.getText());
         });
     }
 

@@ -6,6 +6,8 @@ actor Tutor
 box UI UI_COLOR_T1
 participant ":MainWindow" as MainWindow UI_COLOR
 participant ":PersonListPanel" as PersonListPanel UI_COLOR
+participant ":TimetablePanel" as TimetablePanel UI_COLOR
+participant ":ClassListPanel" as ClassListPanel UI_COLOR
 participant ":StatusBarFooter" as StatusBarFooter UI_COLOR
 end box
 
@@ -28,9 +30,15 @@ MainWindow -> LogicManager : execute("privacy on")
 activate LogicManager
 LogicManager -> PrivacyCommand : execute(m)
 activate PrivacyCommand
-PrivacyCommand -> Model : setPrivacyModeEnabled(true)
+PrivacyCommand -> Model : isPrivacyModeEnabled()
 activate Model
-Model --> PrivacyCommand
+Model --> PrivacyCommand : current state
+alt state changes
+    PrivacyCommand -> Model : setPrivacyModeEnabled(true)
+    Model --> PrivacyCommand
+else already enabled
+    PrivacyCommand -> PrivacyCommand : return already-enabled feedback
+end
 deactivate Model
 PrivacyCommand --> LogicManager : CommandResult
 deactivate PrivacyCommand
@@ -48,8 +56,10 @@ activate PersonListPanel
 PersonListPanel -> PersonListPanel : update shared property\nand refresh list cells
 PersonListPanel --> MainWindow
 deactivate PersonListPanel
+note over PersonListPanel, ClassListPanel : Class-list and timetable cards share this property;
+existing cards update through their bindings.
 MainWindow -> StatusBarFooter : setPrivacyModeEnabled(true)
 StatusBarFooter --> MainWindow
-MainWindow --> Tutor : mask contact labels\nand show status indicator
+MainWindow --> Tutor : mask contacts, class links/locations,\nand show status indicator
 deactivate MainWindow
 @enduml
