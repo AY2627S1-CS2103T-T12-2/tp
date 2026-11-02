@@ -57,6 +57,11 @@ public class ClassCommandParserTest {
         assertParseSuccess(parser, " add sub/Math cost/30 c/Monday1800-1930 mode/online "
                         + "link/https://meet.example.com/math location/Room 2 notes/Bring notes",
                 new ClassAddCommand(SUBJECT, new Cost("30"), TIMING, details));
+        ClassDetailsUpdate quotedDetails = new ClassDetailsUpdate(Optional.empty(), Optional.empty(),
+                Optional.of("Room sub/section 2"), Optional.of("Review cost/chapter 3"));
+        assertParseSuccess(parser, " add sub/Math cost/30 c/Monday1800-1930 "
+                        + "location/\"Room sub/section 2\" notes/\"Review cost/chapter 3\"",
+                new ClassAddCommand(SUBJECT, new Cost("30"), TIMING, quotedDetails));
         assertParseSuccess(parser, " edit id/c001 cost/35",
                 new ClassEditCommand(new ClassId("C001"), Optional.empty(),
                         Optional.of(new Cost("35")), Optional.empty()));
@@ -97,6 +102,12 @@ public class ClassCommandParserTest {
                 new ClassEditCommand(new ClassId("C001"), Optional.empty(), Optional.empty(), Optional.empty(),
                         new ClassDetailsUpdate(Optional.empty(), Optional.empty(), Optional.empty(),
                                 Optional.of("Bring notes"))));
+        ClassDetailsUpdate quotedDetails = new ClassDetailsUpdate(Optional.empty(), Optional.empty(),
+                Optional.of("Room sub/section 2"), Optional.of("Review cost/chapter 3"));
+        assertParseSuccess(parser, " edit id/C001 location/\"Room sub/section 2\" "
+                        + "notes/\"Review cost/chapter 3\"",
+                new ClassEditCommand(new ClassId("C001"), Optional.empty(), Optional.empty(), Optional.empty(),
+                        quotedDetails));
     }
 
     @Test

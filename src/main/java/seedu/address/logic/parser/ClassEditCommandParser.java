@@ -11,6 +11,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTES;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 
 import java.util.Optional;
+import java.util.Set;
 
 import seedu.address.logic.commands.ClassEditCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -19,7 +20,8 @@ import seedu.address.logic.parser.exceptions.ParseException;
 public class ClassEditCommandParser implements Parser<ClassEditCommand> {
     @Override
     public ClassEditCommand parse(String args) throws ParseException {
-        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(args,
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenizeWithFreeTextFields(args,
+                Set.of(PREFIX_LOCATION, PREFIX_NOTES), Set.of(),
                 PREFIX_CLASS_ID, PREFIX_SUBJECT, PREFIX_COST, PREFIX_CLASS,
                 PREFIX_MODE, PREFIX_LINK, PREFIX_LOCATION, PREFIX_NOTES);
         boolean hasEdit = arguments.getValue(PREFIX_SUBJECT).isPresent()

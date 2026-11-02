@@ -9,6 +9,8 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_MODE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTES;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 
+import java.util.Set;
+
 import seedu.address.logic.commands.ClassAddCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 
@@ -16,8 +18,9 @@ import seedu.address.logic.parser.exceptions.ParseException;
 public class ClassAddCommandParser implements Parser<ClassAddCommand> {
     @Override
     public ClassAddCommand parse(String args) throws ParseException {
-        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(args, PREFIX_SUBJECT, PREFIX_COST, PREFIX_CLASS,
-                PREFIX_MODE, PREFIX_LINK, PREFIX_LOCATION, PREFIX_NOTES);
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenizeWithFreeTextFields(args,
+                Set.of(PREFIX_LOCATION, PREFIX_NOTES), Set.of(),
+                PREFIX_SUBJECT, PREFIX_COST, PREFIX_CLASS, PREFIX_MODE, PREFIX_LINK, PREFIX_LOCATION, PREFIX_NOTES);
         if (!arguments.getPreamble().isEmpty() || arguments.getValue(PREFIX_SUBJECT).isEmpty()
                 || arguments.getValue(PREFIX_COST).isEmpty() || arguments.getValue(PREFIX_CLASS).isEmpty()) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, ClassAddCommand.MESSAGE_USAGE));
