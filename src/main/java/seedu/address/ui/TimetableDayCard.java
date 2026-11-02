@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ObservableBooleanValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Region;
@@ -26,13 +28,18 @@ public class TimetableDayCard extends UiPart<Region> {
 
     /** Creates a card for the supplied timetable day. */
     public TimetableDayCard(TimetableDay timetableDay, boolean isToday) {
+        this(timetableDay, isToday, new SimpleBooleanProperty(false));
+    }
+
+    /** Creates a card for the supplied timetable day and privacy state. */
+    TimetableDayCard(TimetableDay timetableDay, boolean isToday, ObservableBooleanValue privacyModeEnabled) {
         super(FXML);
         if (isToday) {
             getRoot().getStyleClass().add("timetable-today");
         }
         dayHeading.setText(formatDate(timetableDay.getDate()));
         timetableDay.getEntries().stream()
-                .map(TimetableEntryCard::new)
+                .map(entry -> new TimetableEntryCard(entry, privacyModeEnabled))
                 .map(TimetableEntryCard::getRoot)
                 .forEach(entriesContainer.getChildren()::add);
         emptyMessage.setVisible(timetableDay.getEntries().isEmpty());

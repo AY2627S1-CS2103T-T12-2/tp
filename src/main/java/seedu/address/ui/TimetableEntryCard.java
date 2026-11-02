@@ -3,6 +3,9 @@ package seedu.address.ui;
 import java.time.format.DateTimeFormatter;
 import java.util.stream.Collectors;
 
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ObservableBooleanValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Region;
@@ -25,11 +28,18 @@ public class TimetableEntryCard extends UiPart<Region> {
 
     /** Creates a card that displays the supplied timetable entry. */
     public TimetableEntryCard(TimetableEntry entry) {
+        this(entry, new SimpleBooleanProperty(false));
+    }
+
+    /** Creates a card that displays the supplied entry with the given privacy state. */
+    TimetableEntryCard(TimetableEntry entry, ObservableBooleanValue privacyModeEnabled) {
         super(FXML);
         time.setText(formatTimeRange(entry));
         subject.setText(entry.getLesson().getSubject().toString());
         students.setText(formatStudents(entry));
-        details.setText(entry.getLesson().getDetails().toString());
+        details.textProperty().bind(Bindings.createStringBinding(() ->
+                PersonCard.formatClassDetails(entry.getLesson().getDetails(), privacyModeEnabled.get()),
+                privacyModeEnabled));
         details.setVisible(true);
         details.setManaged(details.isVisible());
     }

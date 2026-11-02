@@ -56,6 +56,10 @@ public class PersonListPanel extends UiPart<Region> {
         personListView.refresh();
     }
 
+    BooleanProperty getPrivacyModeEnabledProperty() {
+        return privacyModeEnabled;
+    }
+
     /**
      * Custom {@code ListCell} that displays the graphics of a {@code Person} using a {@code PersonCard}.
      */
