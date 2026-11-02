@@ -4,6 +4,7 @@ import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS_ID;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_COST;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_LINK;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_STATUS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_SUBJECT;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
@@ -19,12 +20,14 @@ import seedu.address.logic.Messages;
 import seedu.address.logic.commands.ClassAddCommand;
 import seedu.address.logic.commands.ClassCommand;
 import seedu.address.logic.commands.ClassDeleteCommand;
+import seedu.address.logic.commands.ClassDetailsUpdate;
 import seedu.address.logic.commands.ClassEditCommand;
 import seedu.address.logic.commands.ClassEnrolCommand;
 import seedu.address.logic.commands.ClassListCommand;
 import seedu.address.logic.commands.ClassPaymentCommand;
 import seedu.address.logic.commands.ClassUnenrolCommand;
 import seedu.address.model.lesson.ClassId;
+import seedu.address.model.lesson.ClassMode;
 import seedu.address.model.lesson.Cost;
 import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
@@ -49,6 +52,16 @@ public class ClassCommandParserTest {
         assertParseSuccess(parser, " add sub/C++ Programming cost/30 c/Tuesday1800-1930",
                 new ClassAddCommand(new Subject("C++ Programming"), new Cost("30"),
                         new LessonTiming("Tuesday1800-1930")));
+        ClassDetailsUpdate details = new ClassDetailsUpdate(Optional.of(ClassMode.ONLINE),
+                Optional.of("https://meet.example.com/math"), Optional.of("Room 2"), Optional.of("Bring notes"));
+        assertParseSuccess(parser, " add sub/Math cost/30 c/Monday1800-1930 mode/online "
+                        + "link/https://meet.example.com/math location/Room 2 notes/Bring notes",
+                new ClassAddCommand(SUBJECT, new Cost("30"), TIMING, details));
+        ClassDetailsUpdate quotedDetails = new ClassDetailsUpdate(Optional.empty(), Optional.empty(),
+                Optional.of("Room sub/section 2"), Optional.of("Review cost/chapter 3"));
+        assertParseSuccess(parser, " add sub/Math cost/30 c/Monday1800-1930 "
+                        + "location/\"Room sub/section 2\" notes/\"Review cost/chapter 3\"",
+                new ClassAddCommand(SUBJECT, new Cost("30"), TIMING, quotedDetails));
         assertParseSuccess(parser, " edit id/c001 cost/35",
                 new ClassEditCommand(new ClassId("C001"), Optional.empty(),
                         Optional.of(new Cost("35")), Optional.empty()));
@@ -85,6 +98,16 @@ public class ClassCommandParserTest {
         assertParseSuccess(parser, " edit id/C001 sub/Physics cost/40 c/Tuesday1800-1930",
                 new ClassEditCommand(new ClassId("C001"), Optional.of(new Subject("Physics")),
                         Optional.of(new Cost("40")), Optional.of(new LessonTiming("Tuesday1800-1930"))));
+        assertParseSuccess(parser, " edit id/C001 notes/Bring notes",
+                new ClassEditCommand(new ClassId("C001"), Optional.empty(), Optional.empty(), Optional.empty(),
+                        new ClassDetailsUpdate(Optional.empty(), Optional.empty(), Optional.empty(),
+                                Optional.of("Bring notes"))));
+        ClassDetailsUpdate quotedDetails = new ClassDetailsUpdate(Optional.empty(), Optional.empty(),
+                Optional.of("Room sub/section 2"), Optional.of("Review cost/chapter 3"));
+        assertParseSuccess(parser, " edit id/C001 location/\"Room sub/section 2\" "
+                        + "notes/\"Review cost/chapter 3\"",
+                new ClassEditCommand(new ClassId("C001"), Optional.empty(), Optional.empty(), Optional.empty(),
+                        quotedDetails));
     }
 
     @Test
@@ -98,6 +121,8 @@ public class ClassCommandParserTest {
         assertParseFailure(parser, " edit id/C001 sub/Math!", Subject.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, " edit id/C001 cost/-1", Cost.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, " edit id/C001 c/Monday2000-1900", LessonTiming.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, " edit id/C001 link/first link/second",
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_LINK));
     }
 
     @Test

@@ -468,10 +468,11 @@ validation and inheritance; persistence remains `LogicManager`'s responsibility.
 `edit` accepts independent optional `gn/`, `gp/`, and `ge/` values, validated using the same guardian rules as `add`.
 The edit descriptor distinguishes omitted values (preserve existing data) from empty values (clear that field).
 Duplicate guardian prefixes are rejected before execution. Edited students retain their stable ID, enrolments and pin.
-Extra class-detail input is not supported by `edit`, `class enrol`, or `class edit`.
-Ordinary contact edits preserve guardian data. ID enrolments inherit class attributes;
-class edits preserve those attributes and payments. Unenrolling the last student retains the class
-and its metadata until the class itself is deleted.
+Extra class-detail input is not supported by `edit` or `class enrol`. Ordinary contact edits preserve guardian data,
+while ID enrolments inherit existing class attributes. `class edit` accepts independent `mode/`, `link/`, `location/`,
+and `notes/` updates; omitted fields retain their existing values, and switching to offline clears the meeting link.
+Associated enrolment IDs, agreed rates, and payment statuses are preserved. Unenrolling the last student retains the
+class and its metadata until the class itself is deleted.
 
 #### Storage and legacy migration
 
