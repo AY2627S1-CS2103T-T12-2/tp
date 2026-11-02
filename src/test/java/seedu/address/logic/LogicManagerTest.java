@@ -37,7 +37,6 @@ import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.PrivacyCommand;
 import seedu.address.logic.commands.TimetableCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
-import seedu.address.logic.parser.EditCommandParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
@@ -51,6 +50,7 @@ import seedu.address.model.lesson.Lesson;
 import seedu.address.model.lesson.LessonTiming;
 import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.lesson.Subject;
+import seedu.address.model.person.GuardianContact;
 import seedu.address.model.person.Person;
 import seedu.address.model.timetable.TimetableDay;
 import seedu.address.storage.JsonAddressBookStorage;
@@ -111,6 +111,13 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_clearWithArguments_throwsParseExceptionWithoutClearingData() throws Exception {
+        logic.execute("add n/Amy p/91234567 e/amy@example.com a/Somewhere");
+
+        assertParseException("clear 1", ClearCommand.MESSAGE_INVALID_ARGUMENTS);
+    }
+
+    @Test
     public void execute_commandExecutionError_throwsCommandException() {
         String deleteCommand = "delete 9";
         assertCommandException(deleteCommand, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
@@ -139,16 +146,66 @@ public class LogicManagerTest {
     }
 
     @Test
-    public void execute_unsupportedGuardianEditAfterAddress_preservesStudentAndSavedData() throws Exception {
+    public void execute_guardianEdits_preserveOtherFieldsAndPersist() throws Exception {
+        logic.execute("add n/Alice p/91234567 e/alice@example.com a/One"
+                + " gn/Mary gp/99999999 ge/mary@example.com"
+                + " sub/Math cost/30 c/Monday1800-1900");
+        logic.execute("class payment 1 id/C001 status/paid");
+        logic.execute("pin 1");
+        logic.execute("edit 1 a/One");
+        Person original = model.getAddressBook().getPersonList().getFirst();
+        assertEquals(new GuardianContact("Mary", "99999999", "mary@example.com"),
+                original.getGuardianContact());
+
+        String[][] edits = {
+            {"edit 1 gn/Mary-Anne", "Mary-Anne", "99999999", "mary@example.com"},
+            {"edit 1 gp/88888888", "Mary-Anne", "88888888", "mary@example.com"},
+            {"edit 1 ge/new@example.com", "Mary-Anne", "88888888", "new@example.com"},
+            {"edit 1 gn/", "", "88888888", "new@example.com"},
+            {"edit 1 gp/", "", "", "new@example.com"},
+            {"edit 1 ge/", "", "", ""},
+            {"edit 1 a/Two gn/New Guardian gp/77777777 ge/new@example.com",
+                "New Guardian", "77777777", "new@example.com"},
+            {"edit 1 gn/ gp/ ge/", "", "", ""}
+        };
+        for (String[] edit : edits) {
+            logic.execute(edit[0]);
+            Person updated = model.getAddressBook().getPersonList().getFirst();
+            assertEquals(new GuardianContact(edit[1], edit[2], edit[3]),
+                    updated.getGuardianContact());
+            assertEquals(original.getStudentId(), updated.getStudentId());
+            assertEquals(original.getName(), updated.getName());
+            assertEquals(original.getPhone(), updated.getPhone());
+            assertEquals(original.getEmail(), updated.getEmail());
+            assertEquals(original.getTags(), updated.getTags());
+            assertEquals(original.getEnrollments(), updated.getEnrollments());
+            assertEquals(original.isPinned(), updated.isPinned());
+            assertEquals(updated, storage.readAddressBook().orElseThrow().getPersonList().getFirst());
+        }
+        assertEquals("Two", model.getAddressBook().getPersonList().getFirst().getAddress().value);
+    }
+
+    @Test
+    public void execute_addGuardianDetailsToExistingStudent_persists() throws Exception {
+        logic.execute("add n/Alice p/91234567 e/alice@example.com a/One");
+        logic.execute("edit 1 gn/Mary gp/88888888 ge/mary@example.com");
+        Person updated = model.getAddressBook().getPersonList().getFirst();
+        assertEquals(new GuardianContact("Mary", "88888888", "mary@example.com"), updated.getGuardianContact());
+        assertEquals(updated, storage.readAddressBook().orElseThrow().getPersonList().getFirst());
+    }
+
+    @Test
+    public void execute_invalidGuardianEdits_preserveStudentAndSavedData() throws Exception {
         logic.execute("add n/Alice p/91234567 e/alice@example.com a/One gp/99999999");
         Person originalStudent = model.getAddressBook().getPersonList().getFirst();
         String originalJson = Files.readString(storage.getAddressBookFilePath());
-
-        assertParseException("edit 1 a/Two gp/88888888", EditCommandParser.MESSAGE_UNSUPPORTED_GUARDIAN_EDIT);
-
-        assertEquals(originalStudent, model.getAddressBook().getPersonList().getFirst());
-        assertEquals(originalJson, Files.readString(storage.getAddressBookFilePath()));
-        assertEquals(originalStudent, storage.readAddressBook().orElseThrow().getPersonList().getFirst());
+        for (String fields : List.of("gn/@Invalid", "gp/invalid", "ge/invalid",
+                "gn/Mary gp/invalid", "gn/Mary gn/Jane", "gp/88888888 gp/", "ge/ ge/new@example.com")) {
+            assertThrows(ParseException.class, () -> logic.execute("edit 1 a/Two " + fields));
+            assertEquals(originalStudent, model.getAddressBook().getPersonList().getFirst());
+            assertEquals(originalJson, Files.readString(storage.getAddressBookFilePath()));
+            assertEquals(originalStudent, storage.readAddressBook().orElseThrow().getPersonList().getFirst());
+        }
     }
 
     @Test

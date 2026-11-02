@@ -11,6 +11,9 @@ import seedu.address.model.Model;
 public class ClearCommand extends Command {
 
     public static final String COMMAND_WORD = "clear";
+    public static final String MESSAGE_USAGE = "Usage: clear";
+    public static final String MESSAGE_INVALID_ARGUMENTS =
+            "The clear command does not accept additional arguments.\n" + MESSAGE_USAGE;
     public static final String MESSAGE_SUCCESS = "All students, classes, and enrolments have been cleared.";
 
 

@@ -217,9 +217,8 @@ public class AttributesIntegrationTest {
     }
 
     @Test
-    public void newFields_areNotExposedThroughEditOrEnrol() {
-        for (String command : List.of("edit 1 gn/Mary", "edit 1 gp/99999999", "edit 1 ge/mary@example.com",
-                "edit 1 sub/Math c/Monday1800-1930 mode/online",
+    public void classDetails_areNotExposedThroughEditOrEnrol() {
+        for (String command : List.of("edit 1 sub/Math c/Monday1800-1930 mode/online",
                 "class enrol 1 sub/Math cost/30 c/Monday1800-1930 mode/online link/" + LINK,
                 "class details sub/Math c/Monday1800-1930 link/" + LINK)) {
             assertThrows(ParseException.class, () -> parser.parseCommand(command), command);

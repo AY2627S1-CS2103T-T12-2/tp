@@ -30,6 +30,7 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.person.GuardianContact;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -37,8 +38,6 @@ import seedu.address.model.tag.Tag;
  */
 public class EditCommandParser implements Parser<EditCommand> {
 
-    public static final String MESSAGE_UNSUPPORTED_GUARDIAN_EDIT =
-            "Guardian fields (gn/, gp/, ge/) cannot be changed with edit. Remove them and use a supported edit field.";
     public static final String MESSAGE_UNSUPPORTED_CLASS_EDIT =
             "Class fields cannot be changed with edit. Remove them and use a supported edit field.";
 
@@ -64,12 +63,6 @@ public class EditCommandParser implements Parser<EditCommand> {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditCommand.MESSAGE_USAGE), pe);
         }
 
-        for (Prefix guardianPrefix : List.of(PREFIX_GUARDIAN_NAME, PREFIX_GUARDIAN_PHONE, PREFIX_GUARDIAN_EMAIL)) {
-            if (argMultimap.getValue(guardianPrefix).isPresent()) {
-                throw new ParseException(MESSAGE_UNSUPPORTED_GUARDIAN_EDIT);
-            }
-        }
-
         for (Prefix classPrefix : List.of(PREFIX_SUBJECT, PREFIX_COST, PREFIX_CLASS, PREFIX_MODE, PREFIX_LINK,
                 PREFIX_LOCATION, PREFIX_NOTES, PREFIX_CLASS_ID, PREFIX_STATUS)) {
             if (argMultimap.getValue(classPrefix).isPresent()) {
@@ -77,7 +70,8 @@ public class EditCommandParser implements Parser<EditCommand> {
             }
         }
 
-        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS);
+        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS,
+                PREFIX_GUARDIAN_NAME, PREFIX_GUARDIAN_PHONE, PREFIX_GUARDIAN_EMAIL);
 
         EditPersonDescriptor editPersonDescriptor = new EditPersonDescriptor();
 
@@ -93,6 +87,16 @@ public class EditCommandParser implements Parser<EditCommand> {
         if (argMultimap.getValue(PREFIX_ADDRESS).isPresent()) {
             editPersonDescriptor.setAddress(ParserUtil.parseAddress(argMultimap.getValue(PREFIX_ADDRESS).get()));
         }
+        GuardianContact guardian = ParserUtil.parseGuardianContact(
+                argMultimap.getValue(PREFIX_GUARDIAN_NAME).orElse(""),
+                argMultimap.getValue(PREFIX_GUARDIAN_PHONE).orElse(""),
+                argMultimap.getValue(PREFIX_GUARDIAN_EMAIL).orElse(""));
+        argMultimap.getValue(PREFIX_GUARDIAN_NAME).ifPresent(value ->
+                editPersonDescriptor.setGuardianName(guardian.name()));
+        argMultimap.getValue(PREFIX_GUARDIAN_PHONE).ifPresent(value ->
+                editPersonDescriptor.setGuardianPhone(guardian.phone()));
+        argMultimap.getValue(PREFIX_GUARDIAN_EMAIL).ifPresent(value ->
+                editPersonDescriptor.setGuardianEmail(guardian.email()));
         parseTagsForEdit(argMultimap.getAllValues(PREFIX_TAG)).ifPresent(editPersonDescriptor::setTags);
 
         if (!editPersonDescriptor.isAnyFieldEdited()) {

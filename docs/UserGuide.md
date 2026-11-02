@@ -67,8 +67,8 @@ Subject searches are described in the [subject search guide](SubjectSearch.md).
   values such as student indexes must remain where the command format shows them, and a `find` search prefix must appear
   immediately after `find`. See the notes and locations section for the order-sensitive legacy handling of unquoted text.
 
-* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
-  For example, `help 123` is interpreted as `help`.
+* Extraneous parameters for some commands that take no parameters, such as `help`, `list`, and `exit`, are ignored.<br>
+  For example, `help 123` is interpreted as `help`. The `clear` command is an exception and rejects additional parameters.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </box>
@@ -213,10 +213,10 @@ The new student's guardian details and agreed rate are individual. Existing clas
 statuses are unchanged; the new enrolment starts unpaid.
 
 Mode and extra class details appear on student cards, class listings and timetable entries. They remain after the last
-student unenrols. `class delete id/CLASS_ID` removes the class and all its enrolments. `edit` does not accept guardian
-or class-detail fields; `class enrol` inherits existing class details. `class edit` can change the shared mode, link,
-location and notes while preserving enrolments, agreed rates and individual payment statuses. Use `list` to leave
-either read-only view before modifying data.
+student unenrols. `class delete id/CLASS_ID` removes the class and all its enrolments. `edit` supports guardian fields
+but does not accept class-detail fields; `class enrol` inherits existing class details. `class edit` can change the
+subject, default cost, schedule, shared mode, link, location and notes while preserving enrolments, agreed rates and
+individual payment statuses. Use `list` to leave either read-only view before modifying data.
 
 ### Adding a class: `class add`
 
@@ -420,11 +420,14 @@ The command box suggests the required index after you type `pin` or `unpin`.
 
 Edits an existing student.
 
-Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]... `
+Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]... [gn/GUARDIAN_NAME] [gp/GUARDIAN_PHONE] [ge/GUARDIAN_EMAIL]`
 
 * Edits the student at the specified `INDEX`. The index refers to the index number shown in the displayed student list. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
+* Guardian fields can be edited independently using the same [validation rules](#guardian-field-rules) as `add`.
+  Omitted fields retain their existing values. Use an empty `gn/`, `gp/`, or `ge/` to clear that guardian field;
+  `edit 1 gn/ gp/ ge/` removes all guardian contact information. Repeating any guardian prefix is rejected.
 * When editing tags, all of the student's existing tags are removed; adding tags is not cumulative.
 * To remove all of a student's tags, enter `t/` without a tag after it.
 * Quote the whole address if it contains prefix-like text, e.g. `edit 1 a/"Unit p/333"`. Unrecognised prefix-like
@@ -434,6 +437,8 @@ Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st student to be `91234567` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd student to be `Betsy Crower` and clears all existing tags.
 *  `edit 1 a/"Unit p/333"` Sets the address of the 1st student to the literal value `Unit p/333` without changing the phone number.
+* `edit 1 gn/Mary-Anne O'Connor gp/98765432` updates the guardian name and phone, keeping their email.
+* `edit 1 ge/` removes only the guardian email.
 
 ### Tagging students: `tag`
 
@@ -557,6 +562,8 @@ Deletes all student records, classes, and enrolments from TutEasy.
 
 Format: `clear`
 
+The `clear` command does not accept additional parameters. For example, `clear 1` is rejected and no data is deleted.
+
 ### Hiding contact details: `privacy`
 
 Privacy mode replaces the phone, email, address, and any non-empty guardian contact details on every student card with
@@ -586,7 +593,9 @@ Format: `exit`
 
 ### Saving the data
 
-TutEasy automatically saves data after every command. You do not need to save manually.
+TutEasy automatically saves after every successful command that changes student, class, or enrolment data. You do not
+need to save manually. Read-only commands such as `help`, `find`, `list`, `timetable`, `class list`, and `exit` do not
+rewrite the data file. The `privacy` command saves the preference without rewriting student or class data.
 
 ### Editing the data file
 
@@ -596,12 +605,16 @@ directory without deleting the originals or overwriting existing files beside th
 is elsewhere, copy it beside the JAR before launching. Advanced users are welcome to update data directly
 by editing that data file.
 
+See the [Configuration guide](Configuration.md) for the complete storage-path and legacy-file migration rules. Close
+TutEasy before editing its JSON files so that a later command cannot overwrite your manual changes with the data already
+loaded in memory.
+
 <box type="warning" seamless>
 
 **Caution:**
 If your changes make the data file invalid, TutEasy starts with no student or class data at the next run. The invalid
-file remains on disk until you run a successful command (TutEasy saves after every successful command). Back up the
-file before editing it.<br>
+file remains on disk until you run a successful data-modifying command. Read-only commands do not replace it. Back up
+the file before editing it.<br>
 Furthermore, certain edits can cause TutEasy to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </box>
 
@@ -624,7 +637,7 @@ containing that date.
 
 ## Known issues
 
-1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
+1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file beside the TutEasy JAR before running the application again.
 2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
 
 --------------------------------------------------------------------------------------------------------------------
@@ -643,7 +656,7 @@ Action     | Format, Examples
 **Delete class** | `class delete id/CLASS_ID` or `class delete sub/SUBJECT c/SCHEDULE`<br> e.g., `class delete id/C001`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
-**Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
+**Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... [gn/GUARDIAN_NAME] [gp/GUARDIAN_PHONE] [ge/GUARDIAN_EMAIL]`<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Tag**    | `tag INDEX TAG [MORE_TAGS]` or `tag STUDENT_INDEX [MORE_INDEXES] t/TAG`<br> e.g., `tag 3 exam-prep needs-follow-up`, `tag 1 3 5 t/math-2026`
 **Untag**  | `untag INDEX TAG [MORE_TAGS]` or `untag INDEX -all`<br> e.g., `untag 2 parent-follow-up`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`, `find t/TAG_KEYWORD [MORE_TAG_KEYWORDS]`, `find sub/SUBJECT_KEYWORD [MORE_SUBJECT_KEYWORDS]`, `find c/DAY [TIME_HHmm]`, `find c/TIME_HHmm`, or `find c/DATE [TIME_HHmm]`<br> e.g., `find Jam`, `find t/fri`, `find sub/Math Physics`, `find c/Mon 1800`, `find c/2026-10-20`

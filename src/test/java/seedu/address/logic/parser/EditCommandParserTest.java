@@ -24,6 +24,9 @@ import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_FRIEND;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_GUARDIAN_EMAIL;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_GUARDIAN_NAME;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_GUARDIAN_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
@@ -42,6 +45,7 @@ import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.GuardianContact;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
 import seedu.address.model.tag.Tag;
@@ -85,16 +89,65 @@ public class EditCommandParserTest {
     }
 
     @Test
-    public void parse_unsupportedGuardianFieldsAfterAddress_failure() {
-        assertParseFailure(parser, "1 a/Two gn/Mary", EditCommandParser.MESSAGE_UNSUPPORTED_GUARDIAN_EDIT);
-        assertParseFailure(parser, "1 a/Two  gp/88888888", EditCommandParser.MESSAGE_UNSUPPORTED_GUARDIAN_EDIT);
-        assertParseFailure(parser, "1 a/Two ge/mary@example.com",
-                EditCommandParser.MESSAGE_UNSUPPORTED_GUARDIAN_EDIT);
+    public void parse_individualGuardianFields_success() {
+        assertParseSuccess(parser, "1 gn/Mary-Anne O'Connor", new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withGuardianName("Mary-Anne O'Connor").build()));
+        assertParseSuccess(parser, "1 gp/88888888", new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withGuardianPhone("88888888").build()));
+        assertParseSuccess(parser, "1 ge/mary@example.com", new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withGuardianEmail("mary@example.com").build()));
     }
 
     @Test
-    public void parse_unsupportedGuardianFieldAlone_failure() {
-        assertParseFailure(parser, "1 gp/88888888", EditCommandParser.MESSAGE_UNSUPPORTED_GUARDIAN_EDIT);
+    public void parse_guardianFieldsWithStudentFields_success() {
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withAddress("Two")
+                .withGuardianName("Mary").withGuardianPhone("88888888")
+                .withGuardianEmail("mary@example.com").build();
+        assertParseSuccess(parser, "1 a/Two gn/Mary gp/88888888 ge/mary@example.com",
+                new EditCommand(INDEX_FIRST_PERSON, descriptor));
+        assertParseSuccess(parser, "1 ge/mary@example.com gn/Mary a/Two\tgp/88888888",
+                new EditCommand(INDEX_FIRST_PERSON, descriptor));
+    }
+
+    @Test
+    public void parse_clearGuardianFields_success() {
+        assertParseSuccess(parser, "1 gn/", new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withGuardianName("").build()));
+        assertParseSuccess(parser, "1 gp/", new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withGuardianPhone("").build()));
+        assertParseSuccess(parser, "1 ge/", new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withGuardianEmail("").build()));
+        assertParseSuccess(parser, "1 gn/ gp/ ge/", new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withGuardianName("").withGuardianPhone("")
+                        .withGuardianEmail("").build()));
+    }
+
+    @Test
+    public void parse_invalidGuardianFields_failure() {
+        for (String name : List.of("@Mary", "M".repeat(101))) {
+            assertParseFailure(parser, "1 gn/" + name, GuardianContact.MESSAGE_NAME_CONSTRAINTS);
+        }
+        for (String phone : List.of("12", "+6591234567", "abcd", "1".repeat(16))) {
+            assertParseFailure(parser, "1 gp/" + phone, "Guardian phone: " + Phone.MESSAGE_CONSTRAINTS);
+        }
+        for (String email : List.of("invalid", "mary@@example.com")) {
+            assertParseFailure(parser, "1 ge/" + email, "Guardian email: " + Email.MESSAGE_CONSTRAINTS);
+        }
+        assertParseFailure(parser, "1 gn/Mary gp/invalid ge/mary@example.com",
+                "Guardian phone: " + Phone.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
+    public void parse_duplicateGuardianPrefixes_failure() {
+        for (Prefix prefix : List.of(PREFIX_GUARDIAN_NAME, PREFIX_GUARDIAN_PHONE, PREFIX_GUARDIAN_EMAIL)) {
+            for (String values : List.of(" bad %svalid", " valid %sbad", " %s")) {
+                String input = "1 " + prefix + String.format(values, prefix);
+                assertParseFailure(parser, input, Messages.getErrorMessageForDuplicatePrefixes(prefix));
+            }
+        }
+        assertParseFailure(parser, "1 gn/Mary gp/88888888 ge/mary@example.com gn/ gp/ ge/",
+                Messages.getErrorMessageForDuplicatePrefixes(
+                        PREFIX_GUARDIAN_NAME, PREFIX_GUARDIAN_PHONE, PREFIX_GUARDIAN_EMAIL));
     }
 
     @Test
@@ -114,7 +167,6 @@ public class EditCommandParserTest {
     @Test
     public void parse_tabSeparatedUnsupportedFields_failure() {
         assertParseFailure(parser, "1 a/Two\tsub/Math", EditCommandParser.MESSAGE_UNSUPPORTED_CLASS_EDIT);
-        assertParseFailure(parser, "1 a/Two\tgp/88888888", EditCommandParser.MESSAGE_UNSUPPORTED_GUARDIAN_EDIT);
     }
 
     @Test
