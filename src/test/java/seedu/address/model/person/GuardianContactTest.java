@@ -27,11 +27,10 @@ public class GuardianContactTest {
         for (String name : java.util.List.of("Mary-Anne O'Connor", "O\u2019Connor", "Anne-Marie")) {
             assertEquals(name, new GuardianContact(name, "", "").name());
         }
-        for (String name : java.util.List.of(" ", "'", "-", "@Mary", "Mary\nTan", "Mary_Tan")) {
+        for (String name : java.util.List.of(" ", "'", "-", "@Mary", "Mary\nTan", "Mary_Tan", "Mary-")) {
             assertThrows(IllegalArgumentException.class, () -> new GuardianContact(name, "", ""));
         }
-        // Guardian validation is independent of the student-name rule.
-        assertFalse(Name.isValidName("Mary-Anne O'Connor"));
+        assertTrue(Name.isValidName("Mary-Anne O'Connor"));
     }
 
     @Test

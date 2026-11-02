@@ -102,8 +102,10 @@ and use only lowercase letters, numbers, and single hyphens between characters.
 | `sub/`, `cost/`, `c/` | Together, to enrol in a scheduled class | Subject, agreed rate and complete schedule. |
 | `mode/`, `link/`, `location/`, `notes/` | No | Extra details for the scheduled class supplied in the same command. |
 
-* Student names contain letters, digits and spaces, start with a letter or digit, and contain at most 100 characters.
-  Phone numbers contain only digits and have between 3 and 15 digits. Email addresses must follow the
+* Student names contain letters, digits, spaces, apostrophes and hyphens, start with a letter or digit, and contain at
+  most 100 characters. Apostrophes and hyphens must appear between name segments, e.g. `O'Connor` or `Anne-Marie`.
+  Phone numbers may start with `+` and use spaces, hyphens or parentheses, but must contain between 3 and 15 digits.
+  The entered phone formatting is retained. Email addresses must follow the
   [email rules below](#guardian-field-rules). Addresses may contain at most 500 characters. If an address contains
   prefix-like text, quote the whole value, e.g. `a/"Unit p/333"`. Inside a quoted address, use `\"` for a literal
   double quote and `\\` for a literal backslash. Unrecognised prefix-like text outside quotes is rejected as a likely
@@ -142,13 +144,13 @@ across restarts. Privacy mode masks them on student cards alongside the student'
 | Field | Rule for a non-empty value | Example |
 | --- | --- | --- |
 | `gn/` | At most 100 characters; starts with a letter or digit; contains only letters, digits, spaces, hyphens and apostrophes (`'` or `’`). | `gn/Mary-Anne O'Connor` |
-| `gp/` | Between 3 and 15 digits; no spaces, `+`, brackets or hyphens. | `gp/98765432` |
+| `gp/` | Between 3 and 15 digits; may start with `+` and use spaces, hyphens or parentheses. | `gp/+65 9123-4567` |
 | `ge/` | Uses the email rules below. | `ge/mary.oconnor@example.com` |
 
 Email rules, for both students and guardians:
 
 * An email address may contain at most 254 characters in total.
-* Use `local-part@domain`. The local part contains letters/digits and may use `+`, `_`, `.` or `-` between
+* Use `local-part@domain`. The local part contains letters/digits and may use `+`, `_`, `.`, `-` or `'` between
   alphanumeric groups; it cannot begin or end with punctuation or contain adjacent punctuation characters.
 * Domain labels are separated by dots. Each starts and ends with a letter/digit, with hyphens allowed between
   alphanumeric groups. The final label is at least two characters long. Spaces are not allowed.
