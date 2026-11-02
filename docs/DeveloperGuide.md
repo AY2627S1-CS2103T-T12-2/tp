@@ -421,10 +421,13 @@ stored balance from becoming stale after `class payment`, enrolment, unenrolment
 
 `AddCommandParser` requires student name, phone, email and address. `gn/`, `gp/` and `ge/` are independent optional
 guardian fields; `ParserUtil#parseGuardianContact` trims them and uses empty strings for omitted values.
-`GuardianContact` accepts names starting with a letter/digit and containing letters, digits, spaces, hyphens and
-straight/curly apostrophes. This rule is independent of the student `Name` validator. Non-empty guardian phones and
-emails use `Phone` and `Email` validation. Every supplied guardian field is checked even when the others are absent.
-Invalid values become parse errors before a command can change the model.
+For command input, `ParserUtil#parseGuardianContact` validates each non-empty guardian name with `Name#isValidName`:
+hyphens and straight/curly apostrophes must join alphanumeric name segments. The `GuardianContact` constructor retains
+the older, more permissive name rule so existing saved names such as `Mary - Anne` remain loadable. Changing another
+field preserves that saved name; a supplied replacement name must satisfy the current command rule. Non-empty guardian
+phones and emails use `Phone` and `Email` validation, including formatted phones and apostrophes in email local parts.
+Every supplied guardian field is checked even when the others are absent. Invalid values become parse errors before a
+command can change the model.
 
 New `add` commands accept either none of `sub/`, `cost/` and `c/`, or all three with a complete weekly or one-off
 schedule. An incomplete group, empty value or start-only schedule is rejected before command execution, preserving
@@ -452,8 +455,9 @@ referenced class through the central collection instead of copying shared class 
 associations while retaining their IDs, agreed rates, and payment statuses. Class listing, student cards, and timetable
 entries therefore display the current shared class values without duplicating them in each enrolment.
 
-`ClassDetailsUpdate` represents optional `add` input. It resolves classes from the class catalogue,
-including empty classes. New classes default to offline. An empty, undescribed catalogue class can
+`ClassDetailsUpdate` represents optional class details supplied through `add`, `class add`, and `class edit`.
+For student creation, its `forEnrolment` method resolves classes from the catalogue, including empty classes.
+The class commands apply its supplied fields to new or existing shared details. New classes default to offline. An empty, undescribed catalogue class can
 receive its extra details through its first student. For occupied classes or classes with recorded
 details, omitted input inherits shared values and conflicting explicit values fail before adding data.
 
@@ -590,6 +594,17 @@ canonical class ID and cost for each new `Enrollment`. Before changing the model
 index and the target class. It then skips selected students who are already enrolled and replaces only the remaining
 immutable `Person` objects. Invalid or duplicate indexes and a missing class leave every student unchanged. If all
 selected students are already enrolled, the command makes no changes and returns an informative message.
+
+### Lesson-search matching boundaries
+
+`LessonContainsKeywordsPredicate` matches weekday prefixes against a schedule's weekday. Exact-date searches compare
+against `LessonSchedule#getDate`, so they currently return one-off classes only, even when a weekly class occurs on
+that date. Time searches compare `HHmm` fragments against the start and end times; they do not test whether an instant
+falls inside the lesson interval. The User Guide describes these current limits.
+
+Subject search validates each whitespace-separated keyword as a subject value. A valid complete subject such as
+`Math (Advanced)` cannot be reused unchanged as a search query because `(Advanced)` fails the keyword's initial-character
+rule. Searching `Advanced` is supported.
 
 ### \[Proposed\] Undo/redo feature
 
@@ -1335,6 +1350,26 @@ subjects and Bob has one. `clear` deletes records, so never run this fixture set
 After a subject search, exit and relaunch the app. All remaining students and their enrolments should be present;
 the full student list should be displayed. Repeat `find sub/math` to check that saved class subjects remain searchable.
 
+### Editing guardian details
+
+Use a disposable student with `gn/Mary Tan gp/98765432 ge/mary@example.com`. Before each edit, find that student and
+use its current displayed index in place of `1`; successful edits return to the full list.
+
+| Test input | Expected result |
+| --- | --- |
+| `edit 1 gn/Mary-Anne O'Connor` | Only the guardian name changes; phone and email remain unchanged. |
+| `edit 1 gp/+65 9123-4567 ge/new@example.com` | Guardian phone and email change together; entered phone formatting is retained. |
+| `edit 1 gp/` | Only the guardian phone is cleared. |
+| `edit 1 gn/ gp/ ge/` | All guardian details are cleared; student contacts and enrolments remain unchanged. |
+| `edit 1 gn/Mary - Anne` | Invalid-name error; no data changes. |
+| `edit 1 a/New Address gp/invalid` | Invalid-phone error; neither the address nor guardian details change. |
+| `edit 1 gn/Mary gn/Jane` | Duplicate-prefix error; no data changes. Repeat for `gp/` and `ge/`. |
+| Edit guardian details with privacy enabled | Success feedback and the student card mask non-empty guardian details. |
+| Restart after editing or clearing guardian fields | The edited values, including cleared fields, remain saved. |
+
+For backward compatibility, the automated `JsonAdaptedPersonTest` verifies that a previously saved guardian name such
+as `Mary - Anne` still loads. The command parser rejects that same spelling when supplied as a new replacement name.
+
 ### Managing classes and individual enrolments
 
 Use at least two students. Replace `C001` below with the class ID reported by TutEasy if it differs.
@@ -1350,6 +1385,10 @@ Use at least two students. Replace `C001` below with the class ID reported by Tu
 | Repeat the previous enrolment | Already-enrolled feedback; no duplicate enrolment is created. |
 | `class unenrol 1 id/C001` | Student 1 is removed from the class; the independent class remains in `class list`. |
 | `class enrol 1 sub/Mathematics cost/40 c/Monday1800-1930` | Student 1 is enrolled with an agreed rate of 40. |
+| `class edit id/C001 mode/online link/https://meet.example.com/math location/"Room sub/section 2" notes/"Review cost/chapter 3"` | Shared details update for every enrolled student; quotes are removed and prefix-like text is retained literally. Class and enrolment IDs, agreed rates and payment statuses remain unchanged. |
+| `class edit id/C001 notes/` | Only the notes are cleared; the mode, meeting link and location remain unchanged. |
+| `class edit id/C001 mode/offline` | The mode changes and the meeting link is cleared; location, enrolments, agreed rates and payment statuses remain unchanged. |
+| `class edit id/C001 link/https://meet.example.com/math` while offline | Error; no class or enrolment data changes. |
 | `class delete id/C001` | The class and all of its enrolments are removed without deleting any student. |
 
 ### Timetable view
