@@ -79,8 +79,10 @@ public class EditCommandTest {
         UserPrefs userPrefs = new UserPrefs();
         userPrefs.setPrivacyModeEnabled(true);
         model = new ModelManager(new AddressBookBuilder().withPerson(person).build(), userPrefs);
-        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withTags(VALID_TAG_HUSBAND).build();
-        Person editedPerson = new PersonBuilder(person).withTags(VALID_TAG_HUSBAND).build();
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withTags(VALID_TAG_HUSBAND)
+                .withGuardianEmail("updated@example.com").build();
+        Person editedPerson = new PersonBuilder(person).withTags(VALID_TAG_HUSBAND)
+                .withGuardianContact("Mary Bee", "81234567", "updated@example.com").build();
 
         CommandResult commandResult = new EditCommand(INDEX_FIRST_PERSON, descriptor).execute(model);
 

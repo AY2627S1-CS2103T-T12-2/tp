@@ -37,6 +37,9 @@ public class EditPersonDescriptorBuilder {
         descriptor.setEmail(person.getEmail());
         descriptor.setAddress(person.getAddress());
         descriptor.setTags(person.getTags());
+        descriptor.setGuardianName(person.getGuardianContact().name());
+        descriptor.setGuardianPhone(person.getGuardianContact().phone());
+        descriptor.setGuardianEmail(person.getGuardianContact().email());
     }
 
     /**
@@ -78,6 +81,24 @@ public class EditPersonDescriptorBuilder {
     public EditPersonDescriptorBuilder withTags(String... tags) {
         Set<Tag> tagSet = Stream.of(tags).map(Tag::new).collect(Collectors.toSet());
         descriptor.setTags(tagSet);
+        return this;
+    }
+
+    /** Sets the guardian name to edit, including an empty value to clear it. */
+    public EditPersonDescriptorBuilder withGuardianName(String value) {
+        descriptor.setGuardianName(value);
+        return this;
+    }
+
+    /** Sets the guardian phone to edit, including an empty value to clear it. */
+    public EditPersonDescriptorBuilder withGuardianPhone(String value) {
+        descriptor.setGuardianPhone(value);
+        return this;
+    }
+
+    /** Sets the guardian email to edit, including an empty value to clear it. */
+    public EditPersonDescriptorBuilder withGuardianEmail(String value) {
+        descriptor.setGuardianEmail(value);
         return this;
     }
 

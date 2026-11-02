@@ -443,7 +443,10 @@ validation and inheritance; persistence remains `LogicManager`'s responsibility.
 
 <puml src="diagrams/AddStudentAttributesActivity.puml" width="550" />
 
-No guardian or extra class-detail input is added to `edit`, `class enrol`, or `class edit`.
+`edit` accepts independent optional `gn/`, `gp/`, and `ge/` values, validated using the same guardian rules as `add`.
+The edit descriptor distinguishes omitted values (preserve existing data) from empty values (clear that field).
+Duplicate guardian prefixes are rejected before execution. Edited students retain their stable ID, enrolments and pin.
+Extra class-detail input is not supported by `edit`, `class enrol`, or `class edit`.
 Ordinary contact edits preserve guardian data. ID enrolments inherit class attributes;
 class edits preserve those attributes and payments. Unenrolling the last student retains the class
 and its metadata until the class itself is deleted.
