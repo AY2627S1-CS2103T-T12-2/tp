@@ -41,6 +41,7 @@
   * [Documentation, logging, testing, dev-ops]({{ baseUrl }}/DeveloperGuide.html#documentation-logging-testing-dev-ops)
   * [Appendix: Requirements]({{ baseUrl }}/DeveloperGuide.html#appendix-requirements)
   * [Appendix: Instructions for manual testing]({{ baseUrl }}/DeveloperGuide.html#appendix-instructions-for-manual-testing)
+* [Configuration Guide]({{ baseUrl }}/Configuration.html)
 * [About Us]({{ baseUrl }}/AboutUs.html)
       </site-nav>
     </div>

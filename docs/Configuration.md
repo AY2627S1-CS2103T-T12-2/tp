@@ -14,8 +14,9 @@ Student data and preferences are stored beside the running JAR (or in the workin
 
 Application logs (`tuteasy.log`) remain relative to the working directory.
 
-On the first launch after upgrading, missing data and preference files are copied from the launch directory
-if present. Existing files beside the JAR are never overwritten, and the original files are retained.
+When the packaged application starts, missing data and preference files are copied from the launch directory if
+present. Existing files beside the JAR are never overwritten, and the original files are retained. If a required copy
+fails, startup stops rather than opening an unrelated empty data set.
 If your old data is elsewhere, copy it beside the JAR before launching. The status bar shows the absolute data path.
 
 The logging level is fixed at `INFO`. Changing these paths or the logging level requires updating the source code and

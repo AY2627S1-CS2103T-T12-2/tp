@@ -589,7 +589,9 @@ Format: `exit`
 
 ### Saving the data
 
-TutEasy automatically saves data after every command. You do not need to save manually.
+TutEasy automatically saves after every successful command that changes student, class, or enrolment data. You do not
+need to save manually. Read-only commands such as `help`, `find`, `list`, `timetable`, `class list`, and `exit` do not
+rewrite the data file. The `privacy` command saves the preference without rewriting student or class data.
 
 ### Editing the data file
 
@@ -599,12 +601,16 @@ directory without deleting the originals or overwriting existing files beside th
 is elsewhere, copy it beside the JAR before launching. Advanced users are welcome to update data directly
 by editing that data file.
 
+See the [Configuration guide](Configuration.md) for the complete storage-path and legacy-file migration rules. Close
+TutEasy before editing its JSON files so that a later command cannot overwrite your manual changes with the data already
+loaded in memory.
+
 <box type="warning" seamless>
 
 **Caution:**
 If your changes make the data file invalid, TutEasy starts with no student or class data at the next run. The invalid
-file remains on disk until you run a successful command (TutEasy saves after every successful command). Back up the
-file before editing it.<br>
+file remains on disk until you run a successful data-modifying command. Read-only commands do not replace it. Back up
+the file before editing it.<br>
 Furthermore, certain edits can cause TutEasy to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </box>
 
@@ -627,7 +633,7 @@ containing that date.
 
 ## Known issues
 
-1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
+1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file beside the TutEasy JAR before running the application again.
 2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
 
 --------------------------------------------------------------------------------------------------------------------
