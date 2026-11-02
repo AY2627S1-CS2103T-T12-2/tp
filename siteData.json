@@ -181,7 +181,10 @@
       "src": "index.md",
       "title": "",
       "headings": {
-        "tuteasy": "TutEasy"
+        "tuteasy": "TutEasy",
+        "private-tutoring-organised": "Private tutoring, organised",
+        "everything-a-private-tutor-needs-at-a-glance": "Everything a private tutor needs at a glance",
+        "built-for-a-fast-tutoring-workflow": "Built for a fast tutoring workflow"
       },
       "headingKeywords": {}
     },
