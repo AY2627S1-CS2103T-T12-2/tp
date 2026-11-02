@@ -214,18 +214,18 @@ statuses are unchanged; the new enrolment starts unpaid.
 
 Mode and extra class details appear on student cards, class listings and timetable entries. They remain after the last
 student unenrols. `class delete id/CLASS_ID` removes the class and all its enrolments. `edit` does not accept guardian
-or class-detail fields; `class enrol` inherits existing class details. `class edit` changes subject, default cost or
-schedule while preserving mode, link, location, notes and individual payment statuses. Use `list` to leave either
-read-only view before modifying data.
+or class-detail fields; `class enrol` inherits existing class details. `class edit` can change the shared mode, link,
+location and notes while preserving enrolments, agreed rates and individual payment statuses. Use `list` to leave
+either read-only view before modifying data.
 
 ### Adding a class: `class add`
 
 Creates a class independently of any student. TutEasy assigns a stable class ID such as `C001`; IDs remain unchanged
 when a class is edited and are not reused after deletion.
 
-Format: `class add sub/SUBJECT cost/COST c/SCHEDULE`
+Format: `class add sub/SUBJECT cost/COST c/SCHEDULE [mode/online|offline] [link/URL] [location/LOCATION] [notes/NOTES]`
 
-Example: `class add sub/Physics cost/35 c/Wednesday1800-1930`
+Example: `class add sub/Physics cost/35 c/Wednesday1800-1930 mode/offline location/Room 2`
 
 Classes cannot share the same subject and timing, and overlapping class times are rejected.
 
@@ -245,12 +245,17 @@ Updates a class while retaining its stable ID and enrolments. Supply at least on
 existing students' agreed rates are preserved, and the new shared details appear for every enrolled student. Changing
 `cost/` changes the default rate offered to future enrolments; it does not rewrite existing agreed rates.
 
-Format: `class edit id/CLASS_ID [sub/SUBJECT] [cost/COST] [c/SCHEDULE]`
+Format: `class edit id/CLASS_ID [sub/SUBJECT] [cost/COST] [c/SCHEDULE] [mode/online|offline] [link/URL] [location/LOCATION] [notes/NOTES]`
 
 Examples:
 
 * `class edit id/C001 cost/40`
 * `class edit id/C001 sub/Advanced Math c/Tuesday1800-1930`
+* `class edit id/C001 mode/offline location/Room 2 notes/Bring worksheet`
+
+Omitted fields keep their existing values. An empty `link/`, `location/` or `notes/` clears that field. Switching to
+offline automatically clears the meeting link; a non-empty link is valid only in online mode. The field rules are the
+same as those described under [class mode, link, location and notes](#class-mode-link-location-and-notes).
 
 ### Enrolling students in a class: `class enrol`
 

@@ -63,6 +63,14 @@ public class ClassAttributesIntegrationTest {
     }
 
     @Test
+    public void classAdd_acceptsIndependentSharedDetails() throws Exception {
+        execute("class add" + MATH + " mode/offline location/Room 2 notes/Bring notes");
+
+        assertEquals(new ClassDetails(ClassMode.OFFLINE, "", "Room 2", "Bring notes"),
+                model.getTuitionClassList().getFirst().getDetails());
+    }
+
+    @Test
     public void classEditAndIdEnrolment_preserveAttributesAndSeparatePayments() throws Exception {
         addAlice();
         execute("add n/Bob p/81234567 e/bob@example.com a/Two gp/88888888");
@@ -82,6 +90,33 @@ public class ClassAttributesIntegrationTest {
         assertEquals(PaymentStatus.UNPAID, bob.getLessons().iterator().next().getPaymentStatus());
         assertEquals("88888888", bob.getGuardianContact().phone());
         assertEquals(DETAILS, model.getTuitionClassList().getFirst().getDetails());
+    }
+
+    @Test
+    public void classEdit_updatesIndependentDetailsAndModeWithoutChangingEnrolments() throws Exception {
+        addAlice();
+        execute("add n/Bob p/81234567 e/bob@example.com a/Two");
+        execute("class payment 1 id/C001 status/paid");
+        execute("class enrol 2 id/C001");
+
+        execute("class edit id/C001 notes/Bring calculator");
+        ClassDetails notesEdited = new ClassDetails(ClassMode.ONLINE, LINK, "Room 2", "Bring calculator");
+        assertEquals(notesEdited, model.getTuitionClassList().getFirst().getDetails());
+
+        execute("class edit id/C001 mode/offline location/Room 3");
+        ClassDetails offline = new ClassDetails(ClassMode.OFFLINE, "", "Room 3", "Bring calculator");
+        assertEquals(offline, model.getTuitionClassList().getFirst().getDetails());
+        for (var person : model.getAddressBook().getPersonList()) {
+            assertEquals(offline, person.getLessons().iterator().next().getDetails());
+            assertEquals("30", person.getLessons().iterator().next().getCost().toString());
+        }
+
+        execute("class edit id/C001 mode/online link/" + LINK);
+        ClassDetails onlineAgain = new ClassDetails(ClassMode.ONLINE, LINK, "Room 3", "Bring calculator");
+        assertEquals(onlineAgain, model.getTuitionClassList().getFirst().getDetails());
+        assertEquals(PaymentStatus.PAID, firstLesson().getPaymentStatus());
+        assertEquals(PaymentStatus.UNPAID, model.getAddressBook().getPersonList().get(1)
+                .getLessons().iterator().next().getPaymentStatus());
     }
 
     @Test
