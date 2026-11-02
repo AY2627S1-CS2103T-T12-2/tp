@@ -67,8 +67,8 @@ Subject searches are described in the [subject search guide](SubjectSearch.md).
   values such as student indexes must remain where the command format shows them, and a `find` search prefix must appear
   immediately after `find`. See the notes and locations section for the order-sensitive legacy handling of unquoted text.
 
-* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
-  For example, `help 123` is interpreted as `help`.
+* Extraneous parameters for some commands that take no parameters, such as `help`, `list`, and `exit`, are ignored.<br>
+  For example, `help 123` is interpreted as `help`. The `clear` command is an exception and rejects additional parameters.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </box>
@@ -551,6 +551,8 @@ class catalogue, even if a class no longer has any enrolled students; use `class
 Deletes all student records, classes, and enrolments from TutEasy.
 
 Format: `clear`
+
+The `clear` command does not accept additional parameters. For example, `clear 1` is rejected and no data is deleted.
 
 ### Hiding contact details: `privacy`
 
