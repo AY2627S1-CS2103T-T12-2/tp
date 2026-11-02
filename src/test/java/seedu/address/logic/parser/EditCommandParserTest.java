@@ -94,6 +94,8 @@ public class EditCommandParserTest {
                 new EditPersonDescriptorBuilder().withGuardianName("Mary-Anne O'Connor").build()));
         assertParseSuccess(parser, "1 gp/88888888", new EditCommand(INDEX_FIRST_PERSON,
                 new EditPersonDescriptorBuilder().withGuardianPhone("88888888").build()));
+        assertParseSuccess(parser, "1 gp/+65 9123-4567", new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withGuardianPhone("+65 9123-4567").build()));
         assertParseSuccess(parser, "1 ge/mary@example.com", new EditCommand(INDEX_FIRST_PERSON,
                 new EditPersonDescriptorBuilder().withGuardianEmail("mary@example.com").build()));
     }
@@ -127,7 +129,7 @@ public class EditCommandParserTest {
         for (String name : List.of("@Mary", "M".repeat(101))) {
             assertParseFailure(parser, "1 gn/" + name, GuardianContact.MESSAGE_NAME_CONSTRAINTS);
         }
-        for (String phone : List.of("12", "+6591234567", "abcd", "1".repeat(16))) {
+        for (String phone : List.of("12", "65+91234567", "abcd", "1".repeat(16))) {
             assertParseFailure(parser, "1 gp/" + phone, "Guardian phone: " + Phone.MESSAGE_CONSTRAINTS);
         }
         for (String email : List.of("invalid", "mary@@example.com")) {
