@@ -259,8 +259,12 @@ public class ParserUtil {
 
     /** Parses optional guardian details, allowing empty fields to clear them. */
     public static GuardianContact parseGuardianContact(String name, String phone, String email) throws ParseException {
+        String trimmedName = name.trim();
+        if (!trimmedName.isEmpty() && !Name.isValidName(trimmedName)) {
+            throw new ParseException(GuardianContact.MESSAGE_NAME_CONSTRAINTS);
+        }
         try {
-            return new GuardianContact(name.trim(), phone.trim(), email.trim());
+            return new GuardianContact(trimmedName, phone.trim(), email.trim());
         } catch (IllegalArgumentException e) {
             throw new ParseException(e.getMessage(), e);
         }

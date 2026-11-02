@@ -44,6 +44,10 @@ public class EmailTest {
         assertFalse(Email.isValidEmail("peter@jack@example.com")); // '@' symbol in local part
         assertFalse(Email.isValidEmail("-peterjack@example.com")); // local part starts with a hyphen
         assertFalse(Email.isValidEmail("peterjack-@example.com")); // local part ends with a hyphen
+        assertFalse(Email.isValidEmail("'peterjack@example.com")); // local part starts with an apostrophe
+        assertFalse(Email.isValidEmail("peterjack'@example.com")); // local part ends with an apostrophe
+        assertFalse(Email.isValidEmail("peter''jack@example.com")); // adjacent apostrophes
+        assertFalse(Email.isValidEmail("peter'.jack@example.com")); // adjacent punctuation
         assertFalse(Email.isValidEmail("peter..jack@example.com")); // local part has two consecutive periods
         assertFalse(Email.isValidEmail("peterjack@example@com")); // '@' symbol in domain name
         assertFalse(Email.isValidEmail("peterjack@.example.com")); // domain name starts with a period
@@ -57,6 +61,8 @@ public class EmailTest {
         assertTrue(Email.isValidEmail("PeterJack.1190@example.com")); // period in local part
         assertTrue(Email.isValidEmail("PeterJack+1190@example.com")); // '+' symbol in local part
         assertTrue(Email.isValidEmail("PeterJack-1190@example.com")); // hyphen in local part
+        assertTrue(Email.isValidEmail("o'connor@example.com")); // apostrophe in local part
+        assertTrue(Email.isValidEmail("d'arcy-smith@example.com")); // apostrophe with other punctuation
         assertTrue(Email.isValidEmail("a@bc")); // minimal
         assertTrue(Email.isValidEmail("test@localhost")); // alphabets only
         assertTrue(Email.isValidEmail("123@145")); // numeric local part and domain name

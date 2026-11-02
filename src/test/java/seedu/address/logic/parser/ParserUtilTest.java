@@ -18,13 +18,14 @@ import seedu.address.model.lesson.ClassId;
 import seedu.address.model.lesson.PaymentStatus;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.GuardianContact;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
 import seedu.address.model.tag.Tag;
 
 public class ParserUtilTest {
     private static final String INVALID_NAME = "R@chel";
-    private static final String INVALID_PHONE = "+651234";
+    private static final String INVALID_PHONE = "65+1234";
     private static final String INVALID_ADDRESS = " ";
     private static final String INVALID_EMAIL = "example.com";
     private static final String INVALID_TAG = "#friend";
@@ -118,6 +119,18 @@ public class ParserUtilTest {
         String phoneWithWhitespace = WHITESPACE + VALID_PHONE + WHITESPACE;
         Phone expectedPhone = new Phone(VALID_PHONE);
         assertEquals(expectedPhone, ParserUtil.parsePhone(phoneWithWhitespace));
+    }
+
+    @Test
+    public void parsePhone_formattedValue_preservesInternalFormatting() throws Exception {
+        String formattedPhone = "+65 9123-4567";
+        assertEquals(formattedPhone, ParserUtil.parsePhone(WHITESPACE + formattedPhone + WHITESPACE).value);
+    }
+
+    @Test
+    public void parseGuardianContact_legacyOnlyName_throwsParseException() {
+        assertThrows(ParseException.class, GuardianContact.MESSAGE_NAME_CONSTRAINTS, () ->
+                ParserUtil.parseGuardianContact("Mary - Anne", "", ""));
     }
 
     @Test

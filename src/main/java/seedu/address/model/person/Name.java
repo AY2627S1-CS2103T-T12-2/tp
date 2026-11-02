@@ -13,14 +13,16 @@ public class Name {
 
     public static final int MAX_LENGTH = 100;
     public static final String MESSAGE_CONSTRAINTS =
-            "Names should only contain alphanumeric characters and spaces, should not be blank, "
-                    + "and should not exceed " + MAX_LENGTH + " characters";
+            "Names should only contain alphanumeric characters, spaces, apostrophes and hyphens, "
+                    + "with punctuation between alphanumeric characters. Names should not be blank or exceed "
+                    + MAX_LENGTH + " characters";
 
     /*
-     * The first character of the name must not be a whitespace,
-     * otherwise " " (a blank string) becomes a valid input.
+     * Each apostrophe or hyphen must join alphanumeric name segments. Repeated and trailing spaces remain accepted
+     * for compatibility; ParserUtil trims spaces supplied through commands.
      */
-    public static final String VALIDATION_REGEX = "[\\p{Alnum}][\\p{Alnum} ]*";
+    public static final String VALIDATION_REGEX =
+            "[\\p{Alnum}]+(?:['’\\-][\\p{Alnum}]+)*(?: +[\\p{Alnum}]+(?:['’\\-][\\p{Alnum}]+)*)* *";
 
     public final String fullName;
 
