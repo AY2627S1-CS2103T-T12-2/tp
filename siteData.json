@@ -223,6 +223,17 @@
         "contributions-to-team-based-tasks": "Contributions to team-based tasks"
       },
       "headingKeywords": {}
+    },
+    {
+      "src": "team/yanzhu.md",
+      "title": "Yanzhu's Project Portfolio Page",
+      "headings": {
+        "yanzhu-s-project-portfolio-page": "Yanzhu's Project Portfolio Page",
+        "project-tuteasy": "Project: TutEasy",
+        "features-and-enhancements": "Features and enhancements",
+        "documentation-and-testing": "Documentation and testing"
+      },
+      "headingKeywords": {}
     }
   ]
 }
