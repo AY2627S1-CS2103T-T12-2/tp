@@ -34,12 +34,14 @@ testing, and documentation layers.
   * Designed a deterministic colour palette that gives the same logical class a consistent colour across students.
   * Sorted displayed classes consistently and updated the FXML, CSS, Developer Guide, User Guide, and UI tests.
 
-* **Persistent pinning:** Implemented `pin` and `unpin` end to end, including commands, parsers, model ordering, JSON
-  persistence, command suggestions, a visual `PINNED` badge, documentation, and tests
-  ([#99](https://github.com/AY2627S1-CS2103T-T12-2/tp/pull/99)).
+* **Pin feature:** Implemented `pin` and `unpin` end to end so tutors can keep frequently accessed students at the top
+  of the student list ([#99](https://github.com/AY2627S1-CS2103T-T12-2/tp/pull/99)).
+  * Added commands, parsers, model ordering, JSON persistence, command suggestions, a visual `PINNED` badge,
+    documentation, and tests.
   * Ensured pin state survives edits and application restarts while remaining backward compatible with older data.
-  * Fixed search-order regressions so pinned students stay first without losing relevance ordering or stable ordering
-    for ties ([#150](https://github.com/AY2627S1-CS2103T-T12-2/tp/pull/150),
+  * Integrated pin ordering with filtered search results and fixed regressions so pinned students remain first without
+    losing relevance ordering or stable ordering for ties
+    ([#150](https://github.com/AY2627S1-CS2103T-T12-2/tp/pull/150),
     [#205](https://github.com/AY2627S1-CS2103T-T12-2/tp/pull/205)).
 
 * **Privacy mode:** Implemented the persistent `privacy on|off` feature across the logic, model, user-preference
