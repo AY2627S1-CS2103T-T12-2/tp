@@ -23,6 +23,8 @@ public class PrivacyCommandTest {
 
         assertCommandSuccess(new PrivacyCommand(true), model,
                 PrivacyCommand.MESSAGE_PRIVACY_MODE_ENABLED, expectedModel);
+        assertEquals(PrivacyCommand.MESSAGE_PRIVACY_MODE_ALREADY_ENABLED,
+                new PrivacyCommand(true).execute(model).getFeedbackToUser());
         assertTrue(model.isPrivacyModeEnabled());
     }
 
@@ -33,6 +35,8 @@ public class PrivacyCommandTest {
 
         assertCommandSuccess(new PrivacyCommand(false), model,
                 PrivacyCommand.MESSAGE_PRIVACY_MODE_DISABLED, expectedModel);
+        assertEquals(PrivacyCommand.MESSAGE_PRIVACY_MODE_ALREADY_DISABLED,
+                new PrivacyCommand(false).execute(model).getFeedbackToUser());
         assertFalse(model.isPrivacyModeEnabled());
     }
 

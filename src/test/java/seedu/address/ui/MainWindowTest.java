@@ -29,6 +29,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
@@ -38,9 +39,17 @@ import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.ModelManager;
+import seedu.address.model.lesson.ClassDetails;
+import seedu.address.model.lesson.ClassId;
+import seedu.address.model.lesson.Cost;
+import seedu.address.model.lesson.Lesson;
+import seedu.address.model.lesson.LessonTiming;
+import seedu.address.model.lesson.Subject;
+import seedu.address.model.lesson.TuitionClass;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.timetable.TimetableDay;
+import seedu.address.model.timetable.TimetableEntry;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -71,17 +80,23 @@ public class MainWindowTest {
     @Test
     public void privacyCommands_updateExistingCardsAndStatusIndicator() throws Exception {
         runOnFxThread(() -> {
+            ClassDetails classDetails = new ClassDetails("https://example.com/math", "Room 2", "Bring notes");
+            Lesson lesson = new Lesson(new Subject("Math"), new Cost("30"),
+                    new LessonTiming("Monday1800-1930")).withDetails(classDetails);
             Person person = new PersonBuilder().withPhone("91234567")
-                    .withEmail("student@example.com").withAddress("123 Privacy Street").build();
+                    .withEmail("student@example.com").withAddress("123 Privacy Street")
+                    .withLessons(lesson).build();
             TestLogic logic = new TestLogic(person);
             Stage stage = new Stage();
             MainWindow mainWindow = new MainWindow(stage, logic, Path.of("data", "addressbook.json"));
             mainWindow.fillInnerParts();
+            stage.show();
 
             PersonListPanel.PersonListViewCell cell = createPersonCell(mainWindow, person);
             Label phone = getCardLabel(cell, "phone");
             Label email = getCardLabel(cell, "email");
             Label address = getCardLabel(cell, "address");
+            Label classDetailsLabel = (Label) cell.getGraphic().lookup(".enrolled-class-details");
             Label privacyStatus = (Label) stage.getScene().lookup("#privacyStatus");
             TextField commandTextField = (TextField) stage.getScene().lookup("#commandTextField");
 
@@ -99,6 +114,15 @@ public class MainWindowTest {
             assertEquals("Phone: " + PersonCard.PRIVACY_MASK, phone.getText());
             assertEquals("Email: " + PersonCard.PRIVACY_MASK, email.getText());
             assertEquals("Address: " + PersonCard.PRIVACY_MASK, address.getText());
+            assertEquals("Link: " + PersonCard.PRIVACY_MASK + " | Location: " + PersonCard.PRIVACY_MASK
+                    + " | Notes: Bring notes", classDetailsLabel.getText());
+
+            execute(commandTextField, "timetable");
+            stage.getScene().getRoot().applyCss();
+            stage.getScene().getRoot().layout();
+            Label timetableDetails = (Label) stage.getScene().lookup("#details");
+            assertEquals("Mode: Online | Link: " + PersonCard.PRIVACY_MASK + " | Location: "
+                    + PersonCard.PRIVACY_MASK + " | Notes: Bring notes", timetableDetails.getText());
 
             execute(commandTextField, "privacy off");
 
@@ -107,6 +131,15 @@ public class MainWindowTest {
             assertEquals("91234567", phone.getText());
             assertEquals("student@example.com", email.getText());
             assertEquals("123 Privacy Street", address.getText());
+            assertEquals(classDetails.toString(), timetableDetails.getText());
+
+            execute(commandTextField, "class list");
+            stage.getScene().getRoot().applyCss();
+            stage.getScene().getRoot().layout();
+            Text classListDetails = (Text) stage.getScene().lookup("#details");
+            execute(commandTextField, "privacy on");
+            assertEquals("Mode: Online | Link: " + PersonCard.PRIVACY_MASK + " | Location: "
+                    + PersonCard.PRIVACY_MASK + " | Notes: Bring notes", classListDetails.getText());
 
             stage.close();
         });
@@ -219,6 +252,12 @@ public class MainWindowTest {
             switch (commandText) {
                 case "privacy on" -> privacyModeEnabled = true;
                 case "privacy off" -> privacyModeEnabled = false;
+                case "timetable" -> {
+                    return new CommandResult("Timetable opened.", CommandResult.ViewChange.TIMETABLE);
+                }
+                case "class list" -> {
+                    return new CommandResult("Classes opened.", CommandResult.ViewChange.CLASS_LIST);
+                }
                 default -> throw new ParseException("Unsupported test command");
             }
             return new CommandResult("Privacy mode updated.");
@@ -236,7 +275,16 @@ public class MainWindowTest {
 
         @Override
         public List<TimetableDay> getTimetable(LocalDate anchorDate) {
-            return List.of();
+            Person person = persons.getFirst();
+            return List.of(new TimetableDay(anchorDate, List.of(
+                    new TimetableEntry(person.getLessons().iterator().next(), List.of(person)))));
+        }
+
+        @Override
+        public ObservableList<TuitionClass> getTuitionClassList() {
+            Lesson lesson = persons.getFirst().getLessons().iterator().next();
+            return FXCollections.observableArrayList(new TuitionClass(new ClassId("C001"), lesson.getSubject(),
+                    lesson.getCost(), lesson.getSchedule(), lesson.getDetails()));
         }
 
         @Override

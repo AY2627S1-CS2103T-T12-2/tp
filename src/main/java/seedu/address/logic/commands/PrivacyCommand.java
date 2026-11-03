@@ -19,6 +19,8 @@ public class PrivacyCommand extends Command {
 
     public static final String MESSAGE_PRIVACY_MODE_ENABLED = "Privacy mode is now enabled.";
     public static final String MESSAGE_PRIVACY_MODE_DISABLED = "Privacy mode is now disabled.";
+    public static final String MESSAGE_PRIVACY_MODE_ALREADY_ENABLED = "Privacy mode is already enabled.";
+    public static final String MESSAGE_PRIVACY_MODE_ALREADY_DISABLED = "Privacy mode is already disabled.";
 
     private final boolean privacyModeEnabled;
 
@@ -29,6 +31,11 @@ public class PrivacyCommand extends Command {
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
+        if (model.isPrivacyModeEnabled() == privacyModeEnabled) {
+            return new CommandResult(privacyModeEnabled
+                    ? MESSAGE_PRIVACY_MODE_ALREADY_ENABLED
+                    : MESSAGE_PRIVACY_MODE_ALREADY_DISABLED);
+        }
         model.setPrivacyModeEnabled(privacyModeEnabled);
         return new CommandResult(privacyModeEnabled
                 ? MESSAGE_PRIVACY_MODE_ENABLED
