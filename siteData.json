@@ -42,6 +42,7 @@
       "headings": {
         "tuteasy-developer-guide": "TutEasy Developer Guide",
         "acknowledgements": "Acknowledgements",
+        "notable-uses-of-ai": "Notable uses of AI",
         "setting-up-getting-started": "Setting up, getting started",
         "design": "Design",
         "architecture": "Architecture",
@@ -195,6 +196,18 @@
       "title": "John Doe's Project Portfolio Page",
       "headings": {
         "project-addressbook-level-3": "Project: AddressBook Level 3"
+      },
+      "headingKeywords": {}
+    },
+    {
+      "src": "team/slytherax.md",
+      "title": "Laxshan's Project Portfolio Page",
+      "headings": {
+        "laxshan-s-project-portfolio-page": "Laxshan's Project Portfolio Page",
+        "project-tuteasy": "Project: TutEasy",
+        "features-and-enhancements": "Features and enhancements",
+        "documentation": "Documentation",
+        "team-contributions-and-release-work": "Team contributions and release work"
       },
       "headingKeywords": {}
     }
