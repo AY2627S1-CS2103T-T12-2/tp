@@ -143,7 +143,7 @@ across restarts. Privacy mode masks them on student cards alongside the student'
 
 | Field | Rule for a non-empty value | Example |
 | --- | --- | --- |
-| `gn/` | At most 100 characters; starts with a letter or digit; contains only letters, digits, spaces, hyphens and apostrophes (`'` or `’`). | `gn/Mary-Anne O'Connor` |
+| `gn/` | At most 100 characters; contains letters, digits, spaces, hyphens and apostrophes (`'` or `’`). Starts with a letter or digit; each hyphen or apostrophe must join alphanumeric name segments. | `gn/Mary-Anne O'Connor` |
 | `gp/` | Between 3 and 15 digits; may start with `+` and use spaces, hyphens or parentheses. | `gp/+65 9123-4567` |
 | `ge/` | Uses the email rules below. | `ge/mary.oconnor@example.com` |
 
@@ -156,7 +156,9 @@ Email rules, for both students and guardians:
   alphanumeric groups. The final label is at least two characters long. Spaces are not allowed.
 
 For example, `add n/Bob Tan p/81234567 e/bob@example.com a/Jurong gp/89999999` creates a student with only a
-guardian phone. Guardian name punctuation is supported independently of the student-name rule.
+guardian phone. New or edited guardian names follow the same punctuation rules as student names:
+`Mary-Anne` and `O'Connor` are accepted, while `Mary - Anne` and `Mary-` are rejected. Previously saved guardian names
+accepted by older versions remain loadable without being rewritten; a replacement name must follow the current rules.
 
 #### Class mode, link, location and notes
 
@@ -513,6 +515,8 @@ Formats:
   such as `find sub/Computer Science` also matches Environmental Science through `Science`. Subject results place
   pinned matches first and retain original address-book order within each pin group; they do not use relevance scoring.
   Use one `sub/` prefix with non-empty keywords, without name text or `t/`/`c/` in the same command.
+  For a subject such as `Math (Advanced)`, search with `find sub/Advanced`; copying the full subject into
+  `find sub/Math (Advanced)` is rejected because the second keyword starts with punctuation.
   Invalid input keeps the previous results. See the [subject-search guide](SubjectSearch.md) for examples and details.
 * With `t/`, the search considers only tags. Stored tags use lowercase, but tag search keywords are case-insensitive
   for input convenience, e.g. `find t/PRI` matches `priority`.
@@ -520,6 +524,9 @@ Formats:
 * With `c/`, search by lesson day, exact date, time, or a supported combination. Days accept full names or prefixes,
   e.g. `Monday` or `Mon`. Exact dates use `yyyy-MM-dd`. Times use HHmm style from `0000` to `2359`, e.g. `1800`;
   shorter fragments such as `18` are accepted for partial matching.
+  Exact-date searches currently match only one-off classes on that date; use a weekday search for recurring classes.
+  Time searches match the start or end time text, rather than every time within the class duration. For example,
+  a class at `Monday1700-1800` matches `find c/1700` and `find c/1800`, but not `find c/1730`.
 * An empty search, empty `t/` or `c/` value, or invalid tag or lesson keyword is rejected with an error. The current
   displayed results remain unchanged.
 * Name and tag searches return students matching at least one keyword. Matching pinned students are shown before
@@ -649,9 +656,9 @@ containing that date.
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 **Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... [gn/GUARDIAN_NAME] [gp/GUARDIAN_PHONE] [ge/GUARDIAN_EMAIL] [sub/SUBJECT cost/COST c/SCHEDULE [mode/online\|offline] [link/URL] [location/LOCATION] [notes/NOTES]]` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/Clementi sub/Math cost/30 c/Thursday1400-1530`
-**Add class** | `class add sub/SUBJECT cost/COST c/SCHEDULE`<br> e.g., `class add sub/Physics cost/35 c/Wednesday1700-1830`
+**Add class** | `class add sub/SUBJECT cost/COST c/SCHEDULE [mode/online\|offline] [link/URL] [location/LOCATION] [notes/NOTES]`<br> e.g., `class add sub/Physics cost/35 c/Wednesday1700-1830`
 **List classes** | `class list`
-**Edit class** | `class edit id/CLASS_ID [sub/SUBJECT] [cost/COST] [c/SCHEDULE]`<br> e.g., `class edit id/C001 cost/40`
+**Edit class** | `class edit id/CLASS_ID [sub/SUBJECT] [cost/COST] [c/SCHEDULE] [mode/online\|offline] [link/URL] [location/LOCATION] [notes/NOTES]`<br> e.g., `class edit id/C001 cost/40`
 **Enrol in class** | `class enrol STUDENT_INDEX id/CLASS_ID`<br>or `class enrol STUDENT_INDEX [STUDENT_INDEX]... sub/SUBJECT c/SCHEDULE`<br>or `class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/SCHEDULE`<br> e.g., `class enrol 1 3 5 sub/Physics c/Wednesday1700-1830`, `class enrol 1 sub/Physics cost/35 c/Wednesday1700-1830`
 **Unenrol from class** | `class unenrol STUDENT_INDEX id/CLASS_ID` or `class unenrol STUDENT_INDEX sub/SUBJECT c/SCHEDULE`<br> e.g., `class unenrol 1 id/C001`
 **Update payment status** | `class payment STUDENT_INDEX id/CLASS_ID status/paid\|unpaid` or `class payment STUDENT_INDEX sub/SUBJECT c/SCHEDULE status/paid\|unpaid`<br> e.g., `class payment 1 id/C001 status/paid`
