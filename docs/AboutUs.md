@@ -16,9 +16,10 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 <img src="images/wenyiliangg.png" width="200px">
 
 [[github](https://github.com/wenyiliangg)]
+[[portfolio](team/wenyiliangg.md)]
 
 * Role: Developer
-* Responsibilities: Vibe coder
+* Responsibilities: Full-stack developer
 
 ### Yanzhu Chen
 

@@ -28,6 +28,10 @@ declaration below records the tools and extent of use confirmed by the named con
   documentation. Codex also assisted with Git workflows, commit messages, pull request descriptions, release notes,
   and the project portfolio page.
 
+* @wenyiliangg (Wen Yi Liang) used OpenAI Codex to inspect repository history and draft and refine documentation
+  updates, including the project portfolio page and AI-use acknowledgement. Codex also assisted with Git workflows and
+  commit message drafting. All generated documentation was reviewed against repository history before inclusion.
+
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Setting up, getting started**
