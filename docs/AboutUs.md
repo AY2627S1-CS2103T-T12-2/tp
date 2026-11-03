@@ -55,7 +55,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 <img src="images/purpleshark74.png" width="200px">
 
 [[github](http://github.com/purpleshark74)]
-[[portfolio](team/johndoe.md)]
+[[portfolio](team/purpleshark74.md)]
 
 * Role: Developer
 * Responsibilities: UI
