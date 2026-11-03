@@ -28,8 +28,8 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 [[github](http://github.com/yanzhu9)]
 [[portfolio](team/yanzhu.md)]
 
-* Role: Team Lead
-* Responsibilities: UI
+* Role: Developer
+* Responsibilities: Full-stack developer
 
 ### Aaron Leong
 
@@ -38,7 +38,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 [[github](http://github.com/aaronl248)]
 
 * Role: Developer
-* Responsibilities: Data
+* Responsibilities: Full-stack developer
 
 ### Laxshan
 
@@ -48,14 +48,14 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 [[portfolio](team/slytherax.md)]
 
 * Role: Developer
-* Responsibilities: Codex Specialist
+* Responsibilities: Full-stack developer
 
 ### Aarav Jayapalan 
 
 <img src="images/purpleshark74.png" width="200px">
 
 [[github](http://github.com/purpleshark74)]
-[[portfolio](team/johndoe.md)]
+[[portfolio](team/purpleshark74.md)]
 
 * Role: Developer
-* Responsibilities: UI
+* Responsibilities: Full-stack developer
