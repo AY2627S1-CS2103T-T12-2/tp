@@ -26,6 +26,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 <img src="images/yanzhu9.png" width="200px">
 
 [[github](http://github.com/yanzhu9)]
+[[portfolio](team/yanzhu.md)]
 
 * Role: Team Lead
 * Responsibilities: UI
