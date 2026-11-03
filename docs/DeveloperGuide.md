@@ -309,8 +309,9 @@ prefixes, empty prefixed values, and invalid tag or lesson keywords before const
 For tag search, it normalizes keywords to lowercase before tag-format validation. This keeps stored tags lowercase-only
 while allowing case-insensitive search input for user convenience.
 Lesson keywords accept a weekday/prefix such as `Mon`, an HHmm-style time within `0000`-`2359`, or both; shorter
-numeric fragments such as `18` are accepted for partial matching. An exact ISO date such as `2026-10-20` matches a
-one-off schedule, while a weekday search also matches one-off schedules occurring on that weekday.
+numeric fragments such as `18` are accepted for partial matching. An exact ISO date such as `2026-10-20` matches
+both one-off schedules on that date and recurring schedules that occur on that weekday. Complete four-digit times
+match inclusively within a lesson's start and end times, while shorter fragments match the displayed boundary times.
 `FindCommandParserTest` covers empty and invalid search inputs, while `FindCommandTest` covers partial matching and
 result ranking. Parse failures occur before command construction, so the active filter remains unchanged.
 
@@ -590,14 +591,14 @@ selected students are already enrolled, the command makes no changes and returns
 
 ### Lesson-search matching boundaries
 
-`LessonContainsKeywordsPredicate` matches weekday prefixes against a schedule's weekday. Exact-date searches compare
-against `LessonSchedule#getDate`, so they currently return one-off classes only, even when a weekly class occurs on
-that date. Time searches compare `HHmm` fragments against the start and end times; they do not test whether an instant
-falls inside the lesson interval. The User Guide describes these current limits.
+`LessonContainsKeywordsPredicate` matches weekday prefixes against a schedule's weekday. Exact-date searches use
+`LessonSchedule#occursOn`, so both a one-off class on the date and a recurring class on its weekday match. Complete
+four-digit time searches test the inclusive interval from the lesson start through its end. Shorter numeric fragments
+retain partial matching against the formatted start and end times.
 
-Subject search validates each whitespace-separated keyword as a subject value. A valid complete subject such as
-`Math (Advanced)` cannot be reused unchanged as a search query because `(Advanced)` fails the keyword's initial-character
-rule. Searching `Advanced` is supported.
+Subject search validates the complete query as a subject value before splitting it into alternative matching keywords.
+This lets a valid complete subject such as `Math (Advanced)` be reused unchanged while preserving partial searches such
+as `Math` and `Advanced`.
 
 ### \[Proposed\] Undo/redo feature
 
@@ -1173,7 +1174,7 @@ Use students whose names, tags, subjects, weekly schedules, and one-off schedule
 | `find ali bob` | Students whose names partially match `ali` or `bob` appear. |
 | `find t/pri` | Students with a partially matching tag such as `priority` appear. |
 | `find c/Mon 1800` | Students with a Monday schedule containing `1800` appear. |
-| `find c/2026-10-20` | Students enrolled in a one-off class on that exact date appear. |
+| `find c/2026-10-20` | Students enrolled in a one-off class on that date or a recurring Tuesday class appear. |
 | `list` | The complete student list is restored. |
 
 ### Pinning and unpinning students

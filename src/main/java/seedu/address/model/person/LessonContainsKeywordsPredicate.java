@@ -2,6 +2,7 @@ package seedu.address.model.person;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
@@ -78,7 +79,7 @@ public class LessonContainsKeywordsPredicate implements ScoredPersonPredicate {
         LessonSchedule schedule = lesson.getSchedule();
         boolean dayMatches = dayKeyword.map(keyword -> dayMatches(schedule.getDay(), keyword)).orElse(true);
         boolean timeMatches = timeKeyword.map(keyword -> timeMatches(schedule, keyword)).orElse(true);
-        boolean dateMatches = dateKeyword.map(date -> schedule.getDate().filter(date::equals).isPresent()).orElse(true);
+        boolean dateMatches = dateKeyword.map(schedule::occursOn).orElse(true);
 
         if (!dayMatches || !timeMatches || !dateMatches) {
             return 0;
@@ -94,8 +95,13 @@ public class LessonContainsKeywordsPredicate implements ScoredPersonPredicate {
     }
 
     private boolean timeMatches(LessonSchedule schedule, String keyword) {
-        return schedule.getStartTime().format(TIME_FORMAT).contains(keyword)
-                || schedule.getEndTime().format(TIME_FORMAT).contains(keyword);
+        if (keyword.length() < 4) {
+            return schedule.getStartTime().format(TIME_FORMAT).contains(keyword)
+                    || schedule.getEndTime().format(TIME_FORMAT).contains(keyword);
+        }
+
+        LocalTime time = LocalTime.parse(keyword, TIME_FORMAT);
+        return !time.isBefore(schedule.getStartTime()) && !time.isAfter(schedule.getEndTime());
     }
 
     private int scoreLegacyLesson(String lesson) {

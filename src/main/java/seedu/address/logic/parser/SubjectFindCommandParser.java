@@ -44,10 +44,8 @@ public class SubjectFindCommandParser implements Parser<FindCommand> {
             logger.fine("Subject search rejected: no keywords.");
             throw new ParseException(MESSAGE_EMPTY_SUBJECT);
         }
+        ParserUtil.parseLessonSubject(subjectQuery);
         List<String> keywords = List.of(subjectQuery.split("\\s+"));
-        for (String keyword : keywords) {
-            ParserUtil.parseLessonSubject(keyword);
-        }
         logger.fine("Parsed subject search with " + keywords.size() + " keyword(s).");
         return new FindCommand(new SubjectContainsKeywordsPredicate(keywords));
     }

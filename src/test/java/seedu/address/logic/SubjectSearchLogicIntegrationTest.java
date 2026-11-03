@@ -72,6 +72,17 @@ public class SubjectSearchLogicIntegrationTest {
     }
 
     @Test
+    public void execute_parenthesizedSubjectSearch_returnsMatchingStudent() throws Exception {
+        Person advancedMathStudent = new PersonBuilder().withName("Carol")
+                .withLessons(lesson("Math (Advanced)")).build();
+        model.addPerson(advancedMathStudent);
+
+        logic.execute("find sub/Math (Advanced)");
+
+        assertEquals(List.of(alice, advancedMathStudent), logic.getFilteredPersonList());
+    }
+
+    @Test
     public void execute_invalidSubjectSearch_keepsExistingResultsAndSavedData() throws Exception {
         logic.execute("find sub/Physics");
         String savedData = Files.readString(storage.getAddressBookFilePath());
