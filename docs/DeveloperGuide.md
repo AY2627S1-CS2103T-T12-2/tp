@@ -17,6 +17,17 @@ TutEasy is based on the [AddressBook-Level3 project](https://se-education.org/ad
 [SE-EDU initiative](https://se-education.org). It uses JavaFX for its desktop interface, Jackson for JSON
 serialization, JUnit for testing, Gradle for builds, and MarkBind for this documentation site.
 
+### Notable uses of AI
+
+The TutEasy team used AI tools to assist with project development, including implementation, debugging, test
+development, preliminary code and pull request reviews, and documentation drafting and refinement. The individual
+declaration below records the tools and extent of use confirmed by the named contributor.
+
+* @Slytherax (Laxshan) used OpenAI Codex extensively to assist with code implementation and bug fixes, generating and
+  refining regression tests, investigating failures, reviewing pull requests, and drafting and updating project
+  documentation. Codex also assisted with Git workflows, commit messages, pull request descriptions, release notes,
+  and the project portfolio page.
+
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Setting up, getting started**
