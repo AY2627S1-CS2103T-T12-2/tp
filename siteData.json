@@ -192,6 +192,20 @@
       "headingKeywords": {}
     },
     {
+      "src": "team/aaron.md",
+      "title": "Aaron Leong's Project Portfolio Page",
+      "headings": {
+        "aaron-leong-s-project-portfolio-page": "Aaron Leong's Project Portfolio Page",
+        "project-tuteasy": "Project: TutEasy",
+        "summary-of-contributions": "Summary of contributions",
+        "features-and-enhancements": "Features and enhancements",
+        "reliability-and-validation-improvements": "Reliability and validation improvements",
+        "documentation-and-testing": "Documentation and testing",
+        "contributions-to-team-based-tasks": "Contributions to team-based tasks"
+      },
+      "headingKeywords": {}
+    },
+    {
       "src": "team/johndoe.md",
       "title": "John Doe's Project Portfolio Page",
       "headings": {
