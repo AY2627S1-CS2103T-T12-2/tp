@@ -28,6 +28,9 @@ declaration below records the tools and extent of use confirmed by the named con
   documentation. Codex also assisted with Git workflows, commit messages, pull request descriptions, release notes,
   and the project portfolio page.
 
+
+* @AaronL248 used OpenAI Codex to assist with implementing various features and resolve bugs. It was also used to generate regression tests, update related documentation, analyze pull-request feedback, resolve documentation merge conflicts, and address code-coverage gaps. The resulting changes were validated using the full automated test suite, Checkstyle, and Codecov.
+
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Setting up, getting started**
