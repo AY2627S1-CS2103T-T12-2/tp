@@ -27,6 +27,14 @@ declaration below records the tools and extent of use confirmed by the named con
   refining regression tests, investigating failures, reviewing pull requests, and drafting and updating project
   documentation. Codex also assisted with Git workflows, commit messages, pull request descriptions, release notes,
   and the project portfolio page.
+* @yanzhu9 (Yanzhu) used OpenAI Codex to assist with feature implementation and maintenance, debugging, writing and
+  refining regression tests, beta testing, and pull request reviews. Codex also assisted with drafting and updating
+  project documentation, Git workflows, commit messages, and pull request descriptions. Yanzhu reviewed and directed
+  AI-assisted suggestions before applying them.
+
+* @wenyiliangg (Wen Yi Liang) used OpenAI Codex to inspect repository history and draft and refine documentation
+  updates, including the project portfolio page and AI-use acknowledgement. Codex also assisted with Git workflows and
+  commit message drafting. All generated documentation was reviewed against repository history before inclusion.
 
 
 * @AaronL248 used OpenAI Codex to assist with implementing various features and resolve bugs. It was also used to generate regression tests, update related documentation, analyze pull-request feedback, resolve documentation merge conflicts, and address code-coverage gaps. The resulting changes were validated using the full automated test suite, Checkstyle, and Codecov.
