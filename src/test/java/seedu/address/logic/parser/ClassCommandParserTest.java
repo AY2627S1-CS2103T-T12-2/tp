@@ -1,5 +1,6 @@
 package seedu.address.logic.parser;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_CLASS_ID;
@@ -42,6 +43,19 @@ public class ClassCommandParserTest {
     private static final Lesson LESSON = new Lesson(SUBJECT, new Cost("30"), TIMING);
 
     private final ClassCommandParser parser = new ClassCommandParser();
+
+    @Test
+    public void messageUsage_includesAllSupportedClassFormats() {
+        assertTrue(ClassCommand.MESSAGE_USAGE.contains(
+                "class add sub/SUBJECT cost/COST c/SCHEDULE [mode/online|offline]"));
+        assertTrue(ClassCommand.MESSAGE_USAGE.contains(
+                "class edit id/CLASS_ID [sub/SUBJECT] [cost/COST] [c/SCHEDULE] [mode/online|offline]"));
+        assertTrue(ClassCommand.MESSAGE_USAGE.contains(
+                "class enrol STUDENT_INDEX [STUDENT_INDEX]... sub/SUBJECT c/SCHEDULE"));
+        assertTrue(ClassCommand.MESSAGE_USAGE.contains("class delete sub/SUBJECT c/SCHEDULE"));
+        assertTrue(ClassCommand.MESSAGE_USAGE.contains(
+                "class payment STUDENT_INDEX sub/SUBJECT c/SCHEDULE status/paid|unpaid"));
+    }
 
     @Test
     public void parse_newClassCommands_success() {

@@ -127,7 +127,7 @@ public class EditCommandParserTest {
     @Test
     public void parse_invalidGuardianFields_failure() {
         for (String name : List.of("@Mary", "M".repeat(101))) {
-            assertParseFailure(parser, "1 gn/" + name, GuardianContact.MESSAGE_NAME_CONSTRAINTS);
+            assertParseFailure(parser, "1 gn/" + name, GuardianContact.MESSAGE_COMMAND_NAME_CONSTRAINTS);
         }
         for (String phone : List.of("12", "65+91234567", "abcd", "1".repeat(16))) {
             assertParseFailure(parser, "1 gp/" + phone, "Guardian phone: " + Phone.MESSAGE_CONSTRAINTS);

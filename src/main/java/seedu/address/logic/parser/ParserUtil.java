@@ -261,7 +261,7 @@ public class ParserUtil {
     public static GuardianContact parseGuardianContact(String name, String phone, String email) throws ParseException {
         String trimmedName = name.trim();
         if (!trimmedName.isEmpty() && !Name.isValidName(trimmedName)) {
-            throw new ParseException(GuardianContact.MESSAGE_NAME_CONSTRAINTS);
+            throw new ParseException(GuardianContact.MESSAGE_COMMAND_NAME_CONSTRAINTS);
         }
         try {
             return new GuardianContact(trimmedName, phone.trim(), email.trim());
