@@ -508,13 +508,13 @@ Formats:
 
 * The search is case-insensitive; for example, `hans` matches `Hans`.
 * With no search prefix, the search considers only names. Choose one search category per command.
-* With `sub/`, any case-insensitive partial keyword may match an enrolled class subject. Each keyword must start with a
-  letter or digit, contain at most 100 characters, and may then contain letters, digits, `+`, `-`, `&`, apostrophes,
-  periods, or parentheses. Multiple keywords are
-  alternatives (OR): `find sub/physics chemistry` finds students taking either subject, once each. A multi-word query
-  such as `find sub/Computer Science` also matches Environmental Science through `Science`. Subject results place
+* With `sub/`, provide one non-empty query of at most 100 characters. The complete query must start with a letter or
+  digit. It may then contain letters, digits, spaces, `+`, `-`, `&`, apostrophes, periods, or parentheses. Its
+  whitespace-separated words are alternatives (OR): `find sub/physics chemistry` finds students taking either subject,
+  once each. A multi-word query such as `find sub/Computer Science` also matches Environmental Science through
+  `Science`. Subject results place
   pinned matches first and retain original address-book order within each pin group; they do not use relevance scoring.
-  Use one `sub/` prefix with non-empty keywords, without name text or `t/`/`c/` in the same command.
+  Use one `sub/` prefix without name text or `t/`/`c/` in the same command.
   A complete subject can be reused as the query, so `find sub/Math (Advanced)` is accepted. As with other multi-word
   queries, each word remains an alternative partial match.
   Invalid input keeps the previous results. See the [subject-search guide](SubjectSearch.md) for examples and details.
