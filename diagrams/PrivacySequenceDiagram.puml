@@ -28,9 +28,15 @@ MainWindow -> LogicManager : execute("privacy on")
 activate LogicManager
 LogicManager -> PrivacyCommand : execute(m)
 activate PrivacyCommand
-PrivacyCommand -> Model : setPrivacyModeEnabled(true)
+PrivacyCommand -> Model : isPrivacyModeEnabled()
 activate Model
-Model --> PrivacyCommand
+Model --> PrivacyCommand : current state
+alt state changes
+    PrivacyCommand -> Model : setPrivacyModeEnabled(true)
+    Model --> PrivacyCommand
+else already enabled
+    PrivacyCommand -> PrivacyCommand : return already-enabled feedback
+end
 deactivate Model
 PrivacyCommand --> LogicManager : CommandResult
 deactivate PrivacyCommand
@@ -50,6 +56,6 @@ PersonListPanel --> MainWindow
 deactivate PersonListPanel
 MainWindow -> StatusBarFooter : setPrivacyModeEnabled(true)
 StatusBarFooter --> MainWindow
-MainWindow --> Tutor : mask contact labels\nand show status indicator
+MainWindow --> Tutor : mask contacts, class links/locations,\nand show status indicator
 deactivate MainWindow
 @enduml
