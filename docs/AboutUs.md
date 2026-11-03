@@ -36,6 +36,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 <img src="images/aaronl248.png" width="200px">
 
 [[github](http://github.com/aaronl248)]
+[[portfolio](team/aaron.md)]
 
 * Role: Developer
 * Responsibilities: Full-stack developer
