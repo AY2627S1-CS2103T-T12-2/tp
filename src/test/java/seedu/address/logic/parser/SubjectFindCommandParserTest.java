@@ -22,6 +22,10 @@ public class SubjectFindCommandParserTest {
         FindCommand expected = new FindCommand(new SubjectContainsKeywordsPredicate(List.of("Math", "Physics")));
         assertParseSuccess(parser, "sub/Math Physics", expected);
         assertParseSuccess(parser, " \t sub/Math \n Physics \t ", expected);
+
+        FindCommand parenthesizedSubject = new FindCommand(
+                new SubjectContainsKeywordsPredicate(List.of("Math", "(Advanced)")));
+        assertParseSuccess(parser, "sub/Math (Advanced)", parenthesizedSubject);
     }
 
     @Test

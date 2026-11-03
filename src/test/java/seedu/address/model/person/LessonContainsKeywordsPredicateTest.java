@@ -92,11 +92,23 @@ public class LessonContainsKeywordsPredicateTest {
         predicate = new LessonContainsKeywordsPredicate(List.of("1930"));
         assertTrue(predicate.test(personWithClass("Math", "30", "Monday1800-1930")));
 
+        // Complete times match throughout the inclusive lesson duration
+        predicate = new LessonContainsKeywordsPredicate(List.of("1800"));
+        assertTrue(predicate.test(personWithClass("Math", "30", "Monday1800-1930")));
+        predicate = new LessonContainsKeywordsPredicate(List.of("1830"));
+        assertTrue(predicate.test(personWithClass("Math", "30", "Monday1800-1930")));
+        predicate = new LessonContainsKeywordsPredicate(List.of("Mon", "1830"));
+        assertTrue(predicate.test(personWithClass("Math", "30", "Monday1800-1930")));
+
         // One-off classes match their exact date, weekday, and time
         predicate = new LessonContainsKeywordsPredicate(List.of("2026-10-20"));
         assertTrue(predicate.test(personWithOneOffClass("2026-10-20T1800-1930")));
         predicate = new LessonContainsKeywordsPredicate(List.of("Tue", "1800"));
         assertTrue(predicate.test(personWithOneOffClass("2026-10-20T1800-1930")));
+
+        // Exact dates match both one-off and recurring schedules that occur on that date
+        predicate = new LessonContainsKeywordsPredicate(List.of("2026-11-02"));
+        assertTrue(predicate.test(personWithClass("Math", "30", "Monday1800-1930")));
     }
 
     @Test
@@ -130,8 +142,18 @@ public class LessonContainsKeywordsPredicateTest {
         predicate = new LessonContainsKeywordsPredicate(List.of("Monday", "2359"));
         assertFalse(predicate.test(personWithClass("Math", "30", "Monday1800-1930")));
 
+        // Complete times outside the lesson duration do not match
+        predicate = new LessonContainsKeywordsPredicate(List.of("1759"));
+        assertFalse(predicate.test(personWithClass("Math", "30", "Monday1800-1930")));
+        predicate = new LessonContainsKeywordsPredicate(List.of("1931"));
+        assertFalse(predicate.test(personWithClass("Math", "30", "Monday1800-1930")));
+
         predicate = new LessonContainsKeywordsPredicate(List.of("2026-10-21"));
         assertFalse(predicate.test(personWithOneOffClass("2026-10-20T1800-1930")));
+
+        // Recurring schedules on a different weekday do not match an exact-date search
+        predicate = new LessonContainsKeywordsPredicate(List.of("2026-11-03"));
+        assertFalse(predicate.test(personWithClass("Math", "30", "Monday1800-1930")));
     }
 
     @Test

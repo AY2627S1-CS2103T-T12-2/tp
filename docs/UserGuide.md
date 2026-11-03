@@ -508,15 +508,15 @@ Formats:
 
 * The search is case-insensitive; for example, `hans` matches `Hans`.
 * With no search prefix, the search considers only names. Choose one search category per command.
-* With `sub/`, any case-insensitive partial keyword may match an enrolled class subject. Each keyword must start with a
-  letter or digit, contain at most 100 characters, and may then contain letters, digits, `+`, `-`, `&`, apostrophes,
-  periods, or parentheses. Multiple keywords are
-  alternatives (OR): `find sub/physics chemistry` finds students taking either subject, once each. A multi-word query
-  such as `find sub/Computer Science` also matches Environmental Science through `Science`. Subject results place
+* With `sub/`, provide one non-empty query of at most 100 characters. The complete query must start with a letter or
+  digit. It may then contain letters, digits, spaces, `+`, `-`, `&`, apostrophes, periods, or parentheses. Its
+  whitespace-separated words are alternatives (OR): `find sub/physics chemistry` finds students taking either subject,
+  once each. A multi-word query such as `find sub/Computer Science` also matches Environmental Science through
+  `Science`. Subject results place
   pinned matches first and retain original address-book order within each pin group; they do not use relevance scoring.
-  Use one `sub/` prefix with non-empty keywords, without name text or `t/`/`c/` in the same command.
-  For a subject such as `Math (Advanced)`, search with `find sub/Advanced`; copying the full subject into
-  `find sub/Math (Advanced)` is rejected because the second keyword starts with punctuation.
+  Use one `sub/` prefix without name text or `t/`/`c/` in the same command.
+  A complete subject can be reused as the query, so `find sub/Math (Advanced)` is accepted. As with other multi-word
+  queries, each word remains an alternative partial match.
   Invalid input keeps the previous results. See the [subject-search guide](SubjectSearch.md) for examples and details.
 * With `t/`, the search considers only tags. Stored tags use lowercase, but tag search keywords are case-insensitive
   for input convenience, e.g. `find t/PRI` matches `priority`.
@@ -524,9 +524,10 @@ Formats:
 * With `c/`, search by lesson day, exact date, time, or a supported combination. Days accept full names or prefixes,
   e.g. `Monday` or `Mon`. Exact dates use `yyyy-MM-dd`. Times use HHmm style from `0000` to `2359`, e.g. `1800`;
   shorter fragments such as `18` are accepted for partial matching.
-  Exact-date searches currently match only one-off classes on that date; use a weekday search for recurring classes.
-  Time searches match the start or end time text, rather than every time within the class duration. For example,
-  a class at `Monday1700-1800` matches `find c/1700` and `find c/1800`, but not `find c/1730`.
+  Exact-date searches match one-off classes on that date and recurring classes whose weekday falls on that date.
+  A complete four-digit time matches any point in the class duration, including its start and end. For example,
+  a class at `Monday1700-1800` matches `find c/1700`, `find c/1730`, and `find c/1800`. Shorter time fragments
+  continue to match the displayed start or end time.
 * An empty search, empty `t/` or `c/` value, or invalid tag or lesson keyword is rejected with an error. The current
   displayed results remain unchanged.
 * Name and tag searches return students matching at least one keyword. Matching pinned students are shown before
@@ -541,8 +542,8 @@ Examples:
 * `find c/Monday` returns students with Monday lessons
 * `find c/1800` returns students with lessons containing `1800`
 * `find c/Mon 1800` returns students with Monday lessons containing `1800`
-* `find c/2026-10-20` returns students with a one-off lesson on 20 October 2026
-* `find c/2026-10-20 1800` additionally requires the one-off lesson to contain `1800`
+* `find c/2026-10-20` returns students with a one-off lesson on that date and recurring Tuesday lessons
+* `find c/2026-10-20 1800` additionally requires the lesson duration to contain `1800`
 * `find alex david` returns students whose names match `alex` or `david`
 
 The command box shows light-grey hints for common `find` inputs, such as `find`, the available search formats, the
