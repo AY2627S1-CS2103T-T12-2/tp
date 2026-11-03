@@ -214,6 +214,21 @@
       "headingKeywords": {}
     },
     {
+      "src": "team/purpleshark74.md",
+      "title": "Aarav Jayapalan's Project Portfolio Page",
+      "headings": {
+        "aarav-jayapalan-s-project-portfolio-page": "Aarav Jayapalan's Project Portfolio Page",
+        "overview": "Overview",
+        "summary-of-contributions": "Summary of Contributions",
+        "enhancements-implemented": "Enhancements implemented",
+        "contributions-to-the-user-guide": "Contributions to the User Guide",
+        "contributions-to-the-developer-guide": "Contributions to the Developer Guide",
+        "contributions-to-team-based-tasks": "Contributions to team-based tasks",
+        "review-and-integration-contributions": "Review and integration contributions"
+      },
+      "headingKeywords": {}
+    },
+    {
       "src": "team/slytherax.md",
       "title": "Laxshan's Project Portfolio Page",
       "headings": {
