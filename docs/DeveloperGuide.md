@@ -369,9 +369,10 @@ and end time. `TimetableEntry` removes duplicate students and orders their names
 `WeekRange` values and reload through the callback. Today always requests a fresh application date and projection, even
 when the same week remains selected. The current date is highlighted and scrolled to the top where possible; other weeks
 start at Sunday. `TimetableDayCard` displays the dated heading and empty state, while `TimetableEntryCard` displays a
-class's time, subject, and students. Entering `list` restores the existing student panel and normal command availability.
-`class list` returns a `CLASS_LIST` view change; `MainWindow` replaces the current panel with `ClassListPanel`, including
-when the timetable is open.
+class's time, subject, teaching mode, optional meeting link, location and notes, and naturally ordered students. A class
+with no enrolled students still receives an entry with an empty student list. Entering `list` restores the existing
+student panel and normal command availability. `class list` returns a `CLASS_LIST` view change; `MainWindow` replaces
+the current panel with `ClassListPanel`, including when the timetable is open.
 
 ### Independent class management
 
@@ -401,8 +402,9 @@ classes and students are not modified. A missing enrolment causes the command to
 `TimetableBuilder` and overlap detection group those projections by logical class identity, ensuring students with
 different agreed rates or payment statuses still appear in one class.
 
-`JsonAdaptedLesson` stores the status as `paymentStatus`. A missing property is interpreted as `UNPAID`, while an
-unrecognised value is rejected as invalid data.
+`JsonAdaptedLesson` stores the status as `paymentStatus`. For a legacy embedded lesson record, a missing property is
+interpreted as `UNPAID`; an unrecognised value is rejected. Canonical compact enrolment records require an explicit,
+recognised payment status, so a missing or invalid value makes the saved data invalid.
 
 The outstanding balance is derived rather than stored. `Person#getOutstandingBalance` sums the agreed rate of each
 enrolment whose status is `UNPAID`, excluding paid enrolments. Recomputing it from the immutable associations prevents a
@@ -850,8 +852,9 @@ Common preconditions for all use cases below: TutEasy is running and ready to ac
 
 * 5a. Saving fails.
 
-    * 5a1. TutEasy reports the storage error. Saving/rollback recovery is a separate persistence concern; validation
-      atomicity does not itself guarantee rollback after a storage failure.
+    * 5a1. TutEasy reports the storage error.
+    * 5a2. TutEasy restores the address book and displayed filter to their pre-command state, so no student or class
+      addition remains in memory.
 
       Use case ends.
 

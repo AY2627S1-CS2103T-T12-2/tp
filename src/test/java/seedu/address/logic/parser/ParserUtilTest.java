@@ -129,7 +129,7 @@ public class ParserUtilTest {
 
     @Test
     public void parseGuardianContact_legacyOnlyName_throwsParseException() {
-        assertThrows(ParseException.class, GuardianContact.MESSAGE_NAME_CONSTRAINTS, () ->
+        assertThrows(ParseException.class, GuardianContact.MESSAGE_COMMAND_NAME_CONSTRAINTS, () ->
                 ParserUtil.parseGuardianContact("Mary - Anne", "", ""));
     }
 

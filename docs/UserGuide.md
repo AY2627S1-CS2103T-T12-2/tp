@@ -368,9 +368,10 @@ Use **Previous week** and **Next week** to move exactly seven days at a time. Us
 date, return to its week, and reload the timetable. Today remains available even while the current week is displayed.
 The fixed header shows the selected range, for example `18–24 Oct 2026` or `27 Dec 2026 – 2 Jan 2027`.
 
-Each class entry shows its start and end time, subject, and all attending students. Classes are ordered by start time,
-then subject, then end time. Student names within a class are ordered alphabetically, ignoring case and comparing numbers naturally
-(for example, Student 2 precedes Student 10).
+Each class entry shows its start and end time, subject, teaching mode, any non-empty meeting link, location and notes,
+and all attending students. Independently created classes with no enrolled students still appear with an empty student
+list. Classes are ordered by start time, then subject, then end time. Student names within a class are ordered
+alphabetically, ignoring case and comparing numbers naturally (for example, Student 2 precedes Student 10).
 
 Weekly classes appear on their matching weekday. One-off classes appear only when their exact date falls within the
 selected week. Navigating between weeks does not change or save address-book data.

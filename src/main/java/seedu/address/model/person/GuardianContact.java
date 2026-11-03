@@ -14,6 +14,9 @@ public record GuardianContact(String name, String phone, String email) {
     public static final String MESSAGE_NAME_CONSTRAINTS = "Guardian names must start with a letter or digit "
             + "and contain only letters, digits, spaces, hyphens and apostrophes, and must not exceed "
             + MAX_NAME_LENGTH + " characters.";
+    public static final String MESSAGE_COMMAND_NAME_CONSTRAINTS = "Guardian names must start with a letter or digit, "
+            + "contain only letters, digits, spaces, hyphens and apostrophes, and place each hyphen or apostrophe "
+            + "between alphanumeric name segments. Names must not exceed " + MAX_NAME_LENGTH + " characters.";
     private static final String LEGACY_NAME_REGEX = "[\\p{Alnum}][\\p{Alnum} '\\u2019-]*";
 
     /** Creates a contact, retaining the previous name rules so saved contacts remain loadable. */

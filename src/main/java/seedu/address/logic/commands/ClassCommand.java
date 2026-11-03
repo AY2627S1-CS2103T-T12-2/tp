@@ -7,11 +7,18 @@ public abstract class ClassCommand extends Command {
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Manages classes and enrolments.\n"
             + "Subcommands:\n"
-            + "  class add sub/SUBJECT cost/COST c/SCHEDULE\n"
-            + "  class edit id/CLASS_ID [sub/SUBJECT] [cost/COST] [c/SCHEDULE]\n"
+            + "  class add sub/SUBJECT cost/COST c/SCHEDULE [mode/online|offline] [link/URL] "
+            + "[location/LOCATION] [notes/NOTES]\n"
+            + "  class edit id/CLASS_ID [sub/SUBJECT] [cost/COST] [c/SCHEDULE] [mode/online|offline] "
+            + "[link/URL] [location/LOCATION] [notes/NOTES]\n"
             + "  class list\n"
             + "  class enrol STUDENT_INDEX id/CLASS_ID\n"
+            + "  class enrol STUDENT_INDEX [STUDENT_INDEX]... sub/SUBJECT c/SCHEDULE\n"
+            + "  class enrol STUDENT_INDEX sub/SUBJECT cost/COST c/SCHEDULE\n"
             + "  class unenrol STUDENT_INDEX id/CLASS_ID\n"
+            + "  class unenrol STUDENT_INDEX sub/SUBJECT c/SCHEDULE\n"
             + "  class delete id/CLASS_ID\n"
-            + "  class payment STUDENT_INDEX id/CLASS_ID status/paid|unpaid";
+            + "  class delete sub/SUBJECT c/SCHEDULE\n"
+            + "  class payment STUDENT_INDEX id/CLASS_ID status/paid|unpaid\n"
+            + "  class payment STUDENT_INDEX sub/SUBJECT c/SCHEDULE status/paid|unpaid";
 }
