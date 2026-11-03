@@ -210,6 +210,19 @@
         "team-contributions-and-release-work": "Team contributions and release work"
       },
       "headingKeywords": {}
+    },
+    {
+      "src": "team/wenyiliangg.md",
+      "title": "Wen Yi Liang's Project Portfolio Page",
+      "headings": {
+        "wen-yi-liang-s-project-portfolio-page": "Wen Yi Liang's Project Portfolio Page",
+        "project-tuteasy": "Project: TutEasy",
+        "summary-of-contributions": "Summary of contributions",
+        "enhancements-implemented": "Enhancements implemented",
+        "documentation-contributions": "Documentation contributions",
+        "contributions-to-team-based-tasks": "Contributions to team-based tasks"
+      },
+      "headingKeywords": {}
     }
   ]
 }
