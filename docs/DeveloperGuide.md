@@ -34,11 +34,14 @@ declaration below records the tools and extent of use confirmed by the named con
   AI-assisted suggestions before applying them.
 
 * @wenyiliangg (Wen Yi Liang) used OpenAI Codex to inspect repository history and draft and refine documentation
-  updates, including the project portfolio page and AI-use acknowledgement. Codex also assisted with Git workflows and
+  updates, including the project portfolio page and AI-use acknowledgement. Codex also assisted with Git workflows andgit fetch upstream master
   commit message drafting. All generated documentation was reviewed against repository history before inclusion.
 
 * @AaronL248 (Aaron) used OpenAI Codex to assist with implementing various features and resolving bugs. 
-  It was also used to generate regression tests, update related documentation, analyze pull-request feedback, review pull-resquests, resolve documentation merge conflicts, and address code-coverage gaps. The resulting changes were validated using the full automated test suite, Checkstyle, and Codecov.
+  It was also used to generate regression tests, update related documentation, analyze pull-request feedback, review pull-resquests, resolve documentation merge conflicts, and address code-coverage gaps. The resulting changes were validated using the full automated test suite, Checkstyle, and Codecov. Suggestions and generated changes were reviewed and adapted before use.
+
+* @purpleshark74 (Aarav): Codex was used to support the development of the weekly timetable view and 
+  timetable-overlap warnings, diagnosing and fixing issues involving address parsing, command validation, enrolment messages, and timetable note truncation. It was also used it to test the application against the User and Developer Guides and to refine documentation, UML diagrams, release notes, and the product landing page. All suggestions and generated changes were reviewed and adapted before use.
 
 --------------------------------------------------------------------------------------------------------------------
 
